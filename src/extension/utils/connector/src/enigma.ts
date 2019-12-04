@@ -1,7 +1,9 @@
+import * as vscode from "vscode";
 import { create } from 'enigma.js';
 import schema from 'enigma.js/schemas/12.20.0.json';
-import { QlikConnector, QlikApp } from './connector';
+import { QlikConnector } from './connector';
 import WebSocket from "ws";
+import { Route, ActivatedRoute } from "../../router";
 
 export interface ResultAppCreated {
     qSuccess: boolean;
@@ -16,54 +18,73 @@ export interface EnigmaConfiguration {
     secure: boolean;
 }
 
+enum Action {
+    DOCLIST = 'doclist',
+    SCRIPT  = 'app_script'
+}
+
+const routes: Route[] = [{
+    path: "/docker",
+    action: Action.DOCLIST
+}, {
+    path: "/docker/:app",
+    action: Action.SCRIPT
+}, {
+    path: "/docker/:app/script",
+    action: Action.DOCLIST
+}];
+
+declare type FSEntry = [string, vscode.FileType];
+
 /**
  * opens connection through EngineAPI
  */
-export class EnigmaConnector implements QlikConnector {
+export class EnigmaConnector extends QlikConnector {
 
     private connection: EngineAPI.IGlobal;
 
     constructor(
         private configuration: EnigmaConfiguration
-    ) {}
-
-    createApp(name: string): Thenable<EngineAPI.IApp> {
-        throw new Error("Method not implemented.");
+    ) {
+        super(routes);
     }
 
-    deleteApp(id: string): Thenable<void> {
-        throw new Error("Method not implemented.");
-    }
+    protected async loadContent(activatedRoute: ActivatedRoute): Promise<FSEntry[]> {
 
-    async readAppList(): Promise<QlikApp[]> {
+        switch (activatedRoute.action) {
+            case Action.DOCLIST: 
+                return await this.loadDoclistAction();
 
-        if (!this.connection) {
-            await this.establishConnection();
+            case Action.SCRIPT:
+                return await this.getAppScript(activatedRoute.params.app);
         }
 
-        /** handle wrong typeings, cast to any and then to list of doc list entries */
-        const docList: EngineAPI.IDocListEntry[] = await this.connection.getDocList() as any;
-        return docList.map<QlikApp>((entry) => ({
-            id: entry.qDocId,
-            name: entry.qDocName,
-            script: ""
-        }));
+        return [];
     }
 
-    readScript(appId: string): Thenable<string> {
-        throw new Error("Method not implemented.");
+    private async getAppScript(app: string): Promise<FSEntry[]> {
+
+        const connection = await this.getConnection();
+        const session    = await connection.openDoc(app);
+        const script     = await session.getScript();
+
+        const scriptFile = new Buffer(script, "utf8");
+
+        return [];
     }
 
-    writeScript(appId: string, script: string): Thenable<boolean> {
-        throw new Error("Method not implemented.");
-    }
+    private async getConnection(): Promise<EngineAPI.IGlobal> {
 
-    private async establishConnection(): Promise<EngineAPI.IGlobal> {
+        if (this.connection) {
+            return this.connection;
+        }
+
         const session = create({
             schema,
             url: this.buildUri(),
             createSocket: (url: string) => new WebSocket(url),
         });
+
         this.connection = await session.open();
         return this.connection;
     }
@@ -74,5 +95,15 @@ export class EnigmaConnector implements QlikConnector {
         const protocol = this.configuration.secure ? "wss" : "ws";
 
         return `${protocol}://${domain}:${port}`;
+    }
+
+    private async loadDoclistAction(): Promise<FSEntry[]> {
+        const connection = await this.getConnection();
+        const docList: EngineAPI.IDocListEntry[] = await connection.getDocList() as any;
+
+        /** map doclist to array */
+        return docList.map((entry) => {
+            return [entry.qDocName, vscode.FileType.Directory]
+        });
     }
 }

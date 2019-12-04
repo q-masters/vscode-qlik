@@ -1,3 +1,7 @@
+import * as vscode from "vscode";
+import { Route, Router, ActivatedRoute } from "../../router";
+import { posix } from "path";
+
 export interface QlikApp {
 
     id: string;
@@ -7,15 +11,36 @@ export interface QlikApp {
     script: string;
 }
 
-export interface QlikConnector {
+export interface RouteConfig {
+    path: string;
+    action?: string;
+    provider?: any;
+    children?: RouteConfig[];
+}
 
-    createApp(name: string): Thenable<EngineAPI.IApp>;
+export abstract class QlikConnector {
 
-    deleteApp(id: string): Thenable<void>;
+    private router: Router;
 
-    readAppList(): Promise<QlikApp[]>;
+    public constructor(routes: Route[]) {
+        this.router = Router.getInstance();
+        this.router.addRoutes(routes);
+    }
 
-    readScript(appId: string): Thenable<string>;
+    public async exec(uri: vscode.Uri, fs: vscode.FileSystemProvider): Promise<[string, vscode.FileType][] | void> {
+        const route = this.router.parse(uri);
+        if (route) {
+            const content = await this.loadContent(route);
 
-    writeScript(appId: string, script: string): Thenable<boolean>;
+            /** register new content in file system */
+            content.forEach((entry) => {
+                const entryPath = posix.resolve(uri.path, entry[0]);
+                fs.createDirectory(uri.with({path: entryPath}));
+            });
+
+            return content;
+        }
+    }
+
+    protected abstract loadContent(data: ActivatedRoute): Promise<[string, vscode.FileType][]>;
 }

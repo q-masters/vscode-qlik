@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { posix } from "path";
-import { QlikConnector } from "../../connector";
+import { QlikConnector } from "./connector";
 
 /** 
  * script is a file
@@ -43,6 +43,8 @@ export class Directory implements vscode.FileStat {
 
     entries: Map<string, Directory | File>;
 
+    dataSource: QlikConnector | undefined;
+
     public constructor(name: string) {
         this.type = vscode.FileType.Directory;
         this.ctime = Date.now();
@@ -51,44 +53,7 @@ export class Directory implements vscode.FileStat {
         this.name = name;
         this.entries = new Map();
     }
-
-    public async read(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
-        const result: [string, vscode.FileType][] = [];
-        this.entries.forEach((entry) => result.push([entry.name, entry.type]));
-        return result;
-    }
 }
-
-class QlikDirectory extends Directory {
-
-    constructor(
-        name: string, 
-        private connector: QlikConnector
-    ) {
-        super(name);
-    }
-
-    public async read(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
-
-        const result: [string, vscode.FileType][] = [];
-
-        /** will only works if this is a root directory */
-        const appList = await this.connector.readAppList();
-
-        appList.forEach((app) => {
-            /** müsst vermutlich ein type zurück geben File oder Directory */
-            result.push([app.name, vscode.FileType.Directory]);
-            this.entries.set(app.name, new Directory(app.name));
-        });
-
-        /** 
-         * in dem moment muss ich die verzeichnisse hinzufügen
-         */
-
-        return result;
-    }
-}
-
 
 /** 
  * Qix File System
@@ -100,6 +65,8 @@ export class QixFS implements vscode.FileSystemProvider {
     private root = new Directory('');
 
     private emitter: vscode.EventEmitter<vscode.FileChangeEvent[]>;
+
+    private sourceRoutes: Map<string, QlikConnector> = new Map();
 
     /**
      * construct new Qix file system
@@ -116,29 +83,41 @@ export class QixFS implements vscode.FileSystemProvider {
         return new vscode.Disposable(() => { });
     }
 
+    /**
+     * das muss was zurück geben ansonsten klappts nicht
+     */
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
-        const source = this.findDirectoryByPath(uri.path);
-        if (!(source instanceof Directory)) {
-            throw vscode.FileSystemError.FileNotFound();
+        const child = this.find(uri);
+        if (child) {
+            return child;
         }
-        return source;
+        throw vscode.FileSystemError.FileNotFound();
     }
 
     /**
      */
-    async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+    async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][] | any> {
 
         /**
          * read out all apps from enigma
          */
         const result: [string, vscode.FileType][] = [];
-        const directory = this.findDirectoryByPath(uri.path);
+        const directory = this.find(uri);
 
-        if (directory instanceof Directory) {
-            const data = await directory.read(uri);
-            result.push(...data);
-            console.log(result);
+        if (!(directory instanceof Directory)) {
+            return [];
         }
+
+        const parsed = uri.path.match(/^\/([^\/]+)(?:\/(.*))?/);
+
+        if (parsed && this.sourceRoutes.has(parsed[1])) {
+            return this.sourceRoutes.get(parsed[1])?.exec(uri, this) ?? [];
+        } else {
+            directory.entries.forEach((entry) => {
+                result.push([entry.name, entry.type]);
+            })
+        }
+
         return result;
     }
 
@@ -147,49 +126,51 @@ export class QixFS implements vscode.FileSystemProvider {
      * context menu
      */
     createDirectory(uri: vscode.Uri): void {
-
-        const basename = posix.basename(uri.path);
-        const dirname = uri.with({ path: posix.dirname(uri.path) });
-        const parent = this.findDirectoryByPath(dirname.path);
+        let rootPath = uri.with({ path: posix.dirname(uri.path) });
+        const parent = this.find(rootPath);
 
         if (parent instanceof Directory) {
-            let entry = new Directory(basename);
-            parent.entries.set(entry.name, entry);
+            const name = posix.basename(uri.path);
+            parent.entries.set(name, new Directory(name));
             parent.mtime = Date.now();
             parent.size += 1;
+            return;
         }
+
+        throw new Error("parent not a directory");
     }
 
-    /**
-     * register new qlik root directory
-     */
-    public registerRoot(uri: vscode.Uri, connector: QlikConnector) {
+    public registerDataSource(name: string, connector: QlikConnector) {
 
         const parent = this.root;
-        const basename = posix.basename(uri.path);
+        this.sourceRoutes.set(name, connector);
 
-        let entry = new QlikDirectory(basename, connector);
-
+        let entry = new Directory(name);
         parent.entries.set(entry.name, entry);
         parent.mtime = Date.now();
         parent.size += 1;
     }
 
-    private findDirectoryByPath(path: string): Directory | undefined {
-        const parts = path.split("/").filter((part) => part.trim() !== "");
-        let sourceDirectory: Directory | undefined  = this.root;
+    private find(uri: vscode.Uri): Directory | File {
 
-        while (parts.length) {
+        const parts = uri.path.split("/").filter((part) => part.trim() !== "");
+        let source: Directory = this.root;
+
+        while (parts.length > 0) {
             const part = parts.shift() as string;
+            const child = source.entries.get(part);
 
-            // we should check this is a directory
-            if (!sourceDirectory.entries.has(part)) {
-                sourceDirectory = void 0;
-                break;
+            switch(true) {
+                case child instanceof Directory:
+                    source = child as Directory;
+                    continue;
+                case child instanceof File:
+                    return child as File;
+                default:
+                    throw vscode.FileSystemError.FileNotFound(uri);
             }
-            sourceDirectory = sourceDirectory.entries.get(part) as Directory;
         }
-        return sourceDirectory;
+        return source;
     }
 
     /**

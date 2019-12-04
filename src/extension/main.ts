@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { QixFS } from "./utils/fs";
-import { EnigmaConnector, EnigmaConfiguration, RestConnector } from "./utils/connector";
+import { QixFS } from "./utils/qix-fs";
+import { EnigmaConnector, EnigmaConfiguration } from "./utils/connector";
 
 export async function activate(context: vscode.ExtensionContext) {
 
@@ -14,15 +14,12 @@ export async function activate(context: vscode.ExtensionContext) {
     };
 
     const enigmaConnector = new EnigmaConnector(enigmaConfiguration);
-    const restConnector   = new RestConnector("http://dev/null", "test", "test");
-
     const qixFs = new QixFS();
-    qixFs.registerRoot(vscode.Uri.parse("qix:/docker"),  enigmaConnector);
-    qixFs.registerRoot(vscode.Uri.parse("qix:/mock"), restConnector);
+    qixFs.registerDataSource("docker", enigmaConnector);
 
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
-    context.subscriptions.push(vscode.commands.registerCommand('qixfs.workspaceInit', _ => {
-        vscode.workspace.updateWorkspaceFolders(0, 0, { uri: vscode.Uri.parse('qix:/'), name: "Local" });
+    context.subscriptions.push(vscode.commands.registerCommand('qixfs.workspaceInit', () => {
+        vscode.workspace.updateWorkspaceFolders(0, 0, { uri: vscode.Uri.parse('qix:/'), name: "Development" });
     }));
 }
 
