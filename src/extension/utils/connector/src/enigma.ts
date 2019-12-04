@@ -1,20 +1,14 @@
 import * as vscode from "vscode";
 import { create } from 'enigma.js';
+import { buildUrl } from 'enigma.js/sense-utilities';
 import schema from 'enigma.js/schemas/12.20.0.json';
-import { QlikConnector } from './connector';
+import { QlikConnector, Entry, FileEntry } from './connector';
 import WebSocket from "ws";
 import { Route, ActivatedRoute } from "../../router";
 
-export interface ResultAppCreated {
-    qSuccess: boolean;
-    qAppId: string;
-}
-
 export interface EnigmaConfiguration {
     domain: string;
-
     port: number;
-
     secure: boolean;
 }
 
@@ -29,12 +23,7 @@ const routes: Route[] = [{
 }, {
     path: "/docker/:app",
     action: Action.SCRIPT
-}, {
-    path: "/docker/:app/script",
-    action: Action.DOCLIST
 }];
-
-declare type FSEntry = [string, vscode.FileType];
 
 /**
  * opens connection through EngineAPI
@@ -44,66 +33,83 @@ export class EnigmaConnector extends QlikConnector {
     private connection: EngineAPI.IGlobal;
 
     constructor(
-        private configuration: EnigmaConfiguration
+        private configuration: EnigmaConfiguration,
+        fs: vscode.FileSystemProvider
     ) {
-        super(routes);
+        super(routes, fs);
     }
 
-    protected async loadContent(activatedRoute: ActivatedRoute): Promise<FSEntry[]> {
+    /**
+     * load content by activated route
+     */
+    protected async loadContent(activatedRoute: ActivatedRoute): Promise<Entry[]> {
 
         switch (activatedRoute.action) {
             case Action.DOCLIST: 
                 return await this.loadDoclistAction();
 
             case Action.SCRIPT:
-                return await this.getAppScript(activatedRoute.params.app);
+                return await this.loadAppScriptAction(activatedRoute.params.app);
+
+            default: 
+                return [];
         }
-
-        return [];
     }
 
-    private async getAppScript(app: string): Promise<FSEntry[]> {
-
-        const connection = await this.getConnection();
-        const session    = await connection.openDoc(app);
-        const script     = await session.getScript();
-
-        const scriptFile = new Buffer(script, "utf8");
-
-        return [];
-    }
-
+    /**
+     * get current connection to enigma
+     */
     private async getConnection(): Promise<EngineAPI.IGlobal> {
-
-        if (this.connection) {
-            return this.connection;
-        }
-
         const session = create({
             schema,
             url: this.buildUri(),
             createSocket: (url: string) => new WebSocket(url),
-        });
-
-        this.connection = await session.open();
-        return this.connection;
+        })
+        return await session.open();
     }
 
+    /**
+     * build uri for websocket
+     */
     private buildUri(): string {
-        const domain = this.configuration.domain;
-        const port   = this.configuration.port;
-        const protocol = this.configuration.secure ? "wss" : "ws";
-
-        return `${protocol}://${domain}:${port}`;
+        return buildUrl({
+            appId   : "engineData",
+            host    : this.configuration.domain,
+            identity: Math.random().toString(32).substr(2),
+            port    : this.configuration.port,
+            secure  : this.configuration.secure,
+        });
     }
 
-    private async loadDoclistAction(): Promise<FSEntry[]> {
+    /**
+     * get doc list from enigma
+     */
+    private async loadDoclistAction(): Promise<Entry[]> {
         const connection = await this.getConnection();
         const docList: EngineAPI.IDocListEntry[] = await connection.getDocList() as any;
 
         /** map doclist to array */
-        return docList.map((entry) => {
-            return [entry.qDocName, vscode.FileType.Directory]
+        return docList.map<Entry>((entry) => {
+            return {
+                name: entry.qDocName,
+                type: vscode.FileType.Directory
+            };
         });
+    }
+
+    /**
+     * load app script
+     */
+    private async loadAppScriptAction(app: string): Promise<FileEntry[]> {
+        const connection = await this.getConnection();
+        const session    = await connection.openDoc(app);
+        const script     = await session.getScript();
+
+        console.log(script);
+        return [{
+            content: Buffer.from(script, "utf8"),
+            name: "main.qvs",
+            type: vscode.FileType.File
+        }]
     }
 }

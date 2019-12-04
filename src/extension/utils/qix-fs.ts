@@ -68,6 +68,10 @@ export class QixFS implements vscode.FileSystemProvider {
 
     private sourceRoutes: Map<string, QlikConnector> = new Map();
 
+    private bufferedEvents: vscode.FileChangeEvent[] = [];
+
+    private fireSoonHandle: any;
+
     /**
      * construct new Qix file system
      * 
@@ -111,7 +115,7 @@ export class QixFS implements vscode.FileSystemProvider {
         const parsed = uri.path.match(/^\/([^\/]+)(?:\/(.*))?/);
 
         if (parsed && this.sourceRoutes.has(parsed[1])) {
-            return this.sourceRoutes.get(parsed[1])?.exec(uri, this) ?? [];
+            return this.sourceRoutes.get(parsed[1])?.exec(uri) ?? [];
         } else {
             directory.entries.forEach((entry) => {
                 result.push([entry.name, entry.type]);
@@ -151,7 +155,7 @@ export class QixFS implements vscode.FileSystemProvider {
         parent.size += 1;
     }
 
-    private find(uri: vscode.Uri): Directory | File {
+    private find(uri: vscode.Uri): Directory | File | undefined {
 
         const parts = uri.path.split("/").filter((part) => part.trim() !== "");
         let source: Directory = this.root;
@@ -167,7 +171,7 @@ export class QixFS implements vscode.FileSystemProvider {
                 case child instanceof File:
                     return child as File;
                 default:
-                    throw vscode.FileSystemError.FileNotFound(uri);
+                    return void 0;
             }
         }
         return source;
@@ -182,16 +186,61 @@ export class QixFS implements vscode.FileSystemProvider {
      * but it seems he checks first file contents
      */
     readFile(uri: vscode.Uri): Uint8Array | Thenable<Uint8Array> {
-        return Buffer.from("Hallo Qix File System", "utf8");
+        const data = (this.find(uri) as File).data;
+        if (data) {
+            return data;
+        }
+        throw vscode.FileSystemError.FileNotFound()
     }
 
     writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): void | Thenable<void> {
-        console.log('write file');
+
+        let basename = posix.basename(uri.path);
+        let parent   = this.find(uri.with({path: posix.dirname(uri.path)})) as Directory;
+        let entry    = this.find(uri);
+
+        console.log(content);
+
+        if (entry instanceof Directory) {
+            throw vscode.FileSystemError.FileIsADirectory(uri);
+        }
+
+        if (!entry && !options.create) {
+            throw vscode.FileSystemError.FileNotFound(uri);
+        }
+
+        if (entry && options.create && !options.overwrite) {
+            throw vscode.FileSystemError.FileExists(uri);
+        }
+
+        if (!entry) {
+            entry = new File(basename);
+            parent.entries.set(basename, entry);
+        }
+
+        entry.mtime = Date.now();
+        entry.size = content.byteLength;
+        entry.data = content;
+
+        this.fireSoon({ type: vscode.FileChangeType.Changed, uri });
     }
 
     delete(uri: vscode.Uri, options: { recursive: boolean; }): void | Thenable<void> {
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {
+    }
+
+    private fireSoon(...events: vscode.FileChangeEvent[]): void {
+        this.bufferedEvents.push(...events);
+
+        if (this.fireSoonHandle) {
+            clearTimeout(this.fireSoonHandle);
+        }
+
+        this.fireSoonHandle = setTimeout(() => {
+            this.emitter.fire(this.bufferedEvents);
+            this.bufferedEvents.length = 0;
+        }, 5);
     }
 }

@@ -48,6 +48,9 @@ export class Router {
         });
     }
 
+    /**
+     * parse uri and return activated route if exists
+     */
     public parse(uri: vscode.Uri): ActivatedRoute | undefined {
 
         const pathSegments = uri.path.split("/").filter((segment) => segment !== "");
@@ -89,11 +92,9 @@ export class Router {
      * find route by given uri.path segments
      */
     private findRoute(segments: string[]): RouteData | undefined {
-
-        let needle: RouteData | undefined = void 0;
+        let needle: RouteData | undefined;
 
         for(const route of this.routes.values()) {
-
             if (segments.length !== route.segments.length) {
                 continue;
             }
@@ -106,6 +107,7 @@ export class Router {
                 break;
             }
         }
+
         return needle;
     }
 }

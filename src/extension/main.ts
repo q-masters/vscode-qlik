@@ -13,8 +13,9 @@ export async function activate(context: vscode.ExtensionContext) {
         secure: false
     };
 
-    const enigmaConnector = new EnigmaConnector(enigmaConfiguration);
     const qixFs = new QixFS();
+    const enigmaConnector = new EnigmaConnector(enigmaConfiguration, qixFs);
+
     qixFs.registerDataSource("docker", enigmaConnector);
 
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
