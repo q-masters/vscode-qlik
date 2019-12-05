@@ -199,8 +199,6 @@ export class QixFS implements vscode.FileSystemProvider {
         let parent   = this.find(uri.with({path: posix.dirname(uri.path)})) as Directory;
         let entry    = this.find(uri);
 
-        console.log(content);
-
         if (entry instanceof Directory) {
             throw vscode.FileSystemError.FileIsADirectory(uri);
         }

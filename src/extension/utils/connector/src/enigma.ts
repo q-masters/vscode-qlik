@@ -2,10 +2,11 @@ import * as vscode from "vscode";
 import { create } from 'enigma.js';
 import { buildUrl } from 'enigma.js/sense-utilities';
 import schema from 'enigma.js/schemas/12.20.0.json';
-import { QlikConnector, Entry, FileEntry } from './connector';
 import WebSocket from "ws";
+
 import { Route, ActivatedRoute } from "../../router";
 import { CacheAble, cacheKey} from "../../cache";
+import { QlikConnector, Entry, FileEntry } from './connector';
 
 export interface EnigmaConfiguration {
     domain: string;
@@ -31,14 +32,11 @@ const routes: Route[] = [{
  */
 export class EnigmaConnector extends QlikConnector {
 
-    public name: string;
-
     constructor(
         private configuration: EnigmaConfiguration,
         fs: vscode.FileSystemProvider
     ) {
         super(routes, fs);
-        this.name = "Hallo Welt";
     }
 
     /**
@@ -62,8 +60,8 @@ export class EnigmaConnector extends QlikConnector {
      * get current connection to enigma
      */
     @CacheAble()
-    private async openEngine() {
-        return await this.createSession();
+    private openEngine(): Promise<EngineAPI.IGlobal> {
+        return this.createSession();
     }
 
     @CacheAble()
@@ -112,7 +110,6 @@ export class EnigmaConnector extends QlikConnector {
      */
     private async loadAppScriptAction(app: string): Promise<FileEntry[]> {
 
-        // das kommt nicht aus dem Cache
         const session    = await this.openApp(app);
         const script     = await session.getScript();
 

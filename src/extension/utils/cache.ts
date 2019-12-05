@@ -49,25 +49,23 @@ export function CacheAble() {
 }
 
 /**
- * convert method param to cache key
- * 
- * by default 
- * 
- * @CacheAble will use class constructor name, method name as key for cache
- * sometimes it is not enough since we want not cache simply all
+ * convert method param and add this to cache key for CacheAble
  * 
  * @example
  * 
- * @CacheAble()
- * public getPerson(@cacheKey name: string) {
+ * export class CloneFactory {
+ * 
+ *     @CacheAble()
+ *     public creat(@cacheKey name: string): Person {
+ *        return new Person(name);
+ *     }
  * }
  * 
  * const cloneFactory = new CloneFactory();
- * // add value to memory cache with key CloneFactory_getPerson_CloneWarrior
- * cloneFactory.human("CloneWarrior");
+ * const sheep1 = cloneFactory.create("Dolly");
+ * const sheep2 = cloneFactory.create("Dolly");
  * 
- * // value now comes from cache since key CloneFactory_getPerson_CloneWarrior allready exists
- * cloneFactory.human("CloneWarrior");
+ * console.log(sheep1 === sheep2); // emits true
  */
 export function cacheKey(target: any, key: string, index: number) {
 
