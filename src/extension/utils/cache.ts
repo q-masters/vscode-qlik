@@ -22,7 +22,7 @@ export function CacheAble() {
     return (target, name, descriptor) => {
 
         const originalFn = descriptor.value;
-        const metadataKey = `__log_${name}_parameters__`;
+        const metadataKey = `__cache_${name}_parameters__`;
 
         descriptor.value = function (...args: any) {
 
@@ -37,7 +37,23 @@ export function CacheAble() {
             }
 
             if (!MemoryCache.has(cacheToken)) {
+
                 const valueToCache = originalFn.apply(this, args);
+
+                /**
+                 * this is literally the same as originalFn will throw an Exception
+                 * with one difference:
+                 * 
+                 * OriginalFn throws an Exception we will go out instant
+                 * 
+                 * OriginalFn returns a Promise which will rejected we save the Promise (rejected / resolved)
+                 * maybe we want even cache rejected values (why not no reason to ask again) but sometimes 
+                 * we dont need it.
+                 */
+                if (valueToCache instanceof Promise) {
+                    valueToCache.catch(() => MemoryCache.delete(cacheToken));
+                } 
+
                 MemoryCache.set(cacheToken, valueToCache);
             }
 
@@ -56,7 +72,7 @@ export function CacheAble() {
  * export class CloneFactory {
  * 
  *     @CacheAble()
- *     public creat(@cacheKey name: string): Person {
+ *     public create(@cacheKey name: string): Person {
  *        return new Person(name);
  *     }
  * }
@@ -69,7 +85,7 @@ export function CacheAble() {
  */
 export function cacheKey(target: any, key: string, index: number) {
 
-    var metadataKey = `__log_${key}_parameters__`;
+    var metadataKey = `__cache_${key}_parameters__`;
 
     if (Array.isArray(target[metadataKey])) {
       target[metadataKey].push(index);
