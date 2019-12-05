@@ -26,19 +26,14 @@ export abstract class QlikConnector {
     public async exec(uri: vscode.Uri): Promise<[string, vscode.FileType][] | void> {
         const route = this.router.parse(uri);
 
-        try {
-            if (route) {
-                let content: Entry[] = await this.loadContent(route);
-
-                /** register new content in file system */
-                const data = content.map<[string, vscode.FileType]>((entry) => {
-                    return "content" in entry ? this.writeFile(entry, uri) : this.createDirectory(entry, uri);
-                });
-                return data;
-            }
-        } catch (error) {
-            console.log(error);
-            throw error;
+        if (route) {
+            let content: Entry[];
+            content = await this.loadContent(route);
+            /** register new content in file system */
+            const data = content.map<[string, vscode.FileType]>((entry) => {
+                return "content" in entry ? this.writeFile(entry, uri) : this.createDirectory(entry, uri);
+            });
+            return data;
         }
     }
 

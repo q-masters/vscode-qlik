@@ -14,6 +14,18 @@ export interface EnigmaConfiguration {
     secure: boolean;
 }
 
+export enum RequestMethod {
+    OPEN_DOC = "OpenDoc",
+}
+
+export interface EnigmaRequest {
+    handle: number;
+    method: RequestMethod;
+    params: any[];
+    id: number;
+    outKey: number;
+}
+
 enum Action {
     DOCLIST = 'doclist',
     SCRIPT  = 'app_script'
@@ -57,26 +69,6 @@ export class EnigmaConnector extends QlikConnector {
     }
 
     /**
-     * get current connection to enigma
-     */
-    @CacheAble()
-    private openEngine(): Promise<EngineAPI.IGlobal> {
-        return this.createSession();
-    }
-
-    @CacheAble()
-    private async openApp(@cacheKey appId: string): Promise<EngineAPI.IApp> {
-        const session = await this.createSession();
-        return session.openDoc(appId);
-    }
-
-    private createSession(): Promise<EngineAPI.IGlobal> {
-        const url = this.buildUri();
-        const session = create({schema, url, createSocket: (url: string) => new WebSocket(url)})
-        return session.open();
-    }
-
-    /**
      * build uri for websocket
      */
     private buildUri(): string {
@@ -87,6 +79,20 @@ export class EnigmaConnector extends QlikConnector {
             port    : this.configuration.port,
             secure  : this.configuration.secure,
         });
+    }
+
+    /**
+     * @throws MaximumSessionCountReachedException
+     */
+    private async createSession(): Promise<EngineAPI.IGlobal> {
+        const url = this.buildUri();
+        const session = create({
+            schema, url,
+            createSocket: (url: string) => new WebSocket(url)
+        });
+
+        const global = await session.open() as EngineAPI.IGlobal;
+        return global;
     }
 
     /**
@@ -109,14 +115,34 @@ export class EnigmaConnector extends QlikConnector {
      * load app script
      */
     private async loadAppScriptAction(app: string): Promise<FileEntry[]> {
-
-        const session    = await this.openApp(app);
-        const script     = await session.getScript();
+        const session = await this.openApp(app);
+        const script  = await session.getScript();
 
         return [{
             content: Buffer.from(script, "utf8"),
             name: "main.qvs",
             type: vscode.FileType.File
-        }]
+        }];
+    }
+
+    @CacheAble()
+    private async openApp(@cacheKey appId: string): Promise<EngineAPI.IApp> {
+        try {
+            const session = await this.createSession();
+            const app = await session.openDoc(appId);
+            return app;
+        } catch (error) {
+            vscode.window.showErrorMessage(`Could not open app: ${appId}.`);
+            /** throw error so promise will rejected and value will removed from cache */
+            throw error;
+        }
+    }
+
+    /**
+     * get current connection to enigma
+     */
+    @CacheAble()
+    private openEngine(): Promise<EngineAPI.IGlobal> {
+        return this.createSession();
     }
 }
