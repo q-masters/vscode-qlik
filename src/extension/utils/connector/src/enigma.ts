@@ -14,18 +14,6 @@ export interface EnigmaConfiguration {
     secure: boolean;
 }
 
-export enum RequestMethod {
-    OPEN_DOC = "OpenDoc",
-}
-
-export interface EnigmaRequest {
-    handle: number;
-    method: RequestMethod;
-    params: any[];
-    id: number;
-    outKey: number;
-}
-
 enum Action {
     DOCLIST = 'doclist',
     SCRIPT  = 'app_script'

@@ -37,23 +37,14 @@ export function CacheAble() {
             }
 
             if (!MemoryCache.has(cacheToken)) {
-
                 const valueToCache = originalFn.apply(this, args);
-
-                /**
-                 * this is literally the same as originalFn will throw an Exception
-                 * with one difference:
-                 * 
-                 * OriginalFn throws an Exception we will go out instant
-                 * 
-                 * OriginalFn returns a Promise which will rejected we save the Promise (rejected / resolved)
-                 * maybe we want even cache rejected values (why not no reason to ask again) but sometimes 
-                 * we dont need it.
-                 */
                 if (valueToCache instanceof Promise) {
+                    /**
+                     * remove rejected promises from cache
+                     * @todo check make it configurable
+                     */
                     valueToCache.catch(() => MemoryCache.delete(cacheToken));
                 } 
-
                 MemoryCache.set(cacheToken, valueToCache);
             }
 
