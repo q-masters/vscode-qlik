@@ -5,6 +5,7 @@ import schema from 'enigma.js/schemas/12.20.0.json';
 import { QlikConnector, Entry, FileEntry } from './connector';
 import WebSocket from "ws";
 import { Route, ActivatedRoute } from "../../router";
+import { CacheAble, cacheKey} from "../../cache";
 
 export interface EnigmaConfiguration {
     domain: string;
@@ -30,13 +31,14 @@ const routes: Route[] = [{
  */
 export class EnigmaConnector extends QlikConnector {
 
-    private connection: EngineAPI.IGlobal;
+    public name: string;
 
     constructor(
         private configuration: EnigmaConfiguration,
         fs: vscode.FileSystemProvider
     ) {
         super(routes, fs);
+        this.name = "Hallo Welt";
     }
 
     /**
@@ -59,13 +61,21 @@ export class EnigmaConnector extends QlikConnector {
     /**
      * get current connection to enigma
      */
-    private async getConnection(): Promise<EngineAPI.IGlobal> {
-        const session = create({
-            schema,
-            url: this.buildUri(),
-            createSocket: (url: string) => new WebSocket(url),
-        })
-        return await session.open();
+    @CacheAble()
+    private async openEngine() {
+        return await this.createSession();
+    }
+
+    @CacheAble()
+    private async openApp(@cacheKey appId: string): Promise<EngineAPI.IApp> {
+        const session = await this.createSession();
+        return session.openDoc(appId);
+    }
+
+    private createSession(): Promise<EngineAPI.IGlobal> {
+        const url = this.buildUri();
+        const session = create({schema, url, createSocket: (url: string) => new WebSocket(url)})
+        return session.open();
     }
 
     /**
@@ -85,7 +95,7 @@ export class EnigmaConnector extends QlikConnector {
      * get doc list from enigma
      */
     private async loadDoclistAction(): Promise<Entry[]> {
-        const connection = await this.getConnection();
+        const connection = await this.openEngine();
         const docList: EngineAPI.IDocListEntry[] = await connection.getDocList() as any;
 
         /** map doclist to array */
@@ -101,11 +111,11 @@ export class EnigmaConnector extends QlikConnector {
      * load app script
      */
     private async loadAppScriptAction(app: string): Promise<FileEntry[]> {
-        const connection = await this.getConnection();
-        const session    = await connection.openDoc(app);
+
+        // das kommt nicht aus dem Cache
+        const session    = await this.openApp(app);
         const script     = await session.getScript();
 
-        console.log(script);
         return [{
             content: Buffer.from(script, "utf8"),
             name: "main.qvs",

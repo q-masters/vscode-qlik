@@ -49,8 +49,6 @@ export abstract class QlikConnector {
      */
     private writeFile(entry: FileEntry, parent: vscode.Uri): [string, vscode.FileType] {
 
-        console.log(entry.name);
-
         const fileUri = parent.with({path: posix.resolve(parent.path, entry.name) });
         const content = entry.content;
         const options = { create: true, overwrite: true };

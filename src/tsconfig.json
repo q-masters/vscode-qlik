@@ -8,7 +8,8 @@
     "rootDir": "./",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "typeRoots": ["node_modules/@types"]
+    "typeRoots": ["node_modules/@types"],
+    "experimentalDecorators": true
   },
   "exclude": ["node_modules"]
 }
