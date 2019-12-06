@@ -4,7 +4,6 @@ import { QlikConnector } from "./connector";
 
 /** 
  * script is a file
- * 
  */
 export class File implements vscode.FileStat {
 
@@ -77,7 +76,7 @@ export class QixFS implements vscode.FileSystemProvider {
      * 
      * @param <QlikConnector>
      */
-    public constructor() {
+    public constructor(private connector: QlikConnector) {
         this.emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
         this.onDidChangeFile = this.emitter.event;
         this.root = new Directory('');
@@ -91,6 +90,7 @@ export class QixFS implements vscode.FileSystemProvider {
      * das muss was zurück geben ansonsten klappts nicht
      */
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
+        console.log("stat", uri);
         const child = this.find(uri);
         if (child) {
             return child;
@@ -105,36 +105,53 @@ export class QixFS implements vscode.FileSystemProvider {
         /**
          * read out all apps from enigma
          */
-        const result: [string, vscode.FileType][] = [];
-        const directory = this.find(uri);
+        const data = await this.connector.exec(uri);
 
-        if (!(directory instanceof Directory)) {
-            return [];
+        /**
+         * das thema ist wenn es nicht existiert leg es an
+         */
+        if (data) {
+            data.forEach(descriptor => {
+                const entryUri = uri.with({path: posix.resolve(uri.path, descriptor[0])});
+                const entry    = this.find(entryUri);
+
+                if (entry) {
+                    return;
+                }
+
+                switch (descriptor[1]) {
+                    case vscode.FileType.Directory:
+                        this.createDirectory(entryUri, true);
+                        break;
+                }
+            });
         }
 
-        const parsed = uri.path.match(/^\/([^\/]+)(?:\/(.*))?/);
-
-        if (parsed && this.sourceRoutes.has(parsed[1])) {
-            return this.sourceRoutes.get(parsed[1])?.exec(uri) ?? [];
-        } else {
-            directory.entries.forEach((entry) => {
-                result.push([entry.name, entry.type]);
-            })
-        }
-
-        return result;
+        return data || [];
     }
 
     /**
      * called if we create a new directory, could also happens through
      * context menu
+     * 
+     * das muss ich nicht aufrufen durch meinen Connector ...
+     * weil das ist schlecht
      */
-    createDirectory(uri: vscode.Uri): void {
+    async createDirectory(uri: vscode.Uri, silent = false): Promise<void> {
+
         let rootPath = uri.with({ path: posix.dirname(uri.path) });
         const parent = this.find(rootPath);
 
         if (parent instanceof Directory) {
-            const name = posix.basename(uri.path);
+
+            let name = posix.basename(uri.path);
+
+            if (!silent) {
+                const newUri = uri.with({path: posix.resolve(uri.path, 'create')});
+                const newDir = await this.connector.exec(newUri);
+                name = newDir[0][0];
+            }
+
             parent.entries.set(name, new Directory(name));
             parent.mtime = Date.now();
             parent.size += 1;
@@ -142,17 +159,6 @@ export class QixFS implements vscode.FileSystemProvider {
         }
 
         throw new Error("parent not a directory");
-    }
-
-    public registerDataSource(name: string, connector: QlikConnector) {
-
-        const parent = this.root;
-        this.sourceRoutes.set(name, connector);
-
-        let entry = new Directory(name);
-        parent.entries.set(entry.name, entry);
-        parent.mtime = Date.now();
-        parent.size += 1;
     }
 
     private find(uri: vscode.Uri): Directory | File | undefined {
@@ -193,7 +199,12 @@ export class QixFS implements vscode.FileSystemProvider {
         throw vscode.FileSystemError.FileNotFound()
     }
 
-    writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): void | Thenable<void> {
+    async writeFile(
+        uri: vscode.Uri,
+        content: Uint8Array,
+        options: { create: boolean; overwrite: boolean; },
+        silent = false
+    ): Promise<void> {
 
         let basename = posix.basename(uri.path);
         let parent   = this.find(uri.with({path: posix.dirname(uri.path)})) as Directory;
@@ -223,7 +234,20 @@ export class QixFS implements vscode.FileSystemProvider {
         this.fireSoon({ type: vscode.FileChangeType.Changed, uri });
     }
 
-    delete(uri: vscode.Uri, options: { recursive: boolean; }): void | Thenable<void> {
+    async delete(uri: vscode.Uri): Promise<void> {
+
+        const result = await this.connector.exec(
+            uri.with({path: posix.resolve(uri.path, 'delete')})
+        );
+
+        if (result) {
+            const parent = this.find(uri.with({path: posix.dirname(uri.path)}));
+            if (parent instanceof Directory) {
+                parent.entries.delete(posix.basename(uri.path));
+            }
+            return;
+        }
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {

@@ -6,7 +6,8 @@ import WebSocket from "ws";
 
 import { Route, ActivatedRoute } from "../../router";
 import { CacheAble, cacheKey} from "../../cache";
-import { QlikConnector, Entry, FileEntry } from './connector';
+import { QlikConnector } from './connector';
+import { posix } from "path";
 
 export interface EnigmaConfiguration {
     domain: string;
@@ -15,16 +16,30 @@ export interface EnigmaConfiguration {
 }
 
 enum Action {
-    DOCLIST = 'doclist',
-    SCRIPT  = 'app_script'
+    DOCLIST       = 0,
+    CREATE_APP    = 1,
+    DELETE_APP    = 2,
+    READ_APP      = 3,
+    SCRIPT        = 4,
+    WRITE_SCRIPT  = 5,
+    DELETE_SCRIPT = 6,
 }
 
 const routes: Route[] = [{
-    path: "/docker",
+    path: "/",
     action: Action.DOCLIST
 }, {
-    path: "/docker/:app",
-    action: Action.SCRIPT
+    path: "/:app",
+    action: Action.READ_APP
+}, {
+    path: "/:app/create",
+    action: Action.CREATE_APP
+}, {
+    path: "/:app/delete",
+    action: Action.DELETE_APP
+}, {
+    path: "/:app/write",
+    action: Action.WRITE_SCRIPT
 }];
 
 /**
@@ -32,24 +47,30 @@ const routes: Route[] = [{
  */
 export class EnigmaConnector extends QlikConnector {
 
-    constructor(
-        private configuration: EnigmaConfiguration,
-        fs: vscode.FileSystemProvider
-    ) {
-        super(routes, fs);
+    constructor(private configuration: EnigmaConfiguration) {
+        super(routes);
     }
 
     /**
      * load content by activated route
      */
-    protected async loadContent(activatedRoute: ActivatedRoute): Promise<Entry[]> {
+    protected async routeActivated(route: ActivatedRoute): Promise<any> {
 
-        switch (activatedRoute.action) {
+        switch (route.action) {
             case Action.DOCLIST: 
                 return await this.loadDoclistAction();
 
-            case Action.SCRIPT:
-                return await this.loadAppScriptAction(activatedRoute.params.app);
+            case Action.CREATE_APP:
+                return await this.createAppAction(route.params.app);
+
+            case Action.DELETE_APP:
+                return await this.deleteAppAction(route.params.app);
+
+            case Action.READ_APP:
+                return await this.loadAppScriptAction(route.params.app);
+
+            case Action.WRITE_SCRIPT:
+                return await this.loadAppScriptAction(route.params.app);
 
             default: 
                 return [];
@@ -86,31 +107,38 @@ export class EnigmaConnector extends QlikConnector {
     /**
      * get doc list from enigma
      */
-    private async loadDoclistAction(): Promise<Entry[]> {
+    private async loadDoclistAction(): Promise<[string, vscode.FileType][]> {
         const connection = await this.openEngine();
         const docList: EngineAPI.IDocListEntry[] = await connection.getDocList() as any;
-
-        /** map doclist to array */
-        return docList.map<Entry>((entry) => {
-            return {
-                name: entry.qDocName,
-                type: vscode.FileType.Directory
-            };
-        });
+        return docList.map<[string, vscode.FileType]>((entry) => [entry.qDocName, vscode.FileType.Directory]);
     }
 
     /**
      * load app script
      */
-    private async loadAppScriptAction(app: string): Promise<FileEntry[]> {
+    private async loadAppScriptAction(app: string): Promise<[string, vscode.FileType][]> {
+
         const session = await this.openApp(app);
         const script  = await session.getScript();
 
-        return [{
-            content: Buffer.from(script, "utf8"),
-            name: "main.qvs",
-            type: vscode.FileType.File
-        }];
+        /**
+         * das ist nun doof hier
+         */
+        return [["main.qvs", vscode.FileType.File]];
+    }
+
+    private async createAppAction(app: string): Promise<[string, vscode.FileType][]> {
+        const session = await this.openEngine();
+        const newApp  = await session.createApp(app);
+        return [[posix.basename(newApp.qAppId), vscode.FileType.Directory]];
+    }
+
+    /**
+     * @todo remove app session from cache
+     */
+    private async deleteAppAction(app: string): Promise<boolean> {
+        const session = await this.openEngine();
+        return session.deleteApp(app);
     }
 
     @CacheAble()

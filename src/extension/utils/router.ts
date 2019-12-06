@@ -19,7 +19,7 @@ export interface RouteData {
 
 export interface Route {
     path: string;
-    action: string;
+    action: string | number;
 }
 
 export class Router {
