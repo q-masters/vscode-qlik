@@ -69,13 +69,16 @@ export class QixFS implements vscode.FileSystemProvider {
     /**
      */
     async createDirectory(uri: vscode.Uri, silent = false): Promise<void> {
-        /** find root */
+
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);
+        const entry     = parentUri.path === "/" ? this.rootDirectory : this.rootDirectory.find(parentUri);
 
-        if (parentUri.path === "/") {
-            return this.rootDirectory.createDirectory(name);
+        if (entry && entry instanceof Directory) {
+            await entry.createDirectory(name);
         }
+
+        throw vscode.FileSystemError.FileNotADirectory();
     }
 
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
@@ -94,8 +97,6 @@ export class QixFS implements vscode.FileSystemProvider {
     }
 
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): Promise<void> {
-
-        console.log(uri.path);
 
         const file   = posix.basename(uri.path);
         const parent = posix.dirname(uri.path);
@@ -123,7 +124,6 @@ export class QixFS implements vscode.FileSystemProvider {
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {
-        throw ("nö");
     }
 
     private isInBlackList(uri: vscode.Uri) {

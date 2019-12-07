@@ -1,6 +1,6 @@
 {
   "name": "vscode-qlik",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "vscode extension for qlik",
   "main": "./out/extension/main.js",
   "scripts": {
