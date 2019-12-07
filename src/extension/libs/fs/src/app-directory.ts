@@ -22,15 +22,11 @@ export class AppDirectory extends Directory {
     async readFile(): Promise<Uint8Array> {
         const app  = await this.enigmaProvider.openApp(this.doc.qDocId);
         const data = Buffer.from(await app.getScript(), "utf8");
-
-        // get file
         (this.entries.get("main.qvs") as File).content = data;
-
         return data;
     }
 
     async readDirectory(): Promise<[string, FileType][]> {
-
         /**
          * allready create file, vscode will get first stat of file
          * no file no stat but error message shown.
@@ -38,7 +34,6 @@ export class AppDirectory extends Directory {
          * So create an empty file to avoid exception thrown.
          */
         this.entries.set("main.qvs", new File());
-
         return [["main.qvs", FileType.File]];
     }
 }

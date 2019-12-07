@@ -16,11 +16,9 @@ export class DocumentsDirectory extends Directory {
      * da brauch ich auch meine Qlik Verbindung hier
      */
     find(uri: Uri): Directory | File {
-
         const parts    = uri.path.split("/").filter((segment) => segment !== "");
         const required = parts.slice(1);
         const needle   = parts[0];
-
         const entry = this.entries.get(needle);
 
         if (!entry) {
@@ -38,16 +36,8 @@ export class DocumentsDirectory extends Directory {
         return entry;
     }
 
-    createFile(): void {
-        throw new Error("Method not implemented.");
-    }
-
     readFile(): Promise<Uint8Array> {
-        throw new Error("Method not implemented.");
-    }
-
-    writeFile(): void {
-        throw new Error("Method not implemented.");
+        return Promise.resolve(Buffer.from(""));
     }
 
     createDirectory(): void {
