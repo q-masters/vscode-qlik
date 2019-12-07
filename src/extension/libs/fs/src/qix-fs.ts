@@ -40,11 +40,7 @@ export class QixFS implements vscode.FileSystemProvider {
             throw vscode.FileSystemError.FileNotFound();
         }
 
-        if (uri.path === "/") {
-            return this.rootDirectory.stat;
-        }
-
-        const entry = this.rootDirectory.find(uri);
+        const entry = uri.path === "/" ? this.rootDirectory : this.rootDirectory.find(uri);
         if (entry) {
             return entry.stat;
         }
@@ -73,7 +69,6 @@ export class QixFS implements vscode.FileSystemProvider {
     /**
      */
     async createDirectory(uri: vscode.Uri, silent = false): Promise<void> {
-
         /** find root */
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);
@@ -81,11 +76,9 @@ export class QixFS implements vscode.FileSystemProvider {
         if (parentUri.path === "/") {
             return this.rootDirectory.createDirectory(name);
         }
-        throw "nö";
     }
 
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
-
         if (this.isInBlackList(uri)) {
             throw vscode.FileSystemError.FileNotFound();
         }
@@ -97,16 +90,22 @@ export class QixFS implements vscode.FileSystemProvider {
             const source = await entry.readFile();
             return source;
         }
-
         throw vscode.FileSystemError.FileNotFound();
     }
 
-    async writeFile(
-        uri: vscode.Uri,
-        content: Uint8Array,
-        options: { create: boolean; overwrite: boolean; },
-    ): Promise<void> {
-        throw ("nö");
+    async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): Promise<void> {
+
+        console.log(uri.path);
+
+        const file   = posix.basename(uri.path);
+        const parent = posix.dirname(uri.path);
+        const entry  = parent === "/" ? this.rootDirectory : this.rootDirectory.find(uri.with({path: parent}));
+
+        if (entry instanceof Directory) {
+            await entry.writeFile(file, content);
+        }
+
+        this.emitter.fire([{type: vscode.FileChangeType.Changed, uri}]);
     }
 
     async delete(uri: vscode.Uri): Promise<void> {
@@ -128,9 +127,10 @@ export class QixFS implements vscode.FileSystemProvider {
     }
 
     private isInBlackList(uri: vscode.Uri) {
-
         const blackList = ['.vscode', '.git', 'node_modules', 'pom.xml'];
         return blackList.some((ignored) => uri.path.indexOf(ignored) === 1);
+    }
 
+    private findEntry(uri: vscode.Uri) {
     }
 }

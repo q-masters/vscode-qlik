@@ -1,5 +1,5 @@
 import { Directory, File } from "./directory";
-import { Uri, FileType } from "vscode";
+import { Uri, FileType, FileSystemError } from "vscode";
 import { EnigmaProvider } from "extension/utils";
 
 export class AppDirectory extends Directory {
@@ -28,11 +28,22 @@ export class AppDirectory extends Directory {
         return this.entries.get("main.qvs") as File;
     }
 
-    writeFile(): void {
-        /** @todo write script file */
+    async writeFile(fileName, content: string | Uint8Array): Promise<void> {
+
+        if (!this.entries.has(fileName)) {
+            throw FileSystemError.NoPermissions(`Could not create new File: ${fileName}`);
+        }
+
+        const file = this.entries.get(fileName) as File;
+        file.write(content)
+
+        const app = await this.enigmaProvider.openApp(this.id);
+        await app.setScript(file.read().toString());
+        await app.doSave();
     }
 
     async readFile(): Promise<Uint8Array> {
+
         const app  = await this.enigmaProvider.openApp(this.id);
         const script = await app.getScript();
         const data = Buffer.from(script, "utf8");

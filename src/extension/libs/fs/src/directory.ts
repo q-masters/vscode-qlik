@@ -9,20 +9,36 @@ export interface Entry {
 
 export class File implements Entry {
 
+    private createdTime: number;
+
+    private lastModified: number;
+
     private fileData: Uint8Array = Buffer.from("");
 
     public constructor(data?: string | Uint8Array) {
         data ? this.content = data : void 0;
+
+        this.createdTime  = Date.now();
+        this.lastModified = Date.now();
     }
 
     public set content(data: string | Uint8Array) {
         this.fileData = typeof data === "string" ? Buffer.from(data) : data;
     }
 
+    public read(): Uint8Array {
+        return this.fileData;
+    }
+
+    public write(content: string | Uint8Array) {
+        this.content = content;
+        this.lastModified = Date.now();
+    }
+
     public get stat(): FileStat {
         return {
-            ctime: Date.now(),
-            mtime: Date.now(),
+            ctime: this.createdTime,
+            mtime: this.lastModified,
             size: this.fileData.byteLength,
             type: FileType.File
         }
@@ -50,7 +66,7 @@ export abstract class Directory implements Entry {
         throw FileSystemError.NoPermissions();
     };
 
-    writeFile(): void {
+    writeFile(name, content: Uint8Array | string): Promise<void> {
         window.showErrorMessage("Operation not permitted: write File");
         throw FileSystemError.NoPermissions();
     };
