@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "strictNullChecks": true,
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./out",
+    "rootDir": "./",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "typeRoots": ["node_modules/@types"],
+    "experimentalDecorators": true
+  },
+  "exclude": ["node_modules"]
+}

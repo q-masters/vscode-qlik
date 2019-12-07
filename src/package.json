@@ -1,0 +1,89 @@
+{
+  "name": "vscode-qlik",
+  "version": "0.0.1",
+  "description": "vscode extension for qlik",
+  "main": "./out/extension/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "tsc --skipLibCheck",
+    "watch": "tsc -watch -p ./"
+  },
+  "engines": {
+    "vscode": "^1.22.0"
+  },
+  "activationEvents": [
+    "onFileSystem:qix",
+    "onCommand:qixfs.workspaceInit"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "qixfs.workspaceInit",
+        "title": "Setup Workspace",
+        "category": "QixFS"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "qixfs.workspaceInit",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": [
+      {
+        "title": "Qlik Server",
+        "properties": {
+          "vscodeQ.settings.server.domain": {
+            "type": "string",
+            "default": "127.0.0.1",
+            "description": "websocket uri to qlik server",
+            "examples": [
+              "127.0.0.1",
+              "qlik.server.com"
+            ]
+          },
+          "vscodeQ.settings.server.path": {
+            "type": "string",
+            "default": "",
+            "description": "additional path"
+          },
+          "vscodeQ.settings.server.port": {
+            "type": "number",
+            "default": 9076,
+            "description": "port for qlik sense server"
+          },
+          "vscodeQ.settings.server.isSecure": {
+            "type": "boolean",
+            "default": false,
+            "description": "set to true to establish connection with wss"
+          }
+        }
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PLH-Coding/vscodeQ.git"
+  },
+  "author": "phl-coding",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PLH-Coding/vscodeQ/issues"
+  },
+  "homepage": "https://github.com/PLH-Coding/vscodeQ#readme",
+  "devDependencies": {
+    "@types/enigma.js": "^2.2.1",
+    "@types/node": "^12.12.7",
+    "@types/qlik-engineapi": "^12.67.8",
+    "@types/vscode": "^1.40.0",
+    "@types/ws": "^6.0.3",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "enigma.js": "^2.5.0",
+    "ws": "^7.2.0"
+  }
+}
