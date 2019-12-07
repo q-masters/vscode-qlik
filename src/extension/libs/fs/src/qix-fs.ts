@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { Directory } from "./directory";
-import { pathToFileURL } from "url";
 import { posix } from "path";
 
 /** 
@@ -49,7 +48,6 @@ export class QixFS implements vscode.FileSystemProvider {
         if (entry) {
             return entry.stat;
         }
-
         throw vscode.FileSystemError.FileNotFound();
     }
 
@@ -75,7 +73,15 @@ export class QixFS implements vscode.FileSystemProvider {
     /**
      */
     async createDirectory(uri: vscode.Uri, silent = false): Promise<void> {
-        throw new Error("parent not a directory");
+
+        /** find root */
+        const parentUri = uri.with({path: posix.dirname(uri.path)});
+        const name      = posix.basename(uri.path);
+
+        if (parentUri.path === "/") {
+            return this.rootDirectory.createDirectory(name);
+        }
+        throw "nö";
     }
 
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
@@ -104,7 +110,17 @@ export class QixFS implements vscode.FileSystemProvider {
     }
 
     async delete(uri: vscode.Uri): Promise<void> {
-        throw ("nö");
+        const parentUri = uri.with({path: posix.dirname(uri.path)});
+        const toDelete  = posix.basename(uri.path);
+
+        if (parentUri.path === "/") {
+            return this.rootDirectory.delete(toDelete);
+        }
+
+        const entry = this.rootDirectory.find(parentUri);
+        if (entry instanceof Directory) {
+            return entry.delete(toDelete);
+        }
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {

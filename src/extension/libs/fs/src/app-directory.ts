@@ -6,9 +6,22 @@ export class AppDirectory extends Directory {
 
     public constructor(
         private enigmaProvider: EnigmaProvider,
-        private doc: EngineAPI.IDocListEntry
+        private name: string,
+        private id: string
     ) {
         super();
+    }
+
+    createFile(name, content: Uint8Array) {
+        const file   = new File();
+        file.content = content;
+        this.entries.set(name, file);
+    }
+
+    async destroy(): Promise<void> {
+        this.entries.clear();
+        /** close session */
+        this.enigmaProvider.closeApp(this.id);
     }
 
     find(uri: Uri): Directory | File {
@@ -20,20 +33,23 @@ export class AppDirectory extends Directory {
     }
 
     async readFile(): Promise<Uint8Array> {
-        const app  = await this.enigmaProvider.openApp(this.doc.qDocId);
-        const data = Buffer.from(await app.getScript(), "utf8");
-        (this.entries.get("main.qvs") as File).content = data;
+        const app  = await this.enigmaProvider.openApp(this.id);
+        const script = await app.getScript();
+        const data = Buffer.from(script, "utf8");
+
+        if (!this.entries.has("main.qvs")) {
+            this.createFile("main.qvs", data);
+        } else {
+            const file = this.entries.get("main.qvs") as File;
+            file.content = data;
+        }
         return data;
     }
 
     async readDirectory(): Promise<[string, FileType][]> {
-        /**
-         * allready create file, vscode will get first stat of file
-         * no file no stat but error message shown.
-         * 
-         * So create an empty file to avoid exception thrown.
-         */
-        this.entries.set("main.qvs", new File());
+        if (!this.entries.has("main.qvs")) {
+            this.createFile("main.qvs", Buffer.from(""));
+        }
         return [["main.qvs", FileType.File]];
     }
 }

@@ -1,6 +1,13 @@
 import {FileType, FileStat, Uri, window, FileSystemError} from "vscode";
 
-export class File {
+export interface Entry {
+
+    readonly stat: FileStat;
+
+    destroy:() => Promise<void>;
+}
+
+export class File implements Entry {
 
     private fileData: Uint8Array = Buffer.from("");
 
@@ -20,9 +27,13 @@ export class File {
             type: FileType.File
         }
     }
+
+    public destroy(): Promise<void> {
+        return Promise.resolve();
+    }
 }
 
-export abstract class Directory {
+export abstract class Directory implements Entry {
 
     abstract find(path: Uri): Directory | File;
 
@@ -30,11 +41,13 @@ export abstract class Directory {
 
     abstract readDirectory(): Promise<[string, FileType][]>;
 
+    abstract destroy(): Promise<void>;
+
     protected entries: Map<string, Directory | File> = new Map();
 
-    createFile(): void {
-        window.showErrorMessage("Operation not permitted: create File");
-        this.throwNoPermission();
+    createFile(name: string, content:Uint8Array): void {
+        window.showErrorMessage(`Operation not permitted: create File ${name}`);
+        throw FileSystemError.NoPermissions();
     };
 
     writeFile(): void {
@@ -42,13 +55,20 @@ export abstract class Directory {
         throw FileSystemError.NoPermissions();
     };
 
-    createDirectory(): void {
+    createDirectory(name: string): void | Thenable<void> {
         window.showErrorMessage("Operation not permitted: create Directory");
         throw FileSystemError.NoPermissions();
     };
 
-    deleteDirectory(): void {
-        window.showErrorMessage("Operation not permitted: delete Directory");
+    /**
+     * Delete a file or directory
+     *
+     * @param name name of entry which should deleted
+     * @throws [`FileNotFound`](#FileSystemError.FileNotFound) when `uri` doesn't exist.
+     * @throws [`NoPermissions`](#FileSystemError.NoPermissions) when permissions aren't sufficient.
+     */
+    delete(name: string): Promise<void> {
+        window.showErrorMessage(`Operation not permitted: delete ${name}`);
         throw FileSystemError.NoPermissions();
     };
 
@@ -59,8 +79,5 @@ export abstract class Directory {
             size: this.entries.size,
             type: FileType.Directory
         }
-    }
-
-    private throwNoPermission() {
     }
 }

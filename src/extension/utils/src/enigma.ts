@@ -1,8 +1,8 @@
-import * as vscode from "vscode";
 import { create } from 'enigma.js';
 import { buildUrl } from 'enigma.js/sense-utilities';
 import schema from 'enigma.js/schemas/12.20.0.json';
 import WebSocket from "ws";
+import { Cache } from "./cache";
 
 export interface EnigmaConfiguration {
     domain: string;
@@ -15,9 +15,13 @@ export interface EnigmaConfiguration {
  */
 export class EnigmaProvider {
 
+    private cache: Cache;
+
     constructor(
         private configuration: EnigmaConfiguration
-    ) {}
+    ) {
+        this.cache = Cache.getInstance();
+    }
 
     /**
      * build uri for websocket
@@ -33,21 +37,37 @@ export class EnigmaProvider {
     }
 
     public async openApp(appId: string): Promise<EngineAPI.IApp> {
-        try {
-            const session = await this.createSession();
-            const app = await session.openDoc(appId);
-            return app;
-        } catch (error) {
-            vscode.window.showErrorMessage(`Could not open app: ${appId}.`);
-            /** throw error so promise will rejected and value will removed from cache */
-            throw error;
+        const key = `enigma.app.${appId}`;
+
+        if (this.cache.has(key)) {
+            return this.cache.get<EngineAPI.IApp>(key);
+        }
+
+        const session = await this.createSession();
+        const app = await session.openDoc(appId);
+        this.cache.set(key, app);
+        return app;
+    }
+
+    public async closeApp(appId: string): Promise<void> {
+        const app = this.cache.get<EngineAPI.IApp>(`enigma.app.${appId}`);
+        if (app) {
+            await app.session.close();
+            this.cache.delete(`enigma.app.${appId}`);
         }
     }
 
     /**
      */
-    public connect(): Promise<EngineAPI.IGlobal> {
-        return this.createSession();
+    public async connect(): Promise<EngineAPI.IGlobal> {
+        const key   = "enigma.global";
+        let session = this.cache.get<EngineAPI.IGlobal>(key);
+
+        if (!session) {
+            session = await this.createSession();
+            this.cache.set(key, session);
+        }
+        return session;
     }
 
     /**
