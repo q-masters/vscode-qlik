@@ -1,11 +1,11 @@
 import { Directory, File } from "./directory";
 import { Uri, FileType, FileSystemError } from "vscode";
-import { EnigmaProvider } from "extension/utils";
+import { EnigmaSessionManager } from "extension/utils/enigma-session";
 
 export class AppDirectory extends Directory {
 
     public constructor(
-        private enigmaProvider: EnigmaProvider,
+        private enigmaProvider: EnigmaSessionManager,
         private name: string,
         private id: string
     ) {
@@ -21,7 +21,7 @@ export class AppDirectory extends Directory {
     async destroy(): Promise<void> {
         this.entries.clear();
         /** close session */
-        this.enigmaProvider.closeApp(this.id);
+        // this.enigmaProvider.closeApp(this.id);
     }
 
     find(uri: Uri): Directory | File {
@@ -37,14 +37,14 @@ export class AppDirectory extends Directory {
         const file = this.entries.get(fileName) as File;
         file.write(content)
 
-        const app = await this.enigmaProvider.openApp(this.id);
+        const app = await this.enigmaProvider.open(this.id);
         await app.setScript(file.read().toString());
         await app.doSave();
     }
 
     async readFile(): Promise<Uint8Array> {
 
-        const app  = await this.enigmaProvider.openApp(this.id);
+        const app  = await this.enigmaProvider.open(this.id);
         const script = await app.getScript();
         const data = Buffer.from(script, "utf8");
 
