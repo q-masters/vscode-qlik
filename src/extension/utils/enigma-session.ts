@@ -8,6 +8,8 @@ import WebSocket from "ws";
  */
 export class EnigmaSessionManager {
 
+    private static GLOBAL_SESSION_KEY = "engineData";
+
     /**
      * array of active session id's
      */
@@ -49,7 +51,7 @@ export class EnigmaSessionManager {
     public async open(appId: string): Promise<EngineAPI.IApp>;
     public async open(appId?: string): Promise<EngineAPI.IGlobal | EngineAPI.IApp>
     {
-        const id = appId || "engineData";
+        const id = appId || EnigmaSessionManager.GLOBAL_SESSION_KEY;
         let session: enigmaJS.IGeneratedAPI;
 
         /** create new session */
@@ -58,7 +60,6 @@ export class EnigmaSessionManager {
         } else {
             session = await this.activateSession(id);
         }
-
         return "global" in session ? session as EngineAPI.IApp: session as EngineAPI.IGlobal;
     }
 
@@ -68,13 +69,11 @@ export class EnigmaSessionManager {
     private async activateSession(id: string): Promise<enigmaJS.IGeneratedAPI>
     {
         const connection = this.loadFromCache(id);
-
         if (connection && !this.isActive(id)) {
             await this.suspendOldestSession();
             await connection.session.resume();
             this.activeStack.push(id);
         }
-
         return connection;
     }
 
@@ -93,7 +92,7 @@ export class EnigmaSessionManager {
                 const session  = create({ schema, url, createSocket: (url: string) => new WebSocket(url) });
                 let sessionObj = await session.open();
 
-                if (id !== "engineData") {
+                if (id !== EnigmaSessionManager.GLOBAL_SESSION_KEY) {
                     sessionObj = await (sessionObj as EngineAPI.IGlobal).openDoc(id);
                 }
 
@@ -126,14 +125,14 @@ export class EnigmaSessionManager {
     /**
      * load session object from cache
      */
-    private loadFromCache(id = 'engineDat'): enigmaJS.IGeneratedAPI
+    private loadFromCache(id = EnigmaSessionManager.GLOBAL_SESSION_KEY): enigmaJS.IGeneratedAPI
     {
         let session = this.sessionCache.get(id);
         if (session) {
             return session;
         }
 
-        throw "session not found";
+        throw "Session not found";
     }
 
     /**
@@ -156,7 +155,7 @@ export class EnigmaSessionManager {
     /**
      * generate new url for websocket call to enigma
      */
-    private buildUri(id = "engineData"): string
+    private buildUri(id = EnigmaSessionManager.GLOBAL_SESSION_KEY): string
     {
         return buildUrl({
             appId   : id,
