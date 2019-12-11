@@ -23,7 +23,7 @@ export class EnigmaSessionManager {
     /**
      * max sessions we could open by default this is 5
      */
-    private maxSessions = 5;
+    private maxSessionCount = 5;
 
     /**
      * connection queue to handle action connections, we could not open same app / global context
@@ -44,6 +44,14 @@ export class EnigmaSessionManager {
         this.sessionCache    = new Map();
     }
 
+    public set maxSessions(max: number) {
+        this.maxSessionCount = Math.floor(max) <= 0 ? 1 : Math.floor(max);
+    }
+
+    public get maxSessions(): number {
+        return this.maxSessionCount;
+    }
+
     /**
      * return an existing session object or create a new one
      */
@@ -61,6 +69,16 @@ export class EnigmaSessionManager {
             session = await this.activateSession(id);
         }
         return "global" in session ? session as EngineAPI.IApp: session as EngineAPI.IGlobal;
+    }
+
+    public async close(appId?: string): Promise<void> {
+        const key = appId || EnigmaSessionManager.GLOBAL_SESSION_KEY;
+
+        if (this.isCached(key)) {
+            await this.loadFromCache(key).session.close();
+            this.sessionCache.delete(key);
+            this.isActive(key) ? this.activeStack.splice(this.activeStack.indexOf(key), 1) : void 0;
+        }
     }
 
     /** 
@@ -131,7 +149,6 @@ export class EnigmaSessionManager {
         if (session) {
             return session;
         }
-
         throw "Session not found";
     }
 

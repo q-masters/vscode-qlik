@@ -20,8 +20,7 @@ export class AppDirectory extends Directory {
 
     async destroy(): Promise<void> {
         this.entries.clear();
-        /** close session */
-        // this.enigmaProvider.closeApp(this.id);
+        await this.enigmaProvider.close(this.id);
     }
 
     find(uri: Uri): Directory | File {
