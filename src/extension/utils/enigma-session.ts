@@ -22,6 +22,7 @@ export class EnigmaSessionManager {
 
     /**
      * max sessions we could open by default this is 5
+     * set to value lte 0 for max sessions
      */
     private maxSessionCount = 5;
 
@@ -45,7 +46,7 @@ export class EnigmaSessionManager {
     }
 
     public set maxSessions(max: number) {
-        this.maxSessionCount = Math.floor(max) <= 0 ? 1 : Math.floor(max);
+        this.maxSessionCount = max;
     }
 
     public get maxSessions(): number {
@@ -157,7 +158,7 @@ export class EnigmaSessionManager {
      */
     private async suspendOldestSession(): Promise<void>
     {
-        if (this.activeStack.length < this.maxSessions) {
+        if (this.maxSessions <= 0 || this.activeStack.length < this.maxSessions) {
             return;
         }
 
