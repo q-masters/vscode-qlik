@@ -77,8 +77,6 @@ export class EnigmaSessionManager {
 
         if (this.isCached(key)) {
             await this.loadFromCache(key).session.close();
-            this.sessionCache.delete(key);
-            this.isActive(key) ? this.activeStack.splice(this.activeStack.indexOf(key), 1) : void 0;
         }
     }
 
@@ -119,10 +117,18 @@ export class EnigmaSessionManager {
                 this.activeStack.push(id);
                 this.connectionQueue.delete(id);
 
+                /** register on close event if server was shutdown or connection gets lost */
+                sessionObj.on("closed", () => this.removeSessionFromCache(id));
+
                 resolve(sessionObj);
             }));
         }
         return this.connectionQueue.get(id) as Promise<enigmaJS.IGeneratedAPI>;
+    }
+
+    private removeSessionFromCache(id) {
+        this.isCached(id) ? this.sessionCache.delete(id) : void 0;
+        this.isActive(id) ? this.activeStack.splice(this.activeStack.indexOf(id), 1) : void 0;
     }
 
     /**
