@@ -53,7 +53,7 @@ export abstract class Directory implements Entry {
 
     abstract find(path: Uri): Directory | File;
 
-    abstract readFile(): Promise<Uint8Array>;
+    abstract readFile(name: string): Promise<Uint8Array>;
 
     abstract readDirectory(): Promise<[string, FileType][]>;
 

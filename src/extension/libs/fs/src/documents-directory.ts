@@ -75,19 +75,14 @@ export class DocumentsDirectory extends Directory {
     }
 
     public async readDirectory(): Promise<[string, FileType][]> {
-        try {
-            const session = await this.provider.open();
-            const docList: EngineAPI.IDocListEntry[] = await session.getDocList() as any;
-            const content: [string, FileType][] = [];
-            docList.forEach((doc) => {
-                this.createAppDirectory(doc.qTitle, doc.qDocId);
-                content.push([doc.qTitle, FileType.Directory]);
-            });
-            return content;
-        } catch (error) {
-            console.log(error.message);
-            throw error;
-        }
+        const session = await this.provider.open();
+        const docList: EngineAPI.IDocListEntry[] = await session.getDocList() as any;
+        const content: [string, FileType][] = [];
+        docList.forEach((doc) => {
+            this.createAppDirectory(doc.qTitle, doc.qDocId);
+            content.push([doc.qTitle, FileType.Directory]);
+        });
+        return content;
     }
 
     /**
