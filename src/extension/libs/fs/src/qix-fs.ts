@@ -63,16 +63,10 @@ export class QixFS implements vscode.FileSystemProvider {
         if (this.isInBlackList(uri)) {
             throw vscode.FileSystemError.FileNotFound();
         }
-
-        if (uri.path === "/") {
-            return await this.rootDirectory.readDirectory();
-        }
-
-        let entry = this.rootDirectory.find(uri);
+        const parent = posix.dirname(uri.path);
+        const entry  = parent === "/" ? this.rootDirectory : this.rootDirectory.find(uri.with({path: parent}));
         if (entry instanceof Directory) {
-            const entries = await entry.readDirectory();
-            entry.stat.mtime = Date.now();
-            return entries;
+            return await entry.readDirectory();
         }
         throw vscode.FileSystemError.FileNotFound();
     }
