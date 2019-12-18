@@ -7,6 +7,8 @@ export class AppDirectory extends Directory {
 
     private tmpSymLinks: Map<string, File> = new Map();
 
+    private static SCRIPT_FILE = "main.qvs";
+
     public constructor(
         private enigmaProvider: EnigmaSessionManager,
         private name: string,
@@ -44,12 +46,19 @@ export class AppDirectory extends Directory {
     };
 
     async writeFile(name: string, content: string | Uint8Array): Promise<void> {
-        if (!this.entries.has(name)) {
-            this.tmpSymLinks.set(name, this.entries.get("main.qvs") as File);
+
+        const fileContent = typeof content === "string" ? Buffer.from(content) : content;
+
+        if (!fileContent.length) {
+            throw FileSystemError.NoPermissions(`Could not override file ${AppDirectory.SCRIPT_FILE}. No Empty Script.`);
         }
 
-        const file = this.entries.get("main.qvs") as File;
-        file.write(content)
+        if (!this.entries.has(name)) {
+            this.tmpSymLinks.set(name, this.entries.get(AppDirectory.SCRIPT_FILE) as File);
+        }
+
+        const file = this.entries.get(AppDirectory.SCRIPT_FILE) as File;
+        file.write(fileContent)
 
         const app = await this.enigmaProvider.open(this.id);
         await app.setScript(file.read().toString());
@@ -78,19 +87,19 @@ export class AppDirectory extends Directory {
         const script = await app.getScript();
         const data   = Buffer.from(script, "utf8");
 
-        if (!this.entries.has("main.qvs")) {
-            this.createFile("main.qvs", data);
+        if (!this.entries.has(AppDirectory.SCRIPT_FILE)) {
+            this.createFile(AppDirectory.SCRIPT_FILE, data);
         } else {
-            const file = this.entries.get("main.qvs") as File;
+            const file = this.entries.get(AppDirectory.SCRIPT_FILE) as File;
             file.content = data;
         }
         return data;
     }
 
     async readDirectory(): Promise<[string, FileType][]> {
-        if (!this.entries.has("main.qvs")) {
-            this.createFile("main.qvs", Buffer.from(""));
+        if (!this.entries.has(AppDirectory.SCRIPT_FILE)) {
+            this.createFile(AppDirectory.SCRIPT_FILE, Buffer.from(""));
         }
-        return [["main.qvs", FileType.File]];
+        return [[AppDirectory.SCRIPT_FILE, FileType.File]];
     }
 }
