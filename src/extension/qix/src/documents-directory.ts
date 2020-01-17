@@ -1,7 +1,7 @@
 import { Directory, File } from "./directory";
 import { Uri, FileType, FileSystemError } from "vscode";
 import { posix } from "path";
-import { EnigmaSessionManager } from "extension/utils/enigma-session";
+import { EnigmaSessionManager } from "../../enigma";
 import { AppDirectory } from "./app-directory";
 
 export class DocumentsDirectory extends Directory {

@@ -1,21 +1,20 @@
 import * as vscode from "vscode";
-import { DocumentsDirectory, QixFS } from "./libs/fs";
-import { EnigmaSessionManager } from "./utils/enigma-session";
+import { QixFs, QixFsAction } from "./qix";
+import { Connection, ConnectionAction } from "./connection";
+import { SessionCache, ExtensionContext, COMMAND } from "./shared";
 
+/**
+ * bootstrap extension
+ */
 export async function activate(context: vscode.ExtensionContext) {
 
-    /** add data source / connector */
-    // const config: EnigmaConfiguration = { domain: "127.0.0.1", port: 9076, secure: false };
-    const enigmaSessionManager = new EnigmaSessionManager("127.0.0.1", 9076, false);
-    const rootDir = new DocumentsDirectory(enigmaSessionManager);
+    SessionCache.add(ExtensionContext, context);
 
-    const qixFs = new QixFS();
-    qixFs.root  = rootDir;
+    /** create new workspace for qixfs */
+    vscode.commands.registerCommand(COMMAND.QIX_FS_INIT, () => QixFs.run(QixFsAction.INIT));
 
-    context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
-    context.subscriptions.push(vscode.commands.registerCommand('qixfs.workspaceInit', () => {
-        vscode.workspace.updateWorkspaceFolders(0, 0, { uri: vscode.Uri.parse('qix:/'), name: `qix:/localhost:9076`});
-    }));
+    /** run connection webview */
+    vscode.commands.registerCommand(COMMAND.CONNECTION_CREATE, () => Connection.run(ConnectionAction.CREATE));
 }
 
 export function deactivate() {}

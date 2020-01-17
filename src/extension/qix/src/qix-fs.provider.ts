@@ -10,14 +10,11 @@ export namespace QixFsCommands {
 /** 
  * Qix File System
  */
-export class QixFS implements vscode.FileSystemProvider {
+export class QixFSProvider implements vscode.FileSystemProvider {
 
     public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]>;
 
     private emitter: vscode.EventEmitter<vscode.FileChangeEvent[]>;
-
-    private rootDirectory: Directory;
-
     private bufferedEvents: vscode.FileChangeEvent[] = [];
     private fireSoonHandle?: NodeJS.Timer;
 
@@ -26,14 +23,10 @@ export class QixFS implements vscode.FileSystemProvider {
      * 
      * @param <QlikConnector>
      */
-    public constructor() {
+    public constructor(private rootDirectory: Directory) {
         this.emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
         this.onDidChangeFile = this.emitter.event;
-        this.registerCommands();
-    }
-
-    public set root(directory: Directory) {
-        this.rootDirectory = directory;
+        // this.registerCommands();
     }
 
     watch(_resource: vscode.Uri): vscode.Disposable {

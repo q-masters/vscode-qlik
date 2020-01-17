@@ -1,7 +1,7 @@
 import { Directory, File } from "./directory";
 import { Uri, FileType, FileSystemError, commands } from "vscode";
-import { EnigmaSessionManager } from "extension/utils/enigma-session";
-import { QixFsCommands } from "./qix-fs";
+import { EnigmaSessionManager } from "../../enigma";
+import { QixFsCommands } from "./qix-fs.provider";
 
 export class AppDirectory extends Directory {
 
