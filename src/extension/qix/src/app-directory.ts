@@ -1,6 +1,5 @@
 import { Directory, File } from "./directory";
 import { Uri, FileType, FileSystemError, commands } from "vscode";
-import { EnigmaSessionManager } from "../../enigma";
 import { QixFsCommands } from "./qix-fs.provider";
 
 export class AppDirectory extends Directory {
@@ -10,7 +9,7 @@ export class AppDirectory extends Directory {
     private static SCRIPT_FILE = "main.qvs";
 
     public constructor(
-        private enigmaProvider: EnigmaSessionManager,
+        private enigmaProvider: any,
         private name: string,
         private id: string
     ) {

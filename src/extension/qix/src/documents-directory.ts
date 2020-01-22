@@ -1,13 +1,12 @@
 import { Directory, File } from "./directory";
 import { Uri, FileType, FileSystemError } from "vscode";
 import { posix } from "path";
-import { EnigmaSessionManager } from "../../enigma";
 import { AppDirectory } from "./app-directory";
 
 export class DocumentsDirectory extends Directory {
 
     public constructor(
-        private provider: EnigmaSessionManager
+        private provider: any
     ) {
         super();
     }
@@ -75,14 +74,18 @@ export class DocumentsDirectory extends Directory {
     }
 
     public async readDirectory(): Promise<[string, FileType][]> {
-        const session = await this.provider.open();
-        const docList: EngineAPI.IDocListEntry[] = await session.getDocList() as any;
-        const content: [string, FileType][] = [];
-        docList.forEach((doc) => {
-            this.createAppDirectory(doc.qTitle, doc.qDocId);
-            content.push([doc.qTitle, FileType.Directory]);
-        });
-        return content;
+        try {
+            const session = await this.provider.open();
+            const docList: EngineAPI.IDocListEntry[] = await session.getDocList() as any;
+            const content: [string, FileType][] = [];
+            docList.forEach((doc) => {
+                this.createAppDirectory(doc.qTitle, doc.qDocId);
+                content.push([doc.qTitle, FileType.Directory]);
+            });
+            return content;
+        } catch (error) {
+            return [];
+        }
     }
 
     /**

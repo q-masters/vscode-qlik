@@ -2,11 +2,12 @@ import * as vscode from "vscode";
 
 declare type R = any;
 
-class SessionToken<T>  {
+export class SessionToken<T>  {
     public constructor(private description: string = '') {}
 }
 
-export const ExtensionContext = new SessionToken<vscode.ExtensionContext>("VSCode Extension Context");
+export const ExtensionContext   = new SessionToken<vscode.ExtensionContext>("VSCode Extension Context");
+export const ConnectionSettings = new SessionToken<string>("VSCode Connection Settings");
 
 export class SessionCache {
 

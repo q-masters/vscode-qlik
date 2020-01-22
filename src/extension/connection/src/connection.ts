@@ -1,4 +1,4 @@
-import { ConnectionWebview } from "./connection.view";
+import { ConnectionWebview } from "./settings/src/connection.view";
 
 export enum ConnectionAction {
     CREATE
@@ -15,12 +15,12 @@ export class Connection {
     }
 
     public static run(action: ConnectionAction) {
+
         if (!Connection.instance) {
             Connection.instance = new Connection();
         }
 
         switch (action) {
-
             case ConnectionAction.CREATE: 
                 this.instance.showWebview();
                 break;

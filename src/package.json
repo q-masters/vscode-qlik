@@ -4,9 +4,11 @@
   "description": "vscode extension for qlik",
   "main": "./out/extension/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "tsc --skipLibCheck",
-    "watch": "tsc -watch -p ./",
+    "copyhtml": "copyfiles extension/**/*.html ./out",
+    "clear": "rimraf ./out",
+    "compile": "npm run build -- --skipLibCheck",
+    "watch": "npm run build -- -watch -p ./",
+    "prebuild": "npm run clear && npm run copyhtml",
     "build": "tsc"
   },
   "engines": {
@@ -14,26 +16,26 @@
   },
   "activationEvents": [
     "onFileSystem:qix",
-    "onCommand:VSQlik.QixFS.Init",
+    "onCommand:VSQlik.Connection.Settings",
     "onCommand:VSQlik.Connection.Create"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "VSQlik.QixFS.Init",
-        "title": "Setup Workspace",
+        "command": "VSQlik.Connection.Create",
+        "title": "Connect to Qlik Server",
         "category": "VSQlik"
       },
       {
-        "command": "VSQlik.Connection.Create",
-        "title": "Create new Connection to Qlik Server",
+        "command": "VSQlik.Connection.Settings",
+        "title": "Show Connection Settings",
         "category": "VSQlik"
       }
     ],
     "menus": {
       "explorer/context": [
         {
-          "command": "VSQlik.QixFS.Init",
+          "command": "VSQlik.Connection.Create",
           "group": "navigation"
         }
       ]
@@ -42,17 +44,19 @@
       {
         "title": "Visual Studio Qlik",
         "properties": {
-          "VSQlik.Connection": {
+          "VSQlik.Connections": {
             "title": "A list of file locations to load SSH FS configurations from",
             "description": "Location of JSON files to load configs from",
             "type": "array",
             "items": true,
-            "default": [{
+            "default": [
+              {
                 "host": "127.0.0.1",
                 "path": "",
                 "port": 9076,
                 "secure": false
-            }]
+              }
+            ]
           }
         }
       }
@@ -74,11 +78,13 @@
     "@types/qlik-engineapi": "^12.67.8",
     "@types/vscode": "^1.40.0",
     "@types/ws": "^6.0.3",
+    "copyfiles": "^2.2.0",
     "tslint": "^5.20.1",
     "typescript": "^3.7.2"
   },
   "dependencies": {
     "enigma.js": "^2.5.0",
+    "rimraf": "^3.0.0",
     "ws": "^7.2.0"
   }
 }

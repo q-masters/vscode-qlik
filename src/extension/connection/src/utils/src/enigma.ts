@@ -5,8 +5,11 @@ import WebSocket from "ws";
 
 /**
  * Services to create, cache and handle enigma session
+ * 
+ * ich müsste die gesammte klasse weg speichern 
+ * aber das ist auch nicht so übel sprach der dübel
  */
-export class EnigmaSessionManager {
+export class EnigmaConnector {
 
     private static GLOBAL_SESSION_KEY = "engineData";
 
@@ -60,7 +63,7 @@ export class EnigmaSessionManager {
     public async open(appId: string): Promise<EngineAPI.IApp>;
     public async open(appId?: string): Promise<EngineAPI.IGlobal | EngineAPI.IApp>
     {
-        const id = appId || EnigmaSessionManager.GLOBAL_SESSION_KEY;
+        const id = appId || EnigmaConnector.GLOBAL_SESSION_KEY;
         let session: enigmaJS.IGeneratedAPI;
 
         /** create new session */
@@ -73,7 +76,7 @@ export class EnigmaSessionManager {
     }
 
     public async close(appId?: string): Promise<void> {
-        const key = appId || EnigmaSessionManager.GLOBAL_SESSION_KEY;
+        const key = appId || EnigmaConnector.GLOBAL_SESSION_KEY;
 
         if (this.isCached(key)) {
             await this.loadFromCache(key).session.close();
@@ -109,7 +112,7 @@ export class EnigmaSessionManager {
                 const session  = create({ schema, url, createSocket: (url: string) => new WebSocket(url) });
                 let sessionObj = await session.open();
 
-                if (id !== EnigmaSessionManager.GLOBAL_SESSION_KEY) {
+                if (id !== EnigmaConnector.GLOBAL_SESSION_KEY) {
                     sessionObj = await (sessionObj as EngineAPI.IGlobal).openDoc(id);
                 }
 
@@ -150,7 +153,7 @@ export class EnigmaSessionManager {
     /**
      * load session object from cache
      */
-    private loadFromCache(id = EnigmaSessionManager.GLOBAL_SESSION_KEY): enigmaJS.IGeneratedAPI
+    private loadFromCache(id = EnigmaConnector.GLOBAL_SESSION_KEY): enigmaJS.IGeneratedAPI
     {
         let session = this.sessionCache.get(id);
         if (session) {
@@ -179,7 +182,7 @@ export class EnigmaSessionManager {
     /**
      * generate new url for websocket call to enigma
      */
-    private buildUri(id = EnigmaSessionManager.GLOBAL_SESSION_KEY): string
+    private buildUri(id = EnigmaConnector.GLOBAL_SESSION_KEY): string
     {
         return buildUrl({
             appId   : id,

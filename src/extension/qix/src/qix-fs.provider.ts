@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
-import { Directory } from "./directory";
 import { posix } from "path";
+
+
+// der brauch ne Map -> URI -> Connection
 
 /** should use enum for this ? */
 export namespace QixFsCommands {
@@ -9,6 +11,8 @@ export namespace QixFsCommands {
 
 /** 
  * Qix File System
+ * 
+ * soll das immer mit enigma arbeiten ?
  */
 export class QixFSProvider implements vscode.FileSystemProvider {
 
@@ -23,7 +27,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * 
      * @param <QlikConnector>
      */
-    public constructor(private rootDirectory: Directory) {
+    public constructor() {
         this.emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
         this.onDidChangeFile = this.emitter.event;
         // this.registerCommands();
@@ -39,14 +43,17 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * return file or directory stats
      */
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
+
         if (this.isInBlackList(uri)) {
             throw vscode.FileSystemError.FileNotFound();
         }
 
+        /*
         const entry = uri.path === "/" ? this.rootDirectory : this.rootDirectory.find(uri);
         if (entry) {
             return entry.stat;
         }
+        */
 
         throw vscode.FileSystemError.FileNotFound();
     }
@@ -54,13 +61,18 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     /**
      */
     async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+
         if (this.isInBlackList(uri)) {
             throw vscode.FileSystemError.FileNotFound();
         }
+
+        /*
         const entry  = uri.path === "/" ? this.rootDirectory : this.rootDirectory.find(uri);
         if (entry instanceof Directory) {
             return await entry.readDirectory();
         }
+        */
+        return [["folder", vscode.FileType.Directory]];
         throw vscode.FileSystemError.FileNotFound();
     }
 
@@ -70,12 +82,16 @@ export class QixFSProvider implements vscode.FileSystemProvider {
 
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);
+
+        console.log("create directory");
+        /*
         const entry     = parentUri.path === "/" ? this.rootDirectory : this.rootDirectory.find(parentUri);
 
         if (entry && entry instanceof Directory) {
             await entry.createDirectory(name);
             this.fireSoon({ type: vscode.FileChangeType.Changed, uri: parentUri}, { type: vscode.FileChangeType.Created, uri });
         }
+        */
 
         throw vscode.FileSystemError.FileNotADirectory();
     }
@@ -86,6 +102,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
             throw vscode.FileSystemError.FileNotFound();
         }
 
+        /*
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const entry = this.rootDirectory.find(parentUri);
 
@@ -93,6 +110,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
             const source = await entry.readFile(posix.basename(uri.path));
             return source;
         }
+        */
 
         throw vscode.FileSystemError.FileNotFound();
     }
@@ -100,17 +118,22 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): Promise<void> {
         const file   = posix.basename(uri.path);
         const parent = posix.dirname(uri.path);
+        /*
         const entry  = parent === "/" ? this.rootDirectory : this.rootDirectory.find(uri.with({path: parent}));
 
         if (entry instanceof Directory) {
             await entry.writeFile(file, content);
         }
+        */
     }
 
     async delete(uri: vscode.Uri): Promise<void> {
+
+        // action delete
+
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const toDelete  = posix.basename(uri.path);
-
+        /*
         if (parentUri.path === "/") {
             return this.rootDirectory.delete(toDelete);
         }
@@ -124,9 +147,12 @@ export class QixFSProvider implements vscode.FileSystemProvider {
             {type: vscode.FileChangeType.Changed, uri: parentUri},
             {type: vscode.FileChangeType.Deleted, uri }
         );
+        */
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {
+
+        // action rename
     }
 
     private registerCommands() {
