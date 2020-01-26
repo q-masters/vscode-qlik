@@ -1,9 +1,10 @@
 import "./enigma";
 
 import * as vscode from "vscode";
-import { ConnectionCreateCommand, ConnectionSettingsCommands, ConnectionCommands } from "./connection";
+import { ConnectionCommands } from "./connection";
 import { QixFSProvider, WorkspaceFolderManager, QixRouter } from "@qixfs/utils";
 import { SessionCache, ExtensionContext, ConnectionSettings } from "@extension/utils";
+import { ConnectionCreateCommand, ConnectionSettingsCommands } from "@settings/utils";
 import { Routes } from "@qixfs-entry";
 
 /**

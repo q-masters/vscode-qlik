@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ConnectionService, ConnectionSetting } from "../../utils";
+import { SettingsService, ConnectionSetting } from "./settings.service";
 
 interface ConnectionQuickPickItem extends vscode.QuickPickItem {
     connection: ConnectionSetting
@@ -12,10 +12,11 @@ interface WorkspaceFolderScheme {
 
 /**
  * add new workspace folder by given connection settings
+ * maybe we find a betterplace for you little command ...
  */
 export async function ConnectionCreateCommand() {
 
-    const connectionService = ConnectionService.getInstance();
+    const connectionService = SettingsService.getInstance();
     const availableConnections = connectionService.getAll();
 
     if (availableConnections.length === 0) {

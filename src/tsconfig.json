@@ -18,6 +18,9 @@
       "@qixfs-entry": ["./extension/qixfs-entry"],
       "@qixfs/*": ["./extension/qixfs/src/*"],
       "@qixfs/utils/*": ["./extension/qixfs/src/utils/src/*"],
+      "@settings/utils" : ["extension/settings/utils"],
+      "@settings/model/*" : ["extension/settings/model/*"],
+      "@settings/webview/*" : ["extension/settings/webview/*"],
     }
   },
   "exclude": ["node_modules"]

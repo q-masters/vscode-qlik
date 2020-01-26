@@ -1,5 +1,5 @@
 import {workspace, WorkspaceConfiguration, ConfigurationTarget, ConfigurationChangeEvent, Uri} from "vscode";
-import { SessionCache, ConnectionSettings } from "../../../../utils";
+import { SessionCache, ConnectionSettings } from "@extension/utils";
 
 export interface ConnectionSetting {
     host: string;
@@ -8,9 +8,9 @@ export interface ConnectionSetting {
     secure: boolean;
 }
 
-export class ConnectionService {
+export class SettingsService {
 
-    private static instance: ConnectionService;
+    private static instance: SettingsService;
 
     private configuration: WorkspaceConfiguration;
 
@@ -21,7 +21,7 @@ export class ConnectionService {
 
     public static getInstance() {
         if (!this.instance) {
-            this.instance = new ConnectionService();
+            this.instance = new SettingsService();
         }
         return this.instance;
     }
@@ -38,9 +38,6 @@ export class ConnectionService {
     public async update(connection: ConnectionSetting, old: ConnectionSetting) {}
 
     public getAll(): ConnectionSetting[] {
-
-        console.log(SessionCache.get(ConnectionSettings));
-
         return this.configuration.get(SessionCache.get(ConnectionSettings)) as ConnectionSetting[];
     }
 

@@ -35,6 +35,13 @@ const config = {
             loader: 'ts-loader'
           }
         ]
+      },
+      {
+        test: /\.html$/,
+        loader: 'html-loader',
+        options: {
+          attributes: false
+        }
       }
     ]
   }

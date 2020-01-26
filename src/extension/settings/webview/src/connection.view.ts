@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
-import { ConnectionService, ConnectionSetting } from "../../utils";
+import template from "./connection.html";
+import { SettingsService, ConnectionSetting } from "../../utils/src/settings.service";
 
 export enum ViewCommand {
     ADD = 'add',
@@ -17,12 +16,12 @@ export class ConnectionWebview {
 
     private view: vscode.WebviewPanel;
 
-    private connectionService: ConnectionService;
+    private connectionService: SettingsService;
 
     private isDisposed: boolean = false;
 
     constructor() {
-        this.connectionService = ConnectionService.getInstance(); 
+        this.connectionService = SettingsService.getInstance(); 
     }
 
     public render(): vscode.WebviewPanel {
@@ -35,8 +34,7 @@ export class ConnectionWebview {
                 { enableScripts: true }
             );
 
-            const template  = path.resolve(__dirname, './connection.html');
-            this.view.webview.html = fs.readFileSync(template, {encoding: "utf8"});
+            this.view.webview.html = template;
 
             this.view.webview.onDidReceiveMessage((message: WebviewMessage) => this.handleMessage(message));
             this.view.onDidDispose(() => this.isDisposed = true);
