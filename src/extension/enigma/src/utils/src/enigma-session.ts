@@ -2,7 +2,6 @@ import { create } from 'enigma.js';
 import { buildUrl } from "enigma.js/sense-utilities";
 import schema from "enigma.js/schemas/12.20.0.json";
 import WebSocket from "ws";
-import { rejects } from 'assert';
 
 /**
  * Services to create, cache and handle enigma session
@@ -78,7 +77,6 @@ export class EnigmaSession {
 
     public async close(appId?: string): Promise<void> {
         const key = appId || EnigmaSession.GLOBAL_SESSION_KEY;
-
         if (this.isCached(key)) {
             await this.loadFromCache(key).session.close();
         }

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { QixRouter } from "./router";
-import { QixFsDirectory } from "@qixfs-entry";
+import { QixFsDirectory, QixFsFile } from "@qixfs-entry";
 import { posix } from "path";
 
 
@@ -31,7 +31,9 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     }
 
     watch(_resource: vscode.Uri): vscode.Disposable {
-        return new vscode.Disposable(() => {});
+        return new vscode.Disposable(() => {
+            console.log("irgend ne info hier ?");
+        });
     }
 
     /**
@@ -41,7 +43,6 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         /** find entry */
         const route = QixRouter.find(uri);
         if(route?.entry) {
-            /** get current enigma session ? */
             return route.entry.stat(uri, route.params);
         }
         throw vscode.FileSystemError.FileNotFound();
@@ -71,14 +72,38 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         throw vscode.FileSystemError.FileNotADirectory();
     }
 
+    /**
+     * read file
+     */
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
+        const route = QixRouter.find(uri);
+        if (route?.entry.type === vscode.FileType.File) {
+            return (route.entry as QixFsFile).readFile(uri, route.params);
+        }
         throw vscode.FileSystemError.FileNotFound();
     }
 
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): Promise<void> {
+        const route = QixRouter.find(uri);
+        /** 
+         * could be also create file but we never know it ... since create is allways true FUCK YOU !!!
+         */
+        if (route?.entry.type === vscode.FileType.File) {
+            return (route.entry as QixFsFile).writeFile(uri, content, route.params);
+        }
+        throw vscode.FileSystemError.FileNotFound();
     }
 
-    async delete(uri: vscode.Uri): Promise<void> {
+    public async delete(uri: vscode.Uri): Promise<void> {
+        const parentUri = uri.with({path: posix.dirname(uri.path)});
+        const name      = posix.basename(uri.path);
+
+        const route = QixRouter.find(parentUri);
+        if (route?.entry.type === vscode.FileType.Directory) {
+            return await (route.entry as QixFsDirectory).delete(uri, name, route.params);
+        }
+
+        throw vscode.FileSystemError.FileNotADirectory();
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {

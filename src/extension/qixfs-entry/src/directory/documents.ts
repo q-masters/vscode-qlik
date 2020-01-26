@@ -1,7 +1,6 @@
 import { RouteParam } from "@qixfs/utils/router";
 import * as vscode from "vscode";
 import { QixFsDirectory } from "../entry";
-import { posix } from "path";
 
 export class DocumentsDirectory extends QixFsDirectory {
 
@@ -26,8 +25,18 @@ export class DocumentsDirectory extends QixFsDirectory {
         await session.createApp(name);
     }
 
-    delete(connection: any, params: RouteParam, options: { recursive: boolean; }): void | Thenable<void> {
-        throw new Error("Method not implemented.");
+    /** 
+     * delete app
+     */
+    public async delete(uri: vscode.Uri, app: string): Promise<void> {
+
+        /** first close session on app */
+        const connection = this.getConnection(uri);
+        await connection.close(app)
+
+        /** get global and delete app */
+        const session = await connection.open();
+        await session.deleteApp(app);
     }
 
     stat(connection: any): vscode.FileStat | Thenable<vscode.FileStat> {

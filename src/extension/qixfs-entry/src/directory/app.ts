@@ -4,12 +4,19 @@ import { RouteParam } from "@qixfs/utils/router";
 
 export class AppDirectory extends QixFsDirectory {
 
-    readDirectory(uri: vscode.Uri, params: RouteParam): Thenable<[string, vscode.FileType][]> {
+    createDirectory(uri: vscode.Uri, name: string, params: RouteParam): Thenable<void> {
         throw new Error("Method not implemented.");
     }
 
-    createDirectory(uri: vscode.Uri, name: string, params: RouteParam): Thenable<void> {
+    public async delete(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
         throw new Error("Method not implemented.");
+    }
+
+    readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] {
+        return [
+            ['script', vscode.FileType.Directory],
+            ['measures', vscode.FileType.Directory]
+        ];
     }
 
     async stat(uri: vscode.Uri, params: RouteParam | undefined): Promise<vscode.FileStat> {
@@ -22,10 +29,6 @@ export class AppDirectory extends QixFsDirectory {
             };
         }
         throw vscode.FileSystemError.FileNotFound();
-    }
-
-    delete(uri: vscode.Uri, params: RouteParam, options: { recursive: boolean; }): void | Thenable<void> {
-        throw new Error("Method not implemented.");
     }
 
     rename(uri: vscode.Uri, oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): Thenable<void> {
