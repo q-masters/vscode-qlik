@@ -21,20 +21,13 @@ export class TemporaryFile extends QixFsFile {
         const route = QixRouter.find(parentUri);
 
         // delegate to parent route and execute createFile on it
-        if (route?.entry && route.entry.type === vscode.FileType.Directory) {
+        if (route?.entry.type === vscode.FileType.Directory) {
             await (route.entry as QixFsDirectory).createFile(uri, content, route.params);
         }
     }
 
     public async stat(uri: vscode.Uri, params: RouteParam): Promise<vscode.FileStat> {
         throw vscode.FileSystemError.FileNotFound();
-    }
-
-    /**
-     * by default this should be a directory operation only in my opinion
-     */
-    public rename(connection: any, oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {
-        throw new Error("Method not implemented.");
     }
 
     public async readFile(uri: vscode.Uri, params: RouteParam): Promise<Uint8Array> {

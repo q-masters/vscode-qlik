@@ -22,13 +22,6 @@ export class QlikScriptFile extends QixFsFile {
         }
     }
 
-    /**
-     * by default this should be a directory operation only in my opinion
-     */
-    public rename(connection: any, oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {
-        throw new Error("Method not implemented.");
-    }
-
     public async readFile(uri: vscode.Uri, params: RouteParam): Promise<Uint8Array> {
         return await this.getScriptData(uri, params.app);
     }

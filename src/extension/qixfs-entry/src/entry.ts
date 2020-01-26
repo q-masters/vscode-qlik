@@ -29,8 +29,6 @@ export abstract class QixFsEntry {
     }
 
     abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
-
-    abstract rename(uri: vscode.Uri, oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void>;
 }
 
 /**
@@ -51,6 +49,8 @@ export abstract class QixFsFile extends QixFsEntry {
 export abstract class QixFsDirectory extends QixFsEntry {
 
     public readonly type = vscode.FileType.Directory;
+
+    abstract rename(uri: vscode.Uri, oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void>;
 
     abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
 

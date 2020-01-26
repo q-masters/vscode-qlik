@@ -49,6 +49,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     }
 
     /**
+     * read directory
      */
     async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
         const route = QixRouter.find(uri);
@@ -59,6 +60,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     }
 
     /**
+     * create new directory
      */
     async createDirectory(uri: vscode.Uri, silent = false): Promise<void> {
         const parentUri = uri.with({path: posix.dirname(uri.path)});
@@ -83,17 +85,20 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         throw vscode.FileSystemError.FileNotFound();
     }
 
-    async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): Promise<void> {
+    /**
+     * write file
+     */
+    async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
         const route = QixRouter.find(uri);
-        /** 
-         * could be also create file but we never know it ... since create is allways true FUCK YOU !!!
-         */
         if (route?.entry.type === vscode.FileType.File) {
             return (route.entry as QixFsFile).writeFile(uri, content, route.params);
         }
         throw vscode.FileSystemError.FileNotFound();
     }
 
+    /**
+     * delete file or directory
+     */
     public async delete(uri: vscode.Uri): Promise<void> {
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);

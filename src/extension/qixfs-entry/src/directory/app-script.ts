@@ -22,7 +22,6 @@ export class AppScriptDirectory extends QixFsDirectory {
     public async createFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
         const fileUri   = uri.with({path: resolve(posix.dirname(uri.path), "main.qvs")})
         const route = QixRouter.find(fileUri);
-
         if (route?.entry && route.entry.type === vscode.FileType.File) {
             await (route.entry as QixFsFile).writeFile(fileUri, content, route.params);
         }
