@@ -1,7 +1,7 @@
-import { QixFsDirectory, QixFsFile } from "../entry";
 import * as vscode from "vscode";
-import { RouteParam, QixRouter } from "@qixfs/utils/router";
 import { posix, resolve } from "path";
+import { RouteParam, QixRouter } from "../../../utils";
+import { QixFsDirectory, QixFsFile } from "../entry";
 
 export class AppScriptDirectory extends QixFsDirectory {
 

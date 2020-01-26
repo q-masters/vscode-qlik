@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { QixRouter } from "./router";
-import { QixFsDirectory, QixFsFile } from "@qixfs-entry";
+import { QixFsDirectory, QixFsFile } from "../../entry";
 import { posix } from "path";
 
 

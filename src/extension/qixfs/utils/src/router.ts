@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { QixFsEntry, QixFsEntryConstructor } from "@qixfs-entry";
+import { QixFsEntry, QixFsEntryConstructor } from "../../entry";
 
 export interface Route {
     path: string;

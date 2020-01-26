@@ -1,6 +1,6 @@
-import { QixFsDirectory } from "../entry";
 import * as vscode from "vscode";
-import { RouteParam } from "@qixfs/utils/router";
+import { QixFsDirectory } from "../entry";
+import { RouteParam } from "../../../utils";
 
 export class AppDirectory extends QixFsDirectory {
 

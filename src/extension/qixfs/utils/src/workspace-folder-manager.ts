@@ -1,4 +1,4 @@
-import { QixWorkspaceFolder } from "@qixfs/model";
+import { QixWorkspaceFolder } from "../../model";
 import * as vscode from "vscode";
 
 /**

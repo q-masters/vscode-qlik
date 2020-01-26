@@ -3,9 +3,9 @@ import "./enigma";
 import * as vscode from "vscode";
 import { ConnectionCommands } from "./connection";
 import { QixFSProvider, WorkspaceFolderManager, QixRouter } from "@qixfs/utils";
+import { Routes } from "@qixfs/entry";
 import { SessionCache, ExtensionContext, ConnectionSettings } from "@extension/utils";
 import { ConnectionCreateCommand, ConnectionSettingsCommands } from "@settings/utils";
-import { Routes } from "@qixfs-entry";
 
 /**
  * bootstrap extension

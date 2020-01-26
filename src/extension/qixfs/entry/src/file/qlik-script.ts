@@ -1,6 +1,6 @@
-import { QixFsFile } from "../entry";
 import * as vscode from "vscode";
-import { RouteParam } from "@qixfs/utils/router";
+import { RouteParam } from "../../../utils";
+import { QixFsFile } from "../entry";
 
 export class QlikScriptFile extends QixFsFile {
 

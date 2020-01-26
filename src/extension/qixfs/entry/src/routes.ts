@@ -1,4 +1,4 @@
-import { Route } from "@qixfs/utils/router";
+import { Route } from "../../utils";
 import { DocumentsDirectory } from "./directory/documents";
 import { AppDirectory } from "./directory/app";
 import { AppScriptDirectory } from "./directory/app-script";
