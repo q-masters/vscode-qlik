@@ -2,6 +2,7 @@ import { create } from 'enigma.js';
 import { buildUrl } from "enigma.js/sense-utilities";
 import schema from "enigma.js/schemas/12.20.0.json";
 import WebSocket from "ws";
+import { rejects } from 'assert';
 
 /**
  * Services to create, cache and handle enigma session
@@ -9,7 +10,7 @@ import WebSocket from "ws";
  * ich müsste die gesammte klasse weg speichern 
  * aber das ist auch nicht so übel sprach der dübel
  */
-export class EnigmaConnector {
+export class EnigmaSession {
 
     private static GLOBAL_SESSION_KEY = "engineData";
 
@@ -61,9 +62,9 @@ export class EnigmaConnector {
      */
     public async open(): Promise<EngineAPI.IGlobal>;
     public async open(appId: string): Promise<EngineAPI.IApp>;
-    public async open(appId?: string): Promise<EngineAPI.IGlobal | EngineAPI.IApp>
+    public async open(appId?: string): Promise<EngineAPI.IGlobal | EngineAPI.IApp | undefined>
     {
-        const id = appId || EnigmaConnector.GLOBAL_SESSION_KEY;
+        const id = appId || EnigmaSession.GLOBAL_SESSION_KEY;
         let session: enigmaJS.IGeneratedAPI;
 
         /** create new session */
@@ -76,10 +77,21 @@ export class EnigmaConnector {
     }
 
     public async close(appId?: string): Promise<void> {
-        const key = appId || EnigmaConnector.GLOBAL_SESSION_KEY;
+        const key = appId || EnigmaSession.GLOBAL_SESSION_KEY;
 
         if (this.isCached(key)) {
             await this.loadFromCache(key).session.close();
+        }
+    }
+
+    public async isApp(appid: string): Promise<boolean> {
+        const global = await this.open();
+        try {
+            const doc = await global.openDoc(appid);
+            doc.session.close();
+            return true;
+        } catch (error) {
+            return false;
         }
     }
 
@@ -101,27 +113,35 @@ export class EnigmaConnector {
      * create new session object, buffer current connections into map
      * so if same connection wants to open twice take existing Promise
      * and return this one.
+     * 
+     * @todo refactor this one
      */
     private async createSessionObject(id: string): Promise<enigmaJS.IGeneratedAPI>
     {
         if (!this.connectionQueue.has(id)) {
-            this.connectionQueue.set(id, new Promise(async (resolve) => {
+            this.connectionQueue.set(id, new Promise(async (resolve, reject) => {
                 await this.suspendOldestSession();
 
                 const url      = this.buildUri(id);
-                const session  = create({ schema, url, createSocket: (url: string) => new WebSocket(url) });
-                let sessionObj = await session.open();
 
-                if (id !== EnigmaConnector.GLOBAL_SESSION_KEY) {
-                    sessionObj = await (sessionObj as EngineAPI.IGlobal).openDoc(id);
+                let sessionObj: enigmaJS.IGeneratedAPI | void;
+                const session  = create({ schema, url, createSocket: (url: string) => new WebSocket(url) });
+                sessionObj = await session.open();
+                sessionObj.on("closed", () => this.removeSessionFromCache(id));
+
+                if (id !== EnigmaSession.GLOBAL_SESSION_KEY) {
+                    try {
+                        sessionObj = await (sessionObj as EngineAPI.IGlobal).openDoc(id);
+                    } catch (error) {
+                        await sessionObj.session.close()
+                        reject();
+                        return;
+                    }
                 }
 
                 this.sessionCache.set(id, sessionObj);
                 this.activeStack.push(id);
                 this.connectionQueue.delete(id);
-
-                /** register on close event if server was shutdown or connection gets lost */
-                sessionObj.on("closed", () => this.removeSessionFromCache(id));
 
                 resolve(sessionObj);
             }));
@@ -153,7 +173,7 @@ export class EnigmaConnector {
     /**
      * load session object from cache
      */
-    private loadFromCache(id = EnigmaConnector.GLOBAL_SESSION_KEY): enigmaJS.IGeneratedAPI
+    private loadFromCache(id = EnigmaSession.GLOBAL_SESSION_KEY): enigmaJS.IGeneratedAPI
     {
         let session = this.sessionCache.get(id);
         if (session) {
@@ -182,7 +202,7 @@ export class EnigmaConnector {
     /**
      * generate new url for websocket call to enigma
      */
-    private buildUri(id = EnigmaConnector.GLOBAL_SESSION_KEY): string
+    private buildUri(id = EnigmaSession.GLOBAL_SESSION_KEY): string
     {
         return buildUrl({
             appId   : id,

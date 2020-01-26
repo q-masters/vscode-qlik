@@ -4,12 +4,21 @@
     "strictNullChecks": true,
     "target": "es6",
     "module": "commonjs",
-    "outDir": "./out",
+    "outDir": "./dist",
     "rootDir": "./",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "typeRoots": ["node_modules/@types", "./types"],
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "paths": {
+      "@extension/utils" : ["./extension/utils"],
+      "@extension/utils/*" : ["./extension/utils/src/*"],
+      "@extension/enigma"  : ["./extension/enigma"],
+      "@extension/enigma/*": ["./extension/enigma/src/*"],
+      "@qixfs-entry": ["./extension/qixfs-entry"],
+      "@qixfs/*": ["./extension/qixfs/src/*"],
+      "@qixfs/utils/*": ["./extension/qixfs/src/utils/src/*"],
+    }
   },
   "exclude": ["node_modules"]
 }

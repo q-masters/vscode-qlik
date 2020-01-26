@@ -17,7 +17,6 @@ export class File implements Entry {
 
     public constructor(data?: string | Uint8Array) {
         data ? this.content = data : void 0;
-
         this.createdTime  = Date.now();
         this.lastModified = Date.now();
     }

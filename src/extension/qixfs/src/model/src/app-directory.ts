@@ -1,6 +1,6 @@
 import { Directory, File } from "./directory";
 import { Uri, FileType, FileSystemError, commands } from "vscode";
-import { QixFsCommands } from "./qix-fs.provider";
+import { QixFsCommands } from "../../utils";
 
 export class AppDirectory extends Directory {
 

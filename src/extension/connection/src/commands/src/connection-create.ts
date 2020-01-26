@@ -29,12 +29,14 @@ export async function ConnectionCreateCommand() {
 
     const selection = await vscode.window.showQuickPick(items, {placeHolder: "Select Connection"});
     if (selection) {
-        const name = `${selection.connection.host}:${selection.connection.port}`
-        const uri   = vscode.Uri.parse(`qix://${name}`);
+
+        const name = `${selection.connection.host}:${selection.connection.port}`;
+        const uri = vscode.Uri.parse(`qix://${name}`);
         const newWorkspaceFolder: WorkspaceFolderScheme = { uri, name };
 
         if (!vscode.workspace.getWorkspaceFolder(uri)) {
             vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders?.length || 0 , 0, newWorkspaceFolder);
+            /** after we have added a folder we need to be aware of it since we have to create a qlik connection */
         } else {
             vscode.window.showInformationMessage(`Workspacefolder ${uri.toString()} allready exists.`);
         }

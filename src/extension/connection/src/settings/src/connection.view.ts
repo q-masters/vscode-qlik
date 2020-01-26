@@ -72,6 +72,7 @@ export class ConnectionWebview {
     }
 
     private async addNewConnection(data: ConnectionSetting) {
+        this.updateConnections();
     }
 
     private async deleteConnection(data: ConnectionSetting) {

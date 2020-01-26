@@ -29,7 +29,7 @@ export class ConnectionService {
     public async add(connection: ConnectionSetting): Promise<void> {
         const settings    = this.getAll();
         const newSettings = [...settings, connection];
-        return this.configuration.update('VSQlik.connection.settings', newSettings, ConfigurationTarget.Global);
+        return this.configuration.update(SessionCache.get(ConnectionSettings), newSettings, ConfigurationTarget.Global);
     }
 
     public async delete(connection: ConnectionSetting): Promise<void> {
@@ -38,7 +38,10 @@ export class ConnectionService {
     public async update(connection: ConnectionSetting, old: ConnectionSetting) {}
 
     public getAll(): ConnectionSetting[] {
-        return this.configuration.get('VSQlik.connection.settings') as ConnectionSetting[];
+
+        console.log(SessionCache.get(ConnectionSettings));
+
+        return this.configuration.get(SessionCache.get(ConnectionSettings)) as ConnectionSetting[];
     }
 
     /**
