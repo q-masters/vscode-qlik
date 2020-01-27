@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
 import { RouteParam, QixRouter } from "../../../utils";
-import { QixFsFile, QixFsDirectory } from "../entry";
+import { QixFsDirectory, QixFsFileAdapter } from "../entry";
 import { posix } from "path";
 
 /**
  * creates a temporary file and delegate a create file request
  * to specific entry point
  */
-export class TemporaryFile extends QixFsFile {
+export class TemporaryFile extends QixFsFileAdapter {
 
     public isTemporary = true;
 
@@ -24,13 +24,5 @@ export class TemporaryFile extends QixFsFile {
         if (route?.entry.type === vscode.FileType.Directory) {
             await (route.entry as QixFsDirectory).createFile(uri, content, route.params);
         }
-    }
-
-    public async stat(uri: vscode.Uri, params: RouteParam): Promise<vscode.FileStat> {
-        throw vscode.FileSystemError.FileNotFound();
-    }
-
-    public async readFile(uri: vscode.Uri, params: RouteParam): Promise<Uint8Array> {
-        throw new Error("could not read file");
     }
 }

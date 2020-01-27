@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
 import { RouteParam } from "../../../utils";
-import { QixFsFile } from "../entry";
+import { QixFsFileAdapter } from "../entry";
 
-export class QlikScriptFile extends QixFsFile {
+export class ScriptFile extends QixFsFileAdapter {
 
     public async writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
-        console.log("write me now ?");
         const connection = this.getConnection(uri);
         const app        = await connection.open(params.app);
         await app.setScript(content.toString());

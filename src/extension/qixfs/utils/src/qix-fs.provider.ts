@@ -100,6 +100,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * delete file or directory
      */
     public async delete(uri: vscode.Uri): Promise<void> {
+
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);
 
@@ -111,6 +112,11 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         throw vscode.FileSystemError.FileNotADirectory();
     }
 
-    rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {
+    rename(oldUri: vscode.Uri, newUri: vscode.Uri): void | Thenable<void> {
+        const route = QixRouter.find(oldUri);
+        if (route?.entry.type === vscode.FileType.File) {
+            return (route.entry as QixFsFile).rename(oldUri, posix.basename(newUri.path), route.params);
+        }
+        throw vscode.FileSystemError.FileNotFound();
     }
 }
