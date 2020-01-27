@@ -11,6 +11,15 @@
 			"options": {
 				"cwd": "${workspaceRoot}/src"
 			}
+		},
+		{
+			"type": "npm",
+			"script": "webpack",
+			"problemMatcher": "$tsc-watch",
+			"isBackground": true,
+			"options": {
+				"cwd": "${workspaceRoot}/src"
+			}
 		}
 	]
 }

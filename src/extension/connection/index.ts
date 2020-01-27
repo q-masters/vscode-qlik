@@ -1,2 +1,4 @@
-export * from "./src/connection";
-export * from "./src/connection.service";
+export const enum ConnectionCommands {
+    CREATE   = "VSQlik.Connection.Create",
+    SETTINGS = "VSQlik.Connection.Settings",
+};

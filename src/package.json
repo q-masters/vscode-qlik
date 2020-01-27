@@ -2,38 +2,41 @@
   "name": "vscode-qlik",
   "version": "0.0.1",
   "description": "vscode extension for qlik",
-  "main": "./out/extension/main.js",
+  "main": "./dist/extension.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "tsc --skipLibCheck",
-    "watch": "tsc -watch -p ./",
-    "build": "tsc"
+    "copyhtml": "copyfiles extension/**/*.html ./out",
+    "clear": "rimraf ./out",
+    "compile": "npm run build -- --skipLibCheck",
+    "watch": "npm run build -- -watch -p ./",
+    "prebuild": "npm run clear && npm run copyhtml",
+    "build": "tsc",
+    "webpack": "webpack --config ./bin/webpack.conf.js --mode development"
   },
   "engines": {
     "vscode": "^1.22.0"
   },
   "activationEvents": [
     "onFileSystem:qix",
-    "onCommand:VSQlik.QixFS.Init",
+    "onCommand:VSQlik.Connection.Settings",
     "onCommand:VSQlik.Connection.Create"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "VSQlik.QixFS.Init",
-        "title": "Setup Workspace",
+        "command": "VSQlik.Connection.Create",
+        "title": "Connect to Qlik Server",
         "category": "VSQlik"
       },
       {
-        "command": "VSQlik.Connection.Create",
-        "title": "Create new Connection to Qlik Server",
+        "command": "VSQlik.Connection.Settings",
+        "title": "Show Connection Settings",
         "category": "VSQlik"
       }
     ],
     "menus": {
       "explorer/context": [
         {
-          "command": "VSQlik.QixFS.Init",
+          "command": "VSQlik.Connection.Create",
           "group": "navigation"
         }
       ]
@@ -47,12 +50,14 @@
             "description": "Location of JSON files to load configs from",
             "type": "array",
             "items": true,
-            "default": [{
+            "default": [
+              {
                 "host": "127.0.0.1",
                 "path": "",
                 "port": 9076,
                 "secure": false
-            }]
+              }
+            ]
           }
         }
       }
@@ -69,16 +74,22 @@
   },
   "homepage": "https://github.com/PLH-Coding/vscodeQ#readme",
   "devDependencies": {
-    "@types/enigma.js": "^2.2.1",
-    "@types/node": "^12.12.7",
-    "@types/qlik-engineapi": "^12.67.8",
-    "@types/vscode": "^1.40.0",
-    "@types/ws": "^6.0.3",
-    "tslint": "^5.20.1",
-    "typescript": "^3.7.2"
+    "@types/enigma.js": "2.2.1",
+    "@types/node": "13.5.0",
+    "@types/qlik-engineapi": "12.67.8",
+    "@types/vscode": "1.41.0",
+    "@types/ws": "7.2.0",
+    "copyfiles": "2.2.0",
+    "ts-loader": "6.2.1",
+    "tsconfig-paths-webpack-plugin": "3.2.0",
+    "tslint": "6.0.0",
+    "typescript": "3.7.5",
+    "webpack": "4.41.5",
+    "webpack-cli": "3.3.10"
   },
   "dependencies": {
-    "enigma.js": "^2.5.0",
-    "ws": "^7.2.0"
+    "enigma.js": "2.6.3",
+    "rimraf": "3.0.0",
+    "ws": "7.2.1"
   }
 }

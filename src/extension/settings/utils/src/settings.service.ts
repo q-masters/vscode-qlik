@@ -1,5 +1,5 @@
-import {workspace, WorkspaceConfiguration, ConfigurationTarget, ConfigurationChangeEvent} from "vscode";
-import { SETTINGS } from "../../shared";
+import {workspace, WorkspaceConfiguration, ConfigurationTarget, ConfigurationChangeEvent, Uri} from "vscode";
+import { SessionCache, ConnectionSettings } from "@extension/utils";
 
 export interface ConnectionSetting {
     host: string;
@@ -8,9 +8,9 @@ export interface ConnectionSetting {
     secure: boolean;
 }
 
-export class ConnectionService {
+export class SettingsService {
 
-    private static instance: ConnectionService;
+    private static instance: SettingsService;
 
     private configuration: WorkspaceConfiguration;
 
@@ -21,7 +21,7 @@ export class ConnectionService {
 
     public static getInstance() {
         if (!this.instance) {
-            this.instance = new ConnectionService();
+            this.instance = new SettingsService();
         }
         return this.instance;
     }
@@ -29,7 +29,7 @@ export class ConnectionService {
     public async add(connection: ConnectionSetting): Promise<void> {
         const settings    = this.getAll();
         const newSettings = [...settings, connection];
-        return this.configuration.update(SETTINGS.CONNECTION, newSettings, ConfigurationTarget.Global);
+        return this.configuration.update(SessionCache.get(ConnectionSettings), newSettings, ConfigurationTarget.Global);
     }
 
     public async delete(connection: ConnectionSetting): Promise<void> {
@@ -38,11 +38,17 @@ export class ConnectionService {
     public async update(connection: ConnectionSetting, old: ConnectionSetting) {}
 
     public getAll(): ConnectionSetting[] {
-        return this.configuration.get(SETTINGS.CONNECTION) as ConnectionSetting[];
+        return this.configuration.get(SessionCache.get(ConnectionSettings)) as ConnectionSetting[];
+    }
+
+    /**
+     * create new connection which can stored into storage
+     */
+    public createConnection(uri: Uri, ) {
     }
 
     private onConfigurationChanged(event: ConfigurationChangeEvent) {
-        if (event.affectsConfiguration(SETTINGS.CONNECTION)) {
+        if (event.affectsConfiguration(SessionCache.get(ConnectionSettings))) {
             this.configuration = workspace.getConfiguration();
         }
     }
