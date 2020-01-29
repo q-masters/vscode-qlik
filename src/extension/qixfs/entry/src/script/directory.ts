@@ -1,9 +1,13 @@
 import * as vscode from "vscode";
 import { posix, resolve } from "path";
-import { QixRouter } from "../../../utils";
+import { QixRouter, RouteParam } from "../../../utils";
 import { QixFsFile, QixFsDirectoryAdapter } from "../entry";
 
 export class ScriptDirectory extends QixFsDirectoryAdapter {
+
+    public readDirectory(uri: vscode.Uri, params?: RouteParam): [string, vscode.FileType][] {
+        return [["main.qvs", vscode.FileType.File]];
+    }
 
     /** 
      * create new file on app script directory
