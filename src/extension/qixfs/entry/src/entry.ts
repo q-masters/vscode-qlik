@@ -27,6 +27,10 @@ export abstract class QixFsEntry {
         throw new Error("not found");
     }
 
+    abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
+
+    abstract rename(uri: vscode.Uri, name: string, params?: RouteParam): Promise<void> | void;
+
     abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
 }
 
@@ -49,10 +53,6 @@ export abstract class QixFsDirectory extends QixFsEntry {
 
     public readonly type = vscode.FileType.Directory;
 
-    abstract rename(uri: vscode.Uri, oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void>;
-
-    abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
-
     /**
      * read a directory
      */
@@ -67,5 +67,60 @@ export abstract class QixFsDirectory extends QixFsEntry {
      * create new file in directory
      */
     public async createFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
+    }
+}
+
+/**
+ * QixFsFileAdater which only predefines all methods so we dont have to implement them
+ * all. By default all Opertations are forbidden you have to implement a concrete file class
+ * and override these methods.
+ */
+export class QixFsFileAdapter extends QixFsFile {
+
+    readFile(uri: vscode.Uri, params: RouteParam): Uint8Array | Thenable<Uint8Array> {
+        throw new Error("Method not implemented.");
+    }
+
+    writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): void | Thenable<void> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+
+    delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+
+    rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+
+    stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat | Thenable<vscode.FileStat> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+}
+
+/**
+ * QixFsDirectoryAdapter which only predefines all methods so we dont have to implement them
+ * all. By default all Opertations are forbidden you have to implement a concrete directory class
+ * and override these methods.
+ */
+export class QixFsDirectoryAdapter extends QixFsDirectory {
+    readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+
+    createDirectory(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+
+    delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+
+    rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
+        throw vscode.FileSystemError.NoPermissions;
+    }
+
+    stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat | Thenable<vscode.FileStat> {
+        throw vscode.FileSystemError.NoPermissions;
     }
 }

@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { RouteParam } from "../../../utils";
-import { QixFsDirectory } from "../entry";
+import { QixFsDirectoryAdapter } from "../entry";
 
-export class DocumentsDirectory extends QixFsDirectory {
+export class DocumentsDirectory extends QixFsDirectoryAdapter {
 
     /**
      * read all qlik documents (apps) from enigma session
@@ -46,9 +46,5 @@ export class DocumentsDirectory extends QixFsDirectory {
             size: 10,
             type: vscode.FileType.Directory
         }
-    }
-
-    rename(connection: any, oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean; }): void | Thenable<void> {
-        throw new Error("Method not implemented.");
     }
 }
