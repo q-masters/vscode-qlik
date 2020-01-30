@@ -9,8 +9,10 @@
     "compile": "npm run build -- --skipLibCheck",
     "watch": "npm run build -- -watch -p ./",
     "prebuild": "npm run clear && npm run copyhtml",
-    "build": "tsc",
-    "webpack": "webpack --config ./bin/webpack.conf.js --mode development"
+    "build": "npm run webpack",
+    "webpack": "webpack --config ./bin/webpack.conf.js --mode development",
+    "postinstall": "npm i --prefix ./media/webview",
+    "postbuild": "npm run build --prefix ./media/webview"
   },
   "engines": {
     "vscode": "^1.22.0"

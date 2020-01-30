@@ -29,19 +29,14 @@ const config = {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
         use: [
           {
-            loader: 'ts-loader'
+            loader: 'ts-loader',
+            options: {
+              configFile: path.resolve(process.cwd(), "./tsconfig.json")
+            }
           }
         ]
-      },
-      {
-        test: /\.html$/,
-        loader: 'html-loader',
-        options: {
-          attributes: false
-        }
       }
     ]
   }

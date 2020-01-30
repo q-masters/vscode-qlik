@@ -11,6 +11,7 @@
     "typeRoots": ["node_modules/@types", "./types"],
     "experimentalDecorators": true,
     "paths": {
+      "@commands": ["./extension/data/commands"],
       "@extension/utils" : ["./extension/utils"],
       "@extension/utils/*" : ["./extension/utils/src/*"],
       "@extension/enigma"  : ["./extension/enigma"],
@@ -21,8 +22,11 @@
       "@qixfs/entry": ["extension/qixfs/entry"],
       "@settings/utils" : ["extension/settings/utils"],
       "@settings/model/*" : ["extension/settings/model/*"],
-      "@settings/webview/*" : ["extension/settings/webview/*"],
+      "@settings/webview/*" : ["extension/settings/webview/*"]
     }
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "media/webview"
+  ]
 }
