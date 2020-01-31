@@ -1,0 +1,8 @@
+/** 
+ * proxy types, since types and paths on file instant break
+ * configuration for vscode (not tsc or angular-cli)
+ */
+{
+	"extends": "./tsconfig",
+	"include": ["./types/**/*.d.ts"]
+}

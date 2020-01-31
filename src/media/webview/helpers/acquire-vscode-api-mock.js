@@ -1,0 +1,3 @@
+window.acquireVsCodeApi = () => ({
+    postMessage: () =>  {}
+})

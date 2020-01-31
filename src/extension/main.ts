@@ -4,8 +4,10 @@ import * as vscode from "vscode";
 import { ConnectionCommands } from "./connection";
 import { QixFSProvider, WorkspaceFolderManager, QixRouter } from "@qixfs/utils";
 import { Routes } from "@qixfs/entry";
-import { SessionCache, ExtensionContext, ConnectionSettings } from "@extension/utils";
-import { ConnectionCreateCommand, ConnectionSettingsCommands } from "@settings/utils";
+import { SessionCache, ExtensionContext, ConnectionSettings, ExtensionPath } from "@extension/utils";
+import { VSQlikConnectionCreateCommand } from "@commands";
+import { ConnectionCreateCommand } from "@settings/utils";
+import { SettingsModule } from "./settings/settings.module";
 
 /**
  * bootstrap extension
@@ -16,11 +18,13 @@ export async function activate(context: vscode.ExtensionContext) {
     QixRouter.addRoutes(Routes);
 
     SessionCache.add(ExtensionContext, context);
+    SessionCache.add(ExtensionPath, context.extensionPath);
     SessionCache.add(ConnectionSettings, `VSQlik.Connection`);
 
     /** register connection commands */
-    vscode.commands.registerCommand(ConnectionCommands.CREATE,   ConnectionCreateCommand);
-    vscode.commands.registerCommand(ConnectionCommands.SETTINGS, ConnectionSettingsCommands);
+    vscode.commands.registerCommand(VSQlikConnectionCreateCommand, ConnectionCreateCommand);
+
+    SettingsModule.bootstrap();
 
     /** register fs */
     const qixFs  = new QixFSProvider();

@@ -9,6 +9,7 @@ export class SessionToken<T>  {
 export const ExtensionContext   = new SessionToken<vscode.ExtensionContext>("VSCode Extension Context");
 export const ConnectionSettings = new SessionToken<string>("VSCode Connection Settings");
 export const WorkspaceFolders   = new SessionToken<string[]>("VSCode Connection Settings");
+export const ExtensionPath      = new SessionToken<string>("VCode Extension Path");
 
 export class SessionCache {
 
