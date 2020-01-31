@@ -1,4 +1,4 @@
-import { EnigmaSession } from "@extension/enigma";
+import { EnigmaSession } from "extension/libs/enigma";
 
 /**
  * davon reicht eine die dann geshared wird

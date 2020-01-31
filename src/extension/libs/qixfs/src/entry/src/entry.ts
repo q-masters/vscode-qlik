@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { WorkspaceFolderManager, RouteParam } from "../../utils";
-import { EnigmaSession } from "@extension/enigma";
+import { EnigmaSession } from "extension/libs/enigma";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;

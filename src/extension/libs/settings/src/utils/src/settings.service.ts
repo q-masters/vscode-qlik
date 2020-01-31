@@ -1,5 +1,6 @@
 import {workspace, WorkspaceConfiguration, ConfigurationTarget, ConfigurationChangeEvent, Uri} from "vscode";
-import { SessionCache, ConnectionSettings } from "@extension/utils";
+import { ConnectionSettings } from "@data/tokens";
+import { SessionCache } from "@utils";
 
 export interface ConnectionSetting {
     host: string;

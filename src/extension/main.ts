@@ -1,22 +1,22 @@
-import "./enigma";
-
 import * as vscode from "vscode";
-import { ConnectionCommands } from "./connection";
-import { QixFSProvider, WorkspaceFolderManager, QixRouter } from "@qixfs/utils";
-import { Routes } from "@qixfs/entry";
-import { SessionCache, ExtensionContext, ConnectionSettings, ExtensionPath } from "@extension/utils";
-import { VSQlikConnectionCreateCommand } from "@commands";
-import { ConnectionCreateCommand } from "@settings/utils";
-import { SettingsModule } from "./settings/settings.module";
+import "@lib/enigma";
+
+import { VSQlikConnectionCreateCommand } from "@data/commands";
+import { ConnectionSettings, ExtensionContext, ExtensionPath } from "@data/tokens";
+import { Routes } from "@data/routes";
+import { SettingsModule } from "@lib/settings";
+import { QixFsModule } from "@lib/qixfs";
+import { SessionCache } from "@utils";
+
+/** todo move to a connection module @lib/connection */
+import { ConnectionCreateCommand } from "./libs/settings/src/utils";
 
 /**
  * bootstrap extension
  */
 export async function activate(context: vscode.ExtensionContext) {
 
-    WorkspaceFolderManager.addFolder(vscode.workspace.workspaceFolders || []);
-    QixRouter.addRoutes(Routes);
-
+    /** add some data to session cache */
     SessionCache.add(ExtensionContext, context);
     SessionCache.add(ExtensionPath, context.extensionPath);
     SessionCache.add(ConnectionSettings, `VSQlik.Connection`);
@@ -24,11 +24,9 @@ export async function activate(context: vscode.ExtensionContext) {
     /** register connection commands */
     vscode.commands.registerCommand(VSQlikConnectionCreateCommand, ConnectionCreateCommand);
 
+    /** bootstrap modules */
+    QixFsModule.bootstrap(context, Routes);
     SettingsModule.bootstrap();
-
-    /** register fs */
-    const qixFs  = new QixFSProvider();
-    context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
 }
 
 export function deactivate() {

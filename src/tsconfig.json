@@ -11,18 +11,11 @@
     "typeRoots": ["node_modules/@types", "./types"],
     "experimentalDecorators": true,
     "paths": {
-      "@commands": ["./extension/data/commands"],
-      "@extension/utils" : ["./extension/utils"],
-      "@extension/utils/*" : ["./extension/utils/src/*"],
-      "@extension/enigma"  : ["./extension/enigma"],
-      "@extension/enigma/*": ["./extension/enigma/src/*"],
-      "@qixfs-entry": ["./extension/qixfs-entry"],
-      "@qixfs/*": ["./extension/qixfs/src/*"],
-      "@qixfs/utils": ["extension/qixfs/utils"],
-      "@qixfs/entry": ["extension/qixfs/entry"],
-      "@settings/utils" : ["extension/settings/utils"],
-      "@settings/model/*" : ["extension/settings/model/*"],
-      "@settings/webview/*" : ["extension/settings/webview/*"]
+      "@data/*": ["./extension/data/*"],
+      "@utils" : ["./extension/utils"],
+      "@lib/enigma"  : ["extension/libs/enigma"],
+      "@lib/qixfs": ["extension/libs/qixfs"],
+      "@lib/settings" : ["extension/libs/settings"],
     }
   },
   "exclude": [

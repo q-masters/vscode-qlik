@@ -1,11 +1,5 @@
-import { Route } from "../../utils";
-import { DocumentsDirectory } from "./directory/documents";
-import { AppDirectory } from "./directory/app";
-import { ScriptDirectory } from "./script/directory";
-import { ScriptFile } from "./script/file";
-import { TemporaryFile } from "./file/temporary";
-import { VariableDirectory } from "./variable/directory";
-import { VariableFile } from "./variable/file";
+import { AppDirectory, ScriptDirectory, ScriptFile, TemporaryFile, VariableDirectory, VariableFile, Route } from "@lib/qixfs";
+import { DocumentsDirectory } from "@lib/qixfs";
 
 export const Routes: Route[] = [{
     path: "",

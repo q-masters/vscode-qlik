@@ -1,5 +1,5 @@
 import {commands} from "vscode";
-import { VSQlikConnectionSettingsCommand } from "@commands";
+import { VSQlikConnectionSettingsCommand } from "@data/commands";
 import { SettingsWebview } from "./ui";
 
 export class SettingsModule {

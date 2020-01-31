@@ -1,4 +1,5 @@
-import { SessionCache, ExtensionPath, VsQlikWebview } from "@extension/utils";
+import { ExtensionPath } from "@data/tokens";
+import { VsQlikWebview, SessionCache } from "@utils";
 import { resolve } from "path";
 
 export class SettingsWebview extends VsQlikWebview<any> {
