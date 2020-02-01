@@ -1,0 +1,31 @@
+* {
+    color: inherit;
+    font-family: var(--vscode-settings-fontFamily);
+}
+
+/**
+ * vsqlik buttons for webviews
+ */
+button{
+
+    /** reset button styles */
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    cursor: pointer;
+
+    &.action {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: baseline;
+
+        .vsqlik-icon {
+            font-size: .8rem;
+        }
+
+        .vsqlik-icon + .label {
+            margin-left: .3rem;
+        }
+    }
+}

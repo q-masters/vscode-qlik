@@ -12,7 +12,8 @@
     "build": "npm run webpack",
     "webpack": "webpack --config ./bin/webpack.conf.js --mode development",
     "postinstall": "npm i --prefix ./media/webview",
-    "postbuild": "npm run build --prefix ./media/webview"
+    "postbuild": "npm run webview:build",
+    "webview:build": "npm run build --prefix ./media/webview -- --prod"
   },
   "engines": {
     "vscode": "^1.22.0"
@@ -47,17 +48,22 @@
       {
         "title": "Visual Studio Qlik",
         "properties": {
-          "VSQlik.Connection": {
+          "vsQlik.Connection": {
             "title": "A list of file locations to load SSH FS configurations from",
             "description": "Location of JSON files to load configs from",
             "type": "array",
             "items": true,
             "default": [
               {
-                "host": "127.0.0.1",
-                "path": "",
-                "port": 9076,
-                "secure": false
+                "label": "Localhost",
+                "settings": {
+                  "host": "127.0.0.1",
+                  "path": "",
+                  "port": 9076,
+                  "secure": false,
+                  "username": "",
+                  "password": ""
+                }
               }
             ]
           }
@@ -83,6 +89,7 @@
     "@types/ws": "7.2.0",
     "copyfiles": "2.2.0",
     "html-loader": "^0.5.5",
+    "object-hash": "^2.0.1",
     "ts-loader": "6.2.1",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "6.0.0",
