@@ -77,7 +77,7 @@ export class ConnectionWebview extends VsQlikWebview<Request> {
      * create a new connection and sends to webview
      */
     private async createConnection(setting: ConnectionSetting) {
-        if (!this.isUniqe(setting)) {
+        if (!this.isUniqe(setting, true)) {
             const error = `A connection with the name ${setting.label} allready exists`;
             window.showErrorMessage(error);
         } else {
@@ -124,9 +124,11 @@ export class ConnectionWebview extends VsQlikWebview<Request> {
         this.isSilent = false;
     }
 
-    private isUniqe(setting: ConnectionSetting): boolean  {
+    private isUniqe(setting: ConnectionSetting, isNew = false): boolean  {
         const settings = this.connectionSettings.read();
-        return !settings.some((connection) => connection.label === setting.label);
+        return !settings.some((connection) =>
+            !isNew && connection.uid === setting.uid ? false : connection.label === setting.label
+        );
     }
 
     private sendResponse<T>(command: Command, data: T): void {
