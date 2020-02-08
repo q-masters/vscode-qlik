@@ -13,7 +13,8 @@
     "webpack": "webpack --config ./bin/webpack.conf.js --mode development",
     "postinstall": "npm i --prefix ./media/webview",
     "postbuild": "npm run webview:build",
-    "webview:build": "npm run build --prefix ./media/webview -- --prod"
+    "webview:build": "npm run build --prefix ./media/webview -- --prod",
+    "changelog:generate": "tsc -p ./ci"
   },
   "engines": {
     "vscode": "^1.22.0"
