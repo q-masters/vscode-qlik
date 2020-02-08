@@ -4,7 +4,7 @@ interface VsCodeCommand<T> {
 }
 
 interface Vscode {
-    postmessage<T>(command: VsCodeCommand<T>): void;
+    postMessage<T>(command: VsCodeCommand<T>): void;
 }
 
 declare function  acquireVsCodeApi(): Vscode;

@@ -1,0 +1,17 @@
+{
+  "extends": "../../tslint.json",
+  "rules": {
+    "directive-selector": [
+      true,
+      "attribute",
+      "vsqlikConnection",
+      "camelCase"
+    ],
+    "component-selector": [
+      true,
+      "element",
+      "vsqlik-connection",
+      "kebab-case"
+    ]
+  }
+}

@@ -31,9 +31,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     }
 
     watch(_resource: vscode.Uri): vscode.Disposable {
-        return new vscode.Disposable(() => {
-            console.log("irgend ne info hier ?");
-        });
+        return new vscode.Disposable(() => void 0);
     }
 
     /**

@@ -9,7 +9,7 @@ import fs, { existsSync, statSync } from "fs";
  */
 export abstract class VsQlikWebview<T> {
 
-    private view: vscode.WebviewPanel;
+    protected view: vscode.WebviewPanel;
 
     /**
      * get full path to html file for our webview
@@ -35,7 +35,7 @@ export abstract class VsQlikWebview<T> {
     }
 
     /** send message to inner view */
-    protected send(message) {
+    protected send<T>(message: T) {
         this.view.webview.postMessage(message);
     }
 

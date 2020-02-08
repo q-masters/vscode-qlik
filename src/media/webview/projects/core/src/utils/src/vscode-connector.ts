@@ -12,7 +12,7 @@ export class VsCodeConnector {
     /**
      * message we recive from vscode in JSON format
      */
-    private message$: Subject<{command: string, data}> = new Subject();
+    private message$: Subject<any> = new Subject();
 
     public constructor(
         private zone: NgZone
@@ -27,14 +27,14 @@ export class VsCodeConnector {
     }
 
     /** post message command to vscode */
-    public sendCommand<T>(command: VsCodeCommand<T>) {
-        this.vscode.postmessage(command);
+    public exec<T>(command: VsCodeCommand<T>) {
+        this.vscode.postMessage(command);
     }
 
     /**
      * register to get message
      */
-    public onReciveMessage<T>(): Observable<{command: string, data: T}> {
+    public onReciveMessage<T>(): Observable<T> {
         return this.message$.asObservable();
     }
 
@@ -44,7 +44,10 @@ export class VsCodeConnector {
     private registerWindowMessageEvent() {
         this.zone.runOutsideAngular(() => fromEvent(window, "message")
             .pipe(map((event: MessageEvent) => event.data))
-            .subscribe(this.message$)
+            .subscribe((message) => {
+                /** run again into zone ... wow */
+                this.zone.run(() => this.message$.next(message));
+            })
         );
     }
 }

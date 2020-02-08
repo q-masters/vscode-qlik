@@ -1,0 +1,13 @@
+<tr vsqlikDoubleClick (dblClick)="doEdit()">
+    <td>{{connection.label}}</td>
+    <td>{{connection.settings.host}}</td>
+    <td>{{connection.settings.port}}</td>
+    <td>{{connection.settings.secure}}</td>
+    <!--
+    <td>{{connection.settings.password}}</td>
+    -->
+    <td class="action-col">
+        <button type="button" class="btn btn-action" (click)="doEdit()"><i class="vsqlik-icon vsqlik-icon--edit"></i></button>
+        <button type="button" class="btn btn-action" (click)="doDelete()"><i class="vsqlik-icon vsqlik-icon--delete"></i></button>
+    </td>
+</tr>
