@@ -1,0 +1,10 @@
+/** set iconmoon fontpath for vsqlik icons */
+$icomoon-font-path: "../../../assets/fonts" !default;
+
+/** 
+ * import vsqlik scss core 
+ * 
+ * - scss for reset
+ * - scss for icons
+ */
+@import "core";

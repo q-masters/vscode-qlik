@@ -2,3 +2,4 @@ node_modules
 
 /** auto generated */
 src/out
+src/dist

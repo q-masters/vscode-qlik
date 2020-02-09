@@ -1,0 +1,42 @@
+/** bootstrap reboot and variables */
+@import "./icons";
+@import "./theme";
+
+html, body {
+    height: 100%;
+}
+
+.checkbox {
+
+    &::before {
+        cursor: pointer;
+        content: '';
+        display: block;
+        box-sizing: border-box;
+        padding: .2rem;
+        height: 1rem;
+        width: 1.1rem;
+
+        background-color: var(--vscode-settings-checkboxBackground);
+        color: var(--vscode-settings-checkboxForground);
+        border: var(--vscode-settings-checkboxBorder);
+    }
+
+    &.checked::before {
+        @include vscodeIcon(check);
+        font-size: .7rem;
+    }
+
+    input[type="checkbox"] {
+        display: none;
+    }
+}
+
+input {
+    border: var(--vscode-input-border);
+
+    &[type="text"] {
+        background: var(--vscode-settings-textInputBackground);
+        color: var(--vscode-settings-textInputForeground);
+    }
+}
