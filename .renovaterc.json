@@ -5,7 +5,6 @@
       "groupName": "linters"
     }
   ],
-  "ignoreDeps": ["typescript"],
   "baseBranches": [
     "development"
   ],
