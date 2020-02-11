@@ -32,7 +32,7 @@
     "@angular/language-service": "9.0.0-rc.11",
     "@types/jasmine": "3.3.16",
     "@types/jasminewd2": "2.0.8",
-    "@types/node": "12.12.26",
+    "@types/node": "12.12.27",
     "@types/vscode": "1.41.0",
     "codelyzer": "5.2.1",
     "jasmine-core": "3.4.0",
