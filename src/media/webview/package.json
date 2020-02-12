@@ -35,7 +35,7 @@
     "@types/node": "12.12.27",
     "@types/vscode": "1.41.0",
     "codelyzer": "5.2.1",
-    "jasmine-core": "3.4.0",
+    "jasmine-core": "3.5.0",
     "jasmine-spec-reporter": "4.2.1",
     "karma": "4.1.0",
     "karma-chrome-launcher": "3.1.0",
