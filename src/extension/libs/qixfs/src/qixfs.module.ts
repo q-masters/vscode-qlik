@@ -9,5 +9,10 @@ export class QixFsModule {
 
         const qixFs  = new QixFSProvider();
         context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
+
+        vscode.workspace.onDidChangeWorkspaceFolders((event) => {
+            WorkspaceFolderManager.addFolder(event.added);
+            WorkspaceFolderManager.removeFolder(event.removed);
+        });
     }
 }
