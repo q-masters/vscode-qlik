@@ -20,7 +20,7 @@ export async function ConnectionCreateCommand() {
 
     if (selection) {
         const name = selection.connection.label;
-        const uri  = vscode.Uri.parse(`qix://${selection.connection.host}:${selection.connection.port}`);
+        const uri  = vscode.Uri.parse(`qix://${selection.connection.settings.host}:${selection.connection.settings.port}`);
         const newWorkspaceFolder: WorkspaceFolderScheme = {uri, name};
 
         if (!vscode.workspace.getWorkspaceFolder(uri)) {
