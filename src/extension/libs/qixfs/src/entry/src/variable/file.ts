@@ -27,6 +27,7 @@ export class VariableFile extends QixFsFileAdapter {
     }
 
     public async rename(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
+
         const connection = this.getConnection(uri);
         const app        = await connection.open(params.app);
         const varName    = this.sanitizeName(params.variable);
@@ -34,6 +35,7 @@ export class VariableFile extends QixFsFileAdapter {
 
         if (variable) {
             await this.updateVariable(variable, {qName: this.sanitizeName(name)});
+            await app.doSave();
         }
     }
 
