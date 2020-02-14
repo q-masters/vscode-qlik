@@ -5,6 +5,17 @@ import YAML from "yaml";
 
 export class VariableFile extends QixFsFileAdapter {
 
+    private qlikVarTpl = {
+        qName: "",
+        qDefinition: "",
+        qInfo: {
+            qId: "",
+            qType: "variable",
+        },
+        qComment: "",
+        qIncludeInBookmark: false
+    };
+
     /**
      * read variable data
      */
@@ -62,6 +73,7 @@ export class VariableFile extends QixFsFileAdapter {
      * write file, update or create a new variable
      */
     public async writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
+
         const connection = this.getConnection(uri);
         const app        = await connection.open(params.app);
         const varName    = this.sanitizeName(params.variable);
@@ -69,7 +81,7 @@ export class VariableFile extends QixFsFileAdapter {
 
         variable 
             ? await this.updateVariable(variable, content)
-            : await this.createVariable(app, varName);
+            : await this.createVariable(app, varName, content.length ? content.toString() : void 0);
 
         await app.doSave();
     }
@@ -95,17 +107,9 @@ export class VariableFile extends QixFsFileAdapter {
     /**
      * create new variable if not exists
      */
-    private async createVariable(app: EngineAPI.IApp, name: string): Promise<void> {
-        await app.createVariableEx({
-            qName: name,
-            qDefinition: "",
-            qInfo: {
-                qId: "",
-                qType: "variable",
-            },
-            qComment: "",
-            qIncludeInBookmark: false
-        });
+    private async createVariable(app: EngineAPI.IApp, name: string,content?: string): Promise<void> {
+        const varContent = content ? YAML.parse(content) : {};
+        await app.createVariableEx(Object.assign({}, this.qlikVarTpl, varContent, {qName: name}));
     }
 
     /**
