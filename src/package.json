@@ -14,7 +14,8 @@
     "postinstall": "npm i --prefix ./media/webview",
     "postbuild": "npm run webview:build",
     "webview:build": "npm run build --prefix ./media/webview -- --prod",
-    "changelog:generate": "tsc -p ./ci"
+    "changelog:compile": "tsc -p ./ci",
+    "changelog:generate": "node ./dist/ci/changelog"
   },
   "engines": {
     "vscode": "^1.22.0"
