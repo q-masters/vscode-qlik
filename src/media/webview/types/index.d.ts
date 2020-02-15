@@ -1,10 +1,10 @@
-interface VsCodeCommand<T> {
-    command: string;
+interface VsCodeRequest<T> {
+    action: string;
     data?: T;
 }
 
 interface Vscode {
-    postMessage<T>(command: VsCodeCommand<T>): void;
+    postMessage<T>(VsCodeRequest): void;
 }
 
 declare function  acquireVsCodeApi(): Vscode;

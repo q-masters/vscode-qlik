@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from "@angular/core";
 import { Observable, fromEvent, Subject } from "rxjs";
-import { map } from "rxjs/operators";
+import { map, filter, take, tap } from "rxjs/operators";
 
 @Injectable({providedIn: "root"})
 export class VsCodeConnector {
@@ -27,8 +27,25 @@ export class VsCodeConnector {
     }
 
     /** post message command to vscode */
-    public exec<T>(command: VsCodeCommand<T>) {
-        this.vscode.postMessage(command);
+    public exec<T>(action: VsCodeRequest<T>): Observable<T> {
+
+        const header    = {id: Math.random().toString(32).substr(2)};
+        const request   = {header, body: action};
+
+        const requestObj = new Observable<T>((subscriber) => {
+            this.message$.pipe(
+                tap((response) => console.log(response)),
+                filter((response) => response.request.header.id === request.header.id),
+                take(1)
+            )
+            .subscribe({
+                next:  (response) => subscriber.next(response.body),
+                error: (msg) => subscriber.error(msg)
+            });
+        });
+
+        this.vscode.postMessage(request);
+        return requestObj;
     }
 
     /**
@@ -44,9 +61,8 @@ export class VsCodeConnector {
     private registerWindowMessageEvent() {
         this.zone.runOutsideAngular(() => fromEvent(window, "message")
             .pipe(map((event: MessageEvent) => event.data))
-            .subscribe((message) => {
-                /** run again into zone ... wow */
-                this.zone.run(() => this.message$.next(message));
+            .subscribe((response) => {
+                this.zone.run(() => this.message$.next(response));
             })
         );
     }

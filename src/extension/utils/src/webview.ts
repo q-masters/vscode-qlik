@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import path, { posix } from "path";
+import { posix } from "path";
 import fs, { existsSync, statSync } from "fs";
 
 /**
