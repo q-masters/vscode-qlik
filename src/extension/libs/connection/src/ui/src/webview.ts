@@ -4,7 +4,7 @@ import { resolve } from "path";
 import { ConnectionSetting, ConnectionSettings } from "../../data";
 import { workspace, ConfigurationChangeEvent, window } from "vscode";
 
-const enum Command {
+const enum Action {
     Create  = "create",
     Read    = "read",
     Update  = "update",
@@ -12,24 +12,25 @@ const enum Command {
     Error   = "error"
 }
 
-declare type DefaultData  = ConnectionSetting;
-declare type ListData     = ConnectionSetting[];
-declare type MutationData = {source: ConnectionSetting, target: ConnectionSetting};
-
-interface Request {
-    command: Command,
-    data: ConnectionSetting
+interface WebviewRequest {
+    header: {requestId: string};
+    body: {
+        action: Action;
+        data: ConnectionSetting
+    };
 }
 
-interface Response<T> {
-    command: Command,
-    data: T
+interface WebviewResponse {
+    request: WebviewRequest;
+    body: ConnectionSetting;
+    success: boolean;
+    error: string;
 }
 
 /**
  * works as controller between vscode and webview (angular app)
  */
-export class ConnectionWebview extends VsQlikWebview<Request> {
+export class ConnectionWebview extends VsQlikWebview<WebviewRequest> {
 
     private connectionSettings: SettingsRepository<ConnectionSetting>;
 
@@ -47,74 +48,67 @@ export class ConnectionWebview extends VsQlikWebview<Request> {
     }
 
     /** we recived an message from our webview */
-    public async handleMessage(message: Request): Promise<void> {
-
+    public async handleMessage(request: WebviewRequest): Promise<void> {
         /**
          * forces to ignore configuration changed event
          * will set on false after connection has changed event triggered
          */
         this.isSilent = true;
 
-        switch (message.command) {
-            case Command.Create:
-                this.createConnection(message.data);
-                break;
-
-            case Command.Update:
-                this.updateConnection(message.data);
-                break;
-
-            case Command.Destroy:
-                this.destroyConnection(message.data);
-                break;
-
-            default:
-                this.readConnections();
+        switch (request.body.action) {
+            case Action.Create:  this.createConnection(request);  break;
+            case Action.Update:  this.updateConnection(request);  break;
+            case Action.Destroy: this.destroyConnection(request); break;
+            case Action.Read:    this.readConnections(request);   break;
         }
     }
 
     /**
      * create a new connection and sends to webview
      */
-    private async createConnection(setting: ConnectionSetting) {
+    private async createConnection(request: WebviewRequest) {
+
+        const setting = request.body.data;
+
         if (!this.isUniqe(setting, true)) {
             const error = `A connection with the name ${setting.label} allready exists`;
             window.showErrorMessage(error);
         } else {
             const created  = await this.connectionSettings.create(setting);
-            this.sendResponse<MutationData>(Command.Create, {source: setting, target: created});
+            this.send<WebviewResponse>({request, body: created, success: true, error: ""});
         }
     }
 
     /**
      * read all connections and sends to webview
      */
-    private async readConnections() {
+    private async readConnections(request: WebviewRequest) {
         const connections = this.connectionSettings.read();
-        this.sendResponse<ListData>(Command.Read, connections);
-        this.isSilent = false;
+        this.send({request, body: connections, success: true });
     }
 
     /**
      * update an connection and sends it back to webview,
      */
-    private async updateConnection(setting: ConnectionSetting) {
-
+    private async updateConnection(request: WebviewRequest) {
+        const setting = request.body.data;
         if (!this.isUniqe(setting)) {
             const error = `A connection with the name ${setting.label} allready exists`;
             window.showErrorMessage(error);
+            this.send({request, body: {}, success: false, error});
         } else {
             const updated = await this.connectionSettings.update(setting);
-            this.sendResponse<MutationData>(Command.Update, {source: setting, target: updated});
+            this.send({request, body: updated, success: true});
         }
     }
 
     /**
      * destroy an existing connection
      */
-    private async destroyConnection(connection: ConnectionSetting) {
-        await this.connectionSettings.destroy(connection);
-        this.sendResponse<DefaultData>(Command.Destroy, connection);
+    private async destroyConnection(request: WebviewRequest) {
+        const setting = request.body.data;
+        await this.connectionSettings.destroy(setting);
+        this.send({request, body: {}, success: true});
     }
 
     private onConfigurationChanged(event: ConfigurationChangeEvent) {
@@ -129,9 +123,5 @@ export class ConnectionWebview extends VsQlikWebview<Request> {
         return !settings.some((connection) =>
             !isNew && connection.uid === setting.uid ? false : connection.label === setting.label
         );
-    }
-
-    private sendResponse<T>(command: Command, data: T): void {
-        this.send({command, data} as Response<T>);
     }
 }

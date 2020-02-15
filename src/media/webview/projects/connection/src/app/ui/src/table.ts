@@ -5,11 +5,6 @@ import { takeUntil } from "rxjs/operators";
 import { Connection, Action } from "../../data";
 import { TableRowSaveEvent } from "./table-row-edit";
 
-interface VsCodeMessage  {
-    command: Action;
-    data: Connection | Connection[] | {source: Connection, target: Connection};
-}
-
 @Component({
     selector: "vsqlik-connection--table",
     templateUrl: "table.html",
@@ -42,11 +37,11 @@ export class TableComponent implements OnInit, OnDestroy {
 
     /** component gets initialized */
     ngOnInit() {
-        this.vsCodeConnector.onReciveMessage<VsCodeMessage>()
+        this.vsCodeConnector.exec({action: Action.List})
             .pipe(takeUntil(this.destroy$))
-            .subscribe((msg) => this.handleMessage(msg));
-
-        this.vsCodeConnector.exec({command: Action.List});
+            .subscribe((data: Connection[]) => {
+                this.connections = data;
+            });
     }
 
     /** component gets destroyed */
@@ -78,18 +73,27 @@ export class TableComponent implements OnInit, OnDestroy {
      * after we edit an connection it should be saved
      */
     public saveConnection(event: TableRowSaveEvent) {
-        if (event.old.isPhantom) {
-            this.vsCodeConnector.exec({command: Action.Create, data: event.new});
-            return;
-        }
-        this.vsCodeConnector.exec({command: Action.Update, data: event.new});
+        const request = event.old.isPhantom
+            ? this.vsCodeConnector.exec({action: Action.Create, data: event.new})
+            : this.vsCodeConnector.exec({action: Action.Update, data: event.new});
+
+        request
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((response) => {
+                this.editConnections.delete(event.old);
+                this.connections = this.connections.map((connection) => connection.uid === event.old.uid ? response : connection);
+            });
     }
 
     /**
      * delete an existing connection
      */
     public deleteConnection(connection: Connection) {
-        this.vsCodeConnector.exec({command: Action.Destroy, data: connection});
+        this.vsCodeConnector.exec({action: Action.Destroy, data: connection})
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => {
+                 this.connections = this.connections.filter((_) => _.uid !== connection.uid);
+            });
     }
 
     /**
@@ -115,34 +119,5 @@ export class TableComponent implements OnInit, OnDestroy {
         };
         this.editConnection(phantomConnection);
         this.connections.push(phantomConnection);
-    }
-
-    /**
-     * handle messages we recive from vscode
-     */
-    private handleMessage(message: VsCodeMessage) {
-        let data = void 0;
-
-        switch (message.command) {
-
-            case Action.List:
-                this.connections = message.data as Connection[];
-                break;
-
-            case Action.Destroy:
-                data = message.data as Connection;
-                this.connections = this.connections.filter((connection) => connection.uid !== data.uid);
-                break;
-
-            case Action.Update:
-            case Action.Create:
-                data = message.data as {source: Connection, target: Connection};
-                this.editConnections.delete(data.source);
-                this.connections = this.connections.map((connection) => connection.uid === data.source.uid ? data.target : connection);
-                break;
-
-            /** update and create */
-            default: break;
-        }
     }
 }
