@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from "@angular/core";
 import { Observable, fromEvent, Subject } from "rxjs";
-import { map, filter, take, tap } from "rxjs/operators";
+import { map, filter, take } from "rxjs/operators";
 
 @Injectable({providedIn: "root"})
 export class VsCodeConnector {
@@ -29,23 +29,25 @@ export class VsCodeConnector {
     /** post message command to vscode */
     public exec<T>(action: VsCodeRequest<T>): Observable<T> {
 
-        const header    = {id: Math.random().toString(32).substr(2)};
-        const request   = {header, body: action};
+        /**
+         * create request container, this is lazy and will only sends
+         * if subscribed to it
+         */
+        return new Observable<T>((subscriber) => {
+            const header = {id: Math.random().toString(32).substr(2)};
+            const request = {header, body: action};
 
-        const requestObj = new Observable<T>((subscriber) => {
             this.message$.pipe(
-                tap((response) => console.log(response)),
                 filter((response) => response.request.header.id === request.header.id),
                 take(1)
             )
             .subscribe({
                 next:  (response) => subscriber.next(response.body),
-                error: (msg) => subscriber.error(msg)
+                error: (msg)      => subscriber.error(msg)
             });
-        });
 
-        this.vscode.postMessage(request);
-        return requestObj;
+            this.vscode.postMessage(request);
+        });
     }
 
     /**
