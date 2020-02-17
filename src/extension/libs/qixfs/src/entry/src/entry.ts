@@ -82,19 +82,19 @@ export class QixFsFileAdapter extends QixFsFile {
     }
 
     writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): void | Thenable<void> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat | Thenable<vscode.FileStat> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 }
 
@@ -105,22 +105,22 @@ export class QixFsFileAdapter extends QixFsFile {
  */
 export class QixFsDirectoryAdapter extends QixFsDirectory {
     readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     createDirectory(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 
     stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat | Thenable<vscode.FileStat> {
-        throw vscode.FileSystemError.NoPermissions;
+        throw vscode.FileSystemError.NoPermissions();
     }
 }

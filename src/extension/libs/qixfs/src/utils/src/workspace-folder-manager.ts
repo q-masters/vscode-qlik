@@ -58,7 +58,6 @@ export class WorkspaceFolderManager {
      * @param folder
      */
     private static addWorkspaceFolder(folder: vscode.WorkspaceFolder): void {
-
         const configuration = vscode.workspace.getConfiguration();
         const connections   = configuration.get<ConnectionSetting[]>(`vsQlik.Connection`);
         const connection    = connections?.find(setting => folder.name === setting.label);

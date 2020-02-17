@@ -29,7 +29,6 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
      * delete app
      */
     public async delete(uri: vscode.Uri, app: string): Promise<void> {
-
         /** first close session on app */
         const connection = this.getConnection(uri);
         await connection.close(app)
@@ -39,7 +38,7 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
         await session.deleteApp(app);
     }
 
-    stat(connection: any): vscode.FileStat | Thenable<vscode.FileStat> {
+    stat(): vscode.FileStat | Thenable<vscode.FileStat> {
         return {
             ctime: Date.now(),
             mtime: Date.now(),

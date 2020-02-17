@@ -11,11 +11,11 @@ import { execSync } from "child_process";
 import { EOL } from "os";
 
 declare type ChangeLogEntry = {commitId: string, message: string, type: string};
-declare type ChangeLogData  = { fix: ChangeLogEntry[], feat: ChangeLogEntry[], break: ChangeLogEntry[]};
+declare type ChangeLogData  = { fix: ChangeLogEntry[], feat: ChangeLogEntry[], break: ChangeLogEntry[], chore: ChangeLogEntry[]};
 
 class ChangelogMarkDown {
 
-    private conventialCommitPattern = /^([^\s]+)\s(fix|feat|break)(?=(?:\(.*?\))?:\s):\s(.*)$/;
+    private conventialCommitPattern = /^([^\s]+)\s((chore|fix|feat|break)[^:]*:)\s(.*)$/;
 
     private githubUrl: string;
 
@@ -37,24 +37,18 @@ class ChangelogMarkDown {
         const results: ChangeLogData  = {
             break: [],
             fix: [],
-            feat: []
+            feat: [],
+            chore: []
         };
 
         messages.forEach(message => {
             const result = message.match(this.conventialCommitPattern);
             if (result) {
-
-                const data = {
+                results[RegExp.$3].push({
                     commitId: RegExp.$1,
-                    message: RegExp.$3,
+                    message: RegExp.$4,
                     type: RegExp.$2
-                }
-
-                switch (RegExp.$2) {
-                    case 'fix'  : results.fix.push(data); break;
-                    case 'feat' : results.feat.push(data); break;
-                    case 'break': results.break.push(data); break;
-                }
+                });
             }
         });
 
@@ -70,7 +64,7 @@ class ChangelogMarkDown {
 
         const hasTags = execSync(`git tag`).length;
         if (hasTags) {
-            lastTag = execSync(`git describe --tags --abbrev=0`).toString().trim();
+            lastTag = execSync('git describe --tags `git rev-list --tags --max-count=1`').toString().trim();
             gitLog  = execSync(`git log ${lastTag}..HEAD --pretty=oneline`).toString();
         } else {
             gitLog = execSync(`git log --pretty=oneline`).toString();
@@ -86,7 +80,8 @@ class ChangelogMarkDown {
         let sections  = [
             ['break', 'BREAKING_CHANGES'],
             ['feat', 'Features'],
-            ['fix', 'Bug Fixes']
+            ['fix', 'Bug Fixes'],
+            ['chore', 'Dependencies']
         ];
 
         do {
@@ -122,7 +117,7 @@ class ChangelogMarkDown {
      */
     private writeChangeLogEntry(data: ChangeLogEntry): string {
         const commitId = data.commitId.substring(0, 7);
-        return `* **${data.type}:** ${data.message} [${commitId}](${this.githubUrl}/${data.commitId})${EOL}`;
+        return `* **${data.type}** ${data.message} [${commitId}](${this.githubUrl}/${data.commitId})${EOL}`;
     }
 
     /**
