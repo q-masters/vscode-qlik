@@ -1,0 +1,12 @@
+
+**
+
+node_modules
+media/webview
+ci
+bin
+tsconfig.json
+
+!package.json
+!dist/extension.js
+!dist/webview

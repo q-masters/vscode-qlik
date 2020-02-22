@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "vscode extension for qlik",
   "main": "./dist/extension.js",
+  "publisher": "vsqlik",
   "scripts": {
     "copyhtml": "copyfiles extension/**/*.html ./out",
     "clear": "rimraf ./out",
@@ -15,7 +16,8 @@
     "postbuild": "npm run webview:build",
     "webview:build": "npm run build --prefix ./media/webview -- --prod",
     "changelog:compile": "tsc -p ./ci",
-    "changelog:generate": "node ./dist/ci/changelog"
+    "changelog:generate": "node ./dist/ci/changelog",
+    "vscode:prepublish": "npm run build"
   },
   "engines": {
     "vscode": "^1.22.0"
@@ -87,7 +89,7 @@
     "@types/enigma.js": "2.2.1",
     "@types/node": "13.7.4",
     "@types/qlik-engineapi": "12.67.8",
-    "@types/vscode": "1.42.0",
+    "@types/vscode": "^1.22.0",
     "@types/ws": "7.2.1",
     "copyfiles": "2.2.0",
     "html-loader": "0.5.5",
