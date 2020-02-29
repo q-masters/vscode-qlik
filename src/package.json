@@ -85,7 +85,7 @@
   "homepage": "https://github.com/PLH-Coding/vscodeQ#readme",
   "devDependencies": {
     "@types/enigma.js": "2.2.1",
-    "@types/node": "13.7.4",
+    "@types/node": "13.7.7",
     "@types/qlik-engineapi": "12.67.8",
     "@types/vscode": "1.42.0",
     "@types/ws": "7.2.2",
