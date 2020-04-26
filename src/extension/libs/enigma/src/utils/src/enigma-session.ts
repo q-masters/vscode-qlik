@@ -72,6 +72,7 @@ export class EnigmaSession {
         } else {
             session = await this.activateSession(id);
         }
+
         return "global" in session ? session as EngineAPI.IApp: session as EngineAPI.IGlobal;
     }
 
@@ -117,34 +118,40 @@ export class EnigmaSession {
     private async createSessionObject(id: string): Promise<enigmaJS.IGeneratedAPI>
     {
         if (!this.connectionQueue.has(id)) {
-            this.connectionQueue.set(id, new Promise(async (resolve, reject) => {
+            this.connectionQueue.set(id, new Promise(async (resolve) => {
+
                 await this.suspendOldestSession();
 
-                const url      = this.buildUri(id);
+                try {
+                    const session = await this.openSession(id);
 
-                let sessionObj: enigmaJS.IGeneratedAPI | void;
-                const session  = create({ schema, url, createSocket: (url: string) => new WebSocket(url) });
-                sessionObj = await session.open();
-                sessionObj.on("closed", () => this.removeSessionFromCache(id));
+                    if (session) {
+                        session.on("closed", () => this.removeSessionFromCache(id));
 
-                if (id !== EnigmaSession.GLOBAL_SESSION_KEY) {
-                    try {
-                        sessionObj = await (sessionObj as EngineAPI.IGlobal).openDoc(id);
-                    } catch (error) {
-                        await sessionObj.session.close()
-                        reject();
-                        return;
+                        this.sessionCache.set(id, session);
+                        this.activeStack.push(id);
+                        this.connectionQueue.delete(id);
+                        resolve(session);
                     }
+                } catch (error) {
+                    console.log(error);
+                    throw error;
                 }
-
-                this.sessionCache.set(id, sessionObj);
-                this.activeStack.push(id);
-                this.connectionQueue.delete(id);
-
-                resolve(sessionObj);
             }));
         }
         return this.connectionQueue.get(id) as Promise<enigmaJS.IGeneratedAPI>;
+    }
+
+    private async openSession(id = EnigmaSession.GLOBAL_SESSION_KEY): Promise<enigmaJS.IGeneratedAPI | undefined> {
+        /** get the session cookie first */
+
+        const session = create({
+            schema,
+            url: this.buildUri(id),
+            createSocket: (url) => this.createWebSocket(url)
+        });
+
+        return session.open();
     }
 
     private removeSessionFromCache(id) {
@@ -208,6 +215,16 @@ export class EnigmaSession {
             identity: Math.random().toString(32).substr(2),
             port    : this.port,
             secure  : this.secure,
+        });
+    }
+
+    private createWebSocket(url: string) {
+
+        return new WebSocket(url, {
+            rejectUnauthorized: false,
+            headers: {
+                'X-Qlik-User': `UserDirectory="RHANNUSCHKAR4FA4"; UserId="qlik"`
+            }
         });
     }
 }

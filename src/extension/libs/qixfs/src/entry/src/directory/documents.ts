@@ -11,8 +11,10 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
         try {
             const session = await this.getConnection(uri).open();
             const docList: EngineAPI.IDocListEntry[] = await session.getDocList() as any;
-            return docList.map<[string, vscode.FileType]>((doc) => [doc.qTitle, vscode.FileType.Directory]);
+            return docList.map<[string, vscode.FileType]>((doc) => [doc.qDocId, vscode.FileType.Directory]);
         } catch (error) {
+            console.log("error something went very bad");
+            console.log(error);
             return [];
         }
     }

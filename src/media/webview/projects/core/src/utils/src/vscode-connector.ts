@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from "@angular/core";
 import { Observable, fromEvent, Subject } from "rxjs";
-import { map, filter, take } from "rxjs/operators";
+import { map, filter, take, tap } from "rxjs/operators";
 
 @Injectable({providedIn: "root"})
 export class VsCodeConnector {
@@ -38,7 +38,8 @@ export class VsCodeConnector {
             const request = {header, body: action};
 
             this.message$.pipe(
-                filter((response) => response.request.header.id === request.header.id),
+                tap((response) => console.log(response)),
+                filter((response) => response.request?.header.id === request.header.id),
                 take(1)
             )
             .subscribe({

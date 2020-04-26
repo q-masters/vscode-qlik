@@ -7,6 +7,7 @@ import { SessionCache } from "@utils";
 
 /** todo move to a connection module @lib/connection */
 import { ConnectionModule } from "@lib/connection";
+import { AuthModule } from "./libs/auth/src/auth.module";
 
 /**
  * bootstrap extension
@@ -19,6 +20,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     /** bootstrap modules */
     QixFsModule.bootstrap(context, Routes);
+    AuthModule.bootstrap();
     ConnectionModule.bootstrap();
 }
 
