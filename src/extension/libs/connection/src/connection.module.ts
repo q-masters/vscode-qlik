@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { SessionCache, SettingsRepository } from "@utils";
 import { ConnectionSetting, ConnectionSettings } from "./data";
-import { ConnectionWebview } from "./ui";
+import { ConnectionSettingsWebview } from "./ui";
 import { ConnectionCreateCommand } from "./commands";
 
 export class ConnectionModule {
@@ -11,6 +11,7 @@ export class ConnectionModule {
      */
     public static bootstrap() {
         SessionCache.add(ConnectionSettings, new SettingsRepository<ConnectionSetting>('Connection'));
+
         vscode.commands.registerCommand('VSQlik.Connection.Create'  , ConnectionCreateCommand);
         vscode.commands.registerCommand('VSQlik.Connection.Settings', this.onConnectionSettingsCommand);
     }
@@ -19,7 +20,7 @@ export class ConnectionModule {
      * connection settings command was triggerd
      */
     private static onConnectionSettingsCommand() {
-        const view: ConnectionWebview = new ConnectionWebview();
+        const view = new ConnectionSettingsWebview();
         view.render('VsQlik.Connection.Settings', 'VsQlik Connection Settings');
     }
 }

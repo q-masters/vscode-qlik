@@ -1,30 +1,55 @@
-import { EnigmaSession } from "extension/libs/enigma";
+import { EnigmaSession, AuthService } from "extension/libs/enigma";
 
 /**
- * davon reicht eine die dann geshared wird
- * müssen ja auch die route dahin kennen und hier wirds komplizierter
- */
-
-/** 
- * davon gibt es viele
+ * QixWorkspaceFolder represents the connection to the Qlik Server
  */
 export class QixWorkspaceFolder {
 
-    private _connection: EnigmaSession;
+    private _connection: Promise<EnigmaSession>;
 
-    /** file system entry points */
-    private entryMap: Map<string, any> = new Map();
+    private sessionCookie: string;
 
-    public constructor(connection: any) {
-        this._connection = new EnigmaSession(
-            connection.host, connection.port, connection.secure
-        );
-    }
+    public constructor(
+        private connectionSettings: any,
+        private authService: AuthService
+    ) {}
 
-    public get connection(): EnigmaSession {
+    /**
+     * gute frage was ist wenn die 
+     */
+    public get connection(): Promise<EnigmaSession> {
+        if (!this._connection) {
+            this._connection = this.establishConnection();
+        }
         return this._connection;
     }
 
     public destroy() {
+    }
+
+    /**
+     * create requires authorization now
+     * we have to create a enigma session
+     */
+    private async establishConnection(): Promise<EnigmaSession> {
+
+        const uriParts = [
+           this.connectionSettings.secure ? 'https' : 'http', '://',
+           this.connectionSettings.host,
+        ];
+
+        if (await this.authService.authorize(uriParts.join(""))) {
+            const connection  = new EnigmaSession();
+            connection.host   = this.connectionSettings.host;
+            connection.port   = this.connectionSettings.port;
+            connection.secure = this.connectionSettings.secure;
+
+            this.authService.sessionCookies.forEach(cookie => {
+                connection.addHeader(cookie.name, cookie.value as string);
+            });
+
+            return connection;
+        }
+        throw new Error();
     }
 }

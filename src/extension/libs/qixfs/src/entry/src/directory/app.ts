@@ -13,13 +13,7 @@ export class AppDirectory extends QixFsDirectoryAdapter {
     }
 
     async stat(uri: vscode.Uri, params: RouteParam | undefined): Promise<vscode.FileStat> {
-
-        if (params?.app && await this.getConnection(uri).isApp(params.app)) {
-
-            console.log(params.app);
-            const connection = await this.getConnection(uri).isApp(params.app);
-            console.log(connection);
-
+        if (params?.app && ! await this.appExists(uri, params.app)) {
             return {
                 ctime: Date.now(),
                 mtime: Date.now(),
@@ -27,6 +21,12 @@ export class AppDirectory extends QixFsDirectoryAdapter {
                 type: vscode.FileType.Directory
             };
         }
+
         throw vscode.FileSystemError.FileNotFound();
+    }
+
+    private async appExists(uri: vscode.Uri, app: string): Promise<boolean> {
+        const connection = await this.getConnection(uri);
+        return connection.isApp(app);
     }
 }

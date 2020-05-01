@@ -1,1 +1,1 @@
-export * from "./src/webview";
+export * from "./src/connection-settings.webview";

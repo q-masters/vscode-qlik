@@ -30,6 +30,23 @@ export class EnigmaSession {
     private maxSessionCount = 5;
 
     /**
+     * hostName
+     */
+    private connectionHost: string;
+
+    /**
+     * additional port default 443
+     */
+    private connectionPort = 443;
+
+    /**
+     * connection is secure default true
+     */
+    private connectionIsSecure: boolean = true;
+
+    private connectionHeaders: Map<string, string>;
+
+    /**
      * connection queue to handle action connections, we could not open same app / global context
      * twice. If an connection is allready runnig save it into connection queue and get it from here
      */
@@ -38,14 +55,11 @@ export class EnigmaSession {
     /**
      * Creates an instance of EnigmaSession.
      */
-    public constructor(
-        private host: string,
-        private port: number,
-        private secure = true
-    ) {
+    public constructor() {
         this.activeStack     = new Array();
         this.connectionQueue = new Map();
         this.sessionCache    = new Map();
+        this.connectionHeaders = new Map();
     }
 
     public set maxSessions(max: number) {
@@ -54,6 +68,25 @@ export class EnigmaSession {
 
     public get maxSessions(): number {
         return this.maxSessionCount;
+    }
+
+    public set host(host: string) {
+        this.connectionHost = host;
+    }
+
+    public set port(port: number) {
+        this.connectionPort = port;
+    }
+
+    public set secure(isSecure: boolean) {
+        this.connectionIsSecure = isSecure;
+    }
+
+    /**
+     * adds a header
+     */
+    public addHeader(name: string, value: string) {
+        this.connectionHeaders.set(name, value);
     }
 
     /**
@@ -134,6 +167,7 @@ export class EnigmaSession {
                         resolve(session);
                     }
                 } catch (error) {
+                    console.log("enigma session error:");
                     console.log(error);
                     throw error;
                 }
@@ -209,22 +243,28 @@ export class EnigmaSession {
      */
     private buildUri(id = EnigmaSession.GLOBAL_SESSION_KEY): string
     {
-        return buildUrl({
+        const options = {
             appId   : id,
-            host    : this.host,
+            host    : this.connectionHost,
             identity: Math.random().toString(32).substr(2),
-            port    : this.port,
-            secure  : this.secure,
-        });
+            secure  : false
+        }
+        return buildUrl(options);
     }
 
+    /**
+     * create a new websocket
+     */
     private createWebSocket(url: string) {
 
-        return new WebSocket(url, {
-            rejectUnauthorized: false,
-            headers: {
-                'X-Qlik-User': `UserDirectory="RHANNUSCHKAR4FA4"; UserId="qlik"`
-            }
+        const headers = {
+            "Cookie": ""
+        };
+
+        this.connectionHeaders.forEach((value: string, key: string) => {
+            headers.Cookie = headers.Cookie.concat(`${key}=${value};`);
         });
+
+        return new WebSocket(url, { headers });
     }
 }
