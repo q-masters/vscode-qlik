@@ -1,5 +1,6 @@
 [![CLA assistant](https://cla-assistant.io/readme/badge/q-masters/vsqlik)](https://cla-assistant.io/q-masters/vsqlik)
 ![Node.js check compile](https://github.com/q-masters/vsqlik/workflows/Node.js%20check%20compile/badge.svg)
+[![CodeFactor](https://www.codefactor.io/repository/github/q-masters/vsqlik/badge)](https://www.codefactor.io/repository/github/q-masters/vsqlik)
 
 # Visual Studio Code - Qlik Extension
 
