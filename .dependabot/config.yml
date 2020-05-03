@@ -6,6 +6,6 @@ update_configs:
     target_branch: "development"
   - package_manager: "javascript"
     directory: "/src"
-    update_schedule: "src/media/webview"
+    update_schedule: "/src/media/webview"
     target_branch: "development"
     
