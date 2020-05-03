@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from "@angular/core";
 import { Observable, fromEvent, Subject } from "rxjs";
-import { map, filter, take, tap } from "rxjs/operators";
+import { map, filter, take } from "rxjs/operators";
 
 @Injectable({providedIn: "root"})
 export class VsCodeConnector {

@@ -21,6 +21,7 @@ export abstract class QixFsEntry {
 
     protected getConnection(uri: vscode.Uri): Promise<EnigmaSession> {
 
+        console.log(uri);
         const workspaceFolder = WorkspaceFolderManager.resolveWorkspaceFolder(uri);
         if (workspaceFolder) {
             return workspaceFolder.connection;

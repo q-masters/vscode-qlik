@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ConnectionSettings, ConnectionQuickPickItem, WorkspaceFolderScheme } from "../../data";
+import { ConnectionSettings, ConnectionQuickPickItem, WorkspaceFolderScheme, ConnectionSetting } from "../../data";
 import { SessionCache } from "@utils";
 
 /**
@@ -18,14 +18,23 @@ export async function CreateWorkspaceFolder() {
     const selection = await vscode.window.showQuickPick(items, {placeHolder: "Select Connection"});
 
     if (selection) {
-        const name = selection.connection.label;
-        const uri  = vscode.Uri.parse(`qix://${selection.connection.settings.host}:${selection.connection.settings.port}`);
-        const newWorkspaceFolder: WorkspaceFolderScheme = {uri, name};
+        const path         = createWorkspaceFolderPath(selection.connection);
+        const workspaceUri = vscode.Uri.parse(path);
 
-        if (!vscode.workspace.getWorkspaceFolder(uri)) {
+        const newWorkspaceFolder: WorkspaceFolderScheme = {
+            uri: vscode.Uri.parse(path),
+            name: selection.connection.label
+        };
+
+        if (!vscode.workspace.getWorkspaceFolder(workspaceUri)) {
             vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders?.length || 0 , 0, newWorkspaceFolder);
         } else {
-            vscode.window.showInformationMessage(`Workspacefolder ${uri.toString()} allready exists.`);
+            vscode.window.showInformationMessage(`Workspacefolder ${path} allready exists.`);
         }
     }
+}
+
+function createWorkspaceFolderPath(connection: ConnectionSetting): string {
+    let path = `qix://`;
+    return path.concat(connection.label, '.', connection.settings.host, connection.settings.port ?? '');
 }

@@ -23,6 +23,7 @@ export class QixWorkspaceFolder {
         if (!this._connection) {
             this._connection = this.establishConnection();
         }
+        console.log(this._connection);
         return this._connection;
     }
 
