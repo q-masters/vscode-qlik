@@ -38,7 +38,7 @@ export class VsCodeConnector {
             const request = {header, body: action};
 
             this.message$.pipe(
-                filter((response) => response.request.header.id === request.header.id),
+                filter((response) => response.request?.header.id === request.header.id),
                 take(1)
             )
             .subscribe({

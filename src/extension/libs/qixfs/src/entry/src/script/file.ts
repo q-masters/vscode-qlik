@@ -5,7 +5,7 @@ import { QixFsFileAdapter } from "../entry";
 export class ScriptFile extends QixFsFileAdapter {
 
     public async writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
-        const connection = this.getConnection(uri);
+        const connection = await this.getConnection(uri);
         const app        = await connection.open(params.app);
         await app.setScript(content.toString());
         await app.doSave();
@@ -29,15 +29,10 @@ export class ScriptFile extends QixFsFileAdapter {
      * get script data from current app
      */
     private async getScriptData(uri: vscode.Uri, appId: string): Promise<Buffer> {
-        try {
-        const connection = this.getConnection(uri);
+        const connection = await this.getConnection(uri);
         const app        = await connection.open(appId);
         const script     = await app.getScript();
         const data       = Buffer.from(script, "utf8");
         return data;
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
     }
 }

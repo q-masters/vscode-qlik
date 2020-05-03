@@ -1,4 +1,5 @@
 export * from "./src/entry";
+export * from "./src/workspace-folder";
 export * from "./src/script/directory";
 export * from "./src/script/file";
 export * from "./src/variable/directory";
