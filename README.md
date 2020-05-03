@@ -11,9 +11,9 @@ This guide is only for Linux (Mac should be similiar), windows i never try so ca
 
 ### Requirements
 
-- Docker: [Docker Install](https://docs.docker.com/install/) and follow the instructions.
 - NodeJs: [NodeJS](https://nodejs.org/en/) very much straigt forward, i use the lts version
 - VSCode: [VisualStudio Code](https://code.visualstudio.com/)
+- Access to Qlik Sense Enterprise for Windows or with Docker to Qlik Core
 
 ### Install
 
@@ -27,15 +27,6 @@ git clone https://github.com/PLH-Coding/vsqlik.git
 cd vsqlik/src && npm i
 ```
 
-### Enable Qlik Engine on Docker
-
-```bash
-cd ~
-mkdir qlik-docker
-
-# everyone can read / write
-sudo chmod 0777 -R qlik-docker
-```
 
 ### Webview
 
@@ -58,7 +49,20 @@ cd ~/vsqlik/src
 npm run webview:build
 ```
 
-### Start Docker Container
+
+### If you use Docker an Example to get it running
+
+#### Enable Qlik Core Engine on Docker
+
+```bash
+cd ~
+mkdir qlik-docker
+
+# everyone can read / write
+sudo chmod 0777 -R qlik-docker
+```
+
+#### Run Qlik Core
 
 ```bash
 # start container (download if not allready exists) and map to: 127.0.0.1:9076
