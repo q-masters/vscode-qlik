@@ -5,7 +5,7 @@ update_configs:
     update_schedule: "live"
     target_branch: "development"
   - package_manager: "javascript"
-    directory: "/src"
-    update_schedule: "/src/media/webview"
+    directory: "/src/media/webview"
+    update_schedule: "live"
     target_branch: "development"
     
