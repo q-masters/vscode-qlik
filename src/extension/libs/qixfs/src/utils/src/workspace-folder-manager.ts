@@ -1,7 +1,6 @@
-import { QixWorkspaceFolder } from "../../model";
 import * as vscode from "vscode";
 import { ConnectionSetting } from "@lib/connection";
-import { FormAuthService } from "@lib/enigma";
+import { QixWorkspaceFolder } from "../../entry/src/workspace-folder";
 
 /**
  * holds all active workspace folders
@@ -65,10 +64,7 @@ export class WorkspaceFolderManager {
         const connection    = connections?.find(setting => folder.name === setting.label);
 
         if (connection) {
-            const qixWSFolder = new QixWorkspaceFolder(
-                connection.settings,
-                new FormAuthService()
-            );
+            const qixWSFolder = new QixWorkspaceFolder(connection.settings);
             /** set auth strategy here ? */
             this.workspaceFolders.set(folder, qixWSFolder);
         }

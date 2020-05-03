@@ -1,20 +1,20 @@
 import * as vscode from "vscode";
 import request from "request";
 import { Response } from "request";
-import { SessionCookie, AuthService } from "./api";
+import { SessionCookie, AuthorizationStrategy,  } from "../../api";
 
 /**
  * login to qlik with form strategy
  */
-export class FormAuthService implements AuthService {
+export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
     private cookies: SessionCookie[];
 
-    public async authorize(uri: string): Promise<boolean>
+    public async run(): Promise<boolean>
     {
         try {
             const loginCredentials = await this.resolveLoginCredentials();
-            const formUri          = await this.getFormUri(uri);
+            const formUri          = await this.initializeLoginProcess();
             const redirectUri      = await this.submitForm(formUri, loginCredentials.domain, loginCredentials.password);
             await this.finalizeLoginProcess(redirectUri);
         } catch (error) {
@@ -25,23 +25,21 @@ export class FormAuthService implements AuthService {
         return true;
     }
 
-    public logout(): Promise<boolean> {
-        throw new Error("Method not implemented.");
-    }
-
     public get sessionCookies(): SessionCookie[] {
         return this.cookies;
     }
 
     /**
-     * initialize form by calling the uri
-     * which resolves the uri we have to send our post request
-     * with login credentials
+     * initialize login process by call server directly
+     * this returns an login form by default if this running
+     * against a qlik server.
+     * 
+     * this uri is required since it contains a ticket id
      */
-    private getFormUri(uri: string): Promise<string> {
+    private initializeLoginProcess(): Promise<string> {
 
         const options = {
-            uri,
+            uri: `http://${this.connectionSetting.host}`,
             method: "GET"
         };
 
@@ -69,7 +67,6 @@ export class FormAuthService implements AuthService {
             const options = { body, headers, method: "POST", uri };
             request(options, (error, response: Response) => {
                 if (error) {
-                    console.log(error);
                     reject(error);
                     return;
                 }
@@ -116,6 +113,9 @@ export class FormAuthService implements AuthService {
         });
     }
 
+    /**
+     * create login process input fields
+     */
     private async resolveLoginCredentials() {
 
         const credentials = {

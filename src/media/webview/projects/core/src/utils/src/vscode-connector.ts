@@ -38,7 +38,6 @@ export class VsCodeConnector {
             const request = {header, body: action};
 
             this.message$.pipe(
-                tap((response) => console.log(response)),
                 filter((response) => response.request?.header.id === request.header.id),
                 take(1)
             )

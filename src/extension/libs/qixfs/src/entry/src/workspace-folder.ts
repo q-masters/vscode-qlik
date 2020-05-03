@@ -1,4 +1,5 @@
-import { EnigmaSession, AuthService } from "extension/libs/enigma";
+import { EnigmaSession } from "extension/libs/enigma";
+import { AuthorizationService, FormAuthorizationStrategy } from "@lib/connection";
 
 /**
  * QixWorkspaceFolder represents the connection to the Qlik Server
@@ -7,12 +8,13 @@ export class QixWorkspaceFolder {
 
     private _connection: Promise<EnigmaSession>;
 
-    private sessionCookie: string;
+    private authService: AuthorizationService
 
     public constructor(
         private connectionSettings: any,
-        private authService: AuthService
-    ) {}
+    ) {
+        this.authService = AuthorizationService.getInstance();
+    }
 
     /**
      * gute frage was ist wenn die 
@@ -33,21 +35,18 @@ export class QixWorkspaceFolder {
      */
     private async establishConnection(): Promise<EnigmaSession> {
 
-        const uriParts = [
-           this.connectionSettings.secure ? 'https' : 'http', '://',
-           this.connectionSettings.host,
-        ];
+        const authStrategy = new FormAuthorizationStrategy(this.connectionSettings);
+        const authorize    = await this.authService.authorize(authStrategy) ;
 
-        if (await this.authService.authorize(uriParts.join(""))) {
+        if (authorize) {
             const connection  = new EnigmaSession();
             connection.host   = this.connectionSettings.host;
             connection.port   = this.connectionSettings.port;
             connection.secure = this.connectionSettings.secure;
 
-            this.authService.sessionCookies.forEach(cookie => {
+            authorize.forEach(cookie => {
                 connection.addHeader(cookie.name, cookie.value as string);
             });
-
             return connection;
         }
         throw new Error();

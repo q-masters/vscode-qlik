@@ -1,1 +1,1 @@
-export * from "./src/connection-create";
+export * from "./src/create-workspace-folder";

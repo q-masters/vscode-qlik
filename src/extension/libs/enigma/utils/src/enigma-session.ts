@@ -52,6 +52,8 @@ export class EnigmaSession {
      */
     private connectionQueue: Map<string, Promise<enigmaJS.IGeneratedAPI>>;
 
+    private requestHooks: Array<() => WebSocket.ClientOptions> = [];
+
     /**
      * Creates an instance of EnigmaSession.
      */
@@ -82,6 +84,13 @@ export class EnigmaSession {
         this.connectionIsSecure = isSecure;
     }
 
+    public beforeWebsocketCreate(hook: () => WebSocket.ClientOptions) {
+        this.requestHooks.push(hook);
+    }
+
+    public removeRequestHook(hook: enigmaJS.IRequestInterceptors) {
+    }
+
     /**
      * adds a header
      */
@@ -105,7 +114,6 @@ export class EnigmaSession {
         } else {
             session = await this.activateSession(id);
         }
-
         return "global" in session ? session as EngineAPI.IApp: session as EngineAPI.IGlobal;
     }
 
@@ -152,7 +160,6 @@ export class EnigmaSession {
     {
         if (!this.connectionQueue.has(id)) {
             this.connectionQueue.set(id, new Promise(async (resolve) => {
-
                 await this.suspendOldestSession();
 
                 try {
@@ -160,7 +167,6 @@ export class EnigmaSession {
 
                     if (session) {
                         session.on("closed", () => this.removeSessionFromCache(id));
-
                         this.sessionCache.set(id, session);
                         this.activeStack.push(id);
                         this.connectionQueue.delete(id);
@@ -184,7 +190,6 @@ export class EnigmaSession {
             url: this.buildUri(id),
             createSocket: (url) => this.createWebSocket(url)
         });
-
         return session.open();
     }
 
@@ -249,13 +254,15 @@ export class EnigmaSession {
             identity: Math.random().toString(32).substr(2),
             secure  : false
         }
+
+        // event notification *
         return buildUrl(options);
     }
 
     /**
      * create a new websocket
      */
-    private createWebSocket(url: string) {
+    private createWebSocket(url: string): WebSocket {
 
         const headers = {
             "Cookie": ""

@@ -4,8 +4,7 @@ import { RouteParam } from "../../../utils";
 
 export class AppDirectory extends QixFsDirectoryAdapter {
 
-    readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] {
-        console.log(uri);
+    readDirectory(): [string, vscode.FileType][] {
         return [
             ['script', vscode.FileType.Directory],
             ['variables', vscode.FileType.Directory]
