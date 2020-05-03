@@ -9,8 +9,7 @@ export interface TableRowSaveEvent {
 
 @Component({
     selector: "vsqlik-connection--table-row-edit",
-    templateUrl: "table-row-edit.html",
-    styleUrls: ["./table-row-edit.scss"]
+    templateUrl: "table-row-edit.html"
 })
 export class TableRowEditComponent implements OnInit {
 
@@ -24,6 +23,8 @@ export class TableRowEditComponent implements OnInit {
     public cancel: EventEmitter<Connection>;
 
     public isSecure = false;
+
+    public allowUntrusted = false;
 
     public constructor(
         private formBuilder: FormBuilder
@@ -41,9 +42,15 @@ export class TableRowEditComponent implements OnInit {
         const host   = this.formBuilder.control(this.connection?.settings.host   || "");
         const port   = this.formBuilder.control(this.connection?.settings.port   || "");
         const secure = this.formBuilder.control(this.isSecure);
+        const untrusted = this.formBuilder.control(this.allowUntrusted);
         secure.valueChanges.subscribe((value) => this.isSecure = value);
 
-        this.connectionForm = this.formBuilder.group({label, host, port, secure});
+        this.connectionForm = this.formBuilder.group({label, host, port, secure, untrusted});
+
+        secure.valueChanges.subscribe((value: boolean) => {
+            untrusted.setValue(false);
+            value ? untrusted.enable() : untrusted.disable();
+        });
     }
 
     public doSave() {
@@ -51,7 +58,8 @@ export class TableRowEditComponent implements OnInit {
         const newSettings = {
             host: values.host,
             port: parseInt(values.port, 10),
-            secure: values.secure
+            secure: values.secure,
+            allowUntrusted: values.untrusted
         };
 
         const newData = {

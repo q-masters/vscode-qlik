@@ -30,22 +30,38 @@ export class EnigmaSession {
     private maxSessionCount = 5;
 
     /**
+     * hostName
+     */
+    private connectionHost: string;
+
+    /**
+     * additional port default 443
+     */
+    private connectionPort = 443;
+
+    /**
+     * connection is secure default true
+     */
+    private connectionIsSecure: boolean = true;
+
+    private connectionHeaders: Map<string, string>;
+
+    /**
      * connection queue to handle action connections, we could not open same app / global context
      * twice. If an connection is allready runnig save it into connection queue and get it from here
      */
     private connectionQueue: Map<string, Promise<enigmaJS.IGeneratedAPI>>;
 
+    private requestHooks: Array<() => WebSocket.ClientOptions> = [];
+
     /**
      * Creates an instance of EnigmaSession.
      */
-    public constructor(
-        private host: string,
-        private port: number,
-        private secure = true
-    ) {
+    public constructor() {
         this.activeStack     = new Array();
         this.connectionQueue = new Map();
         this.sessionCache    = new Map();
+        this.connectionHeaders = new Map();
     }
 
     public set maxSessions(max: number) {
@@ -54,6 +70,32 @@ export class EnigmaSession {
 
     public get maxSessions(): number {
         return this.maxSessionCount;
+    }
+
+    public set host(host: string) {
+        this.connectionHost = host;
+    }
+
+    public set port(port: number) {
+        this.connectionPort = port;
+    }
+
+    public set secure(isSecure: boolean) {
+        this.connectionIsSecure = isSecure;
+    }
+
+    public beforeWebsocketCreate(hook: () => WebSocket.ClientOptions) {
+        this.requestHooks.push(hook);
+    }
+
+    public removeRequestHook(hook: enigmaJS.IRequestInterceptors) {
+    }
+
+    /**
+     * adds a header
+     */
+    public addHeader(name: string, value: string) {
+        this.connectionHeaders.set(name, value);
     }
 
     /**
@@ -117,34 +159,38 @@ export class EnigmaSession {
     private async createSessionObject(id: string): Promise<enigmaJS.IGeneratedAPI>
     {
         if (!this.connectionQueue.has(id)) {
-            this.connectionQueue.set(id, new Promise(async (resolve, reject) => {
+            this.connectionQueue.set(id, new Promise(async (resolve) => {
                 await this.suspendOldestSession();
 
-                const url      = this.buildUri(id);
+                try {
+                    const session = await this.openSession(id);
 
-                let sessionObj: enigmaJS.IGeneratedAPI | void;
-                const session  = create({ schema, url, createSocket: (url: string) => new WebSocket(url) });
-                sessionObj = await session.open();
-                sessionObj.on("closed", () => this.removeSessionFromCache(id));
-
-                if (id !== EnigmaSession.GLOBAL_SESSION_KEY) {
-                    try {
-                        sessionObj = await (sessionObj as EngineAPI.IGlobal).openDoc(id);
-                    } catch (error) {
-                        await sessionObj.session.close()
-                        reject();
-                        return;
+                    if (session) {
+                        session.on("closed", () => this.removeSessionFromCache(id));
+                        this.sessionCache.set(id, session);
+                        this.activeStack.push(id);
+                        this.connectionQueue.delete(id);
+                        resolve(session);
                     }
+                } catch (error) {
+                    console.log("enigma session error:");
+                    console.log(error);
+                    throw error;
                 }
-
-                this.sessionCache.set(id, sessionObj);
-                this.activeStack.push(id);
-                this.connectionQueue.delete(id);
-
-                resolve(sessionObj);
             }));
         }
         return this.connectionQueue.get(id) as Promise<enigmaJS.IGeneratedAPI>;
+    }
+
+    private async openSession(id = EnigmaSession.GLOBAL_SESSION_KEY): Promise<enigmaJS.IGeneratedAPI | undefined> {
+        /** get the session cookie first */
+
+        const session = create({
+            schema,
+            url: this.buildUri(id),
+            createSocket: (url) => this.createWebSocket(url)
+        });
+        return session.open();
     }
 
     private removeSessionFromCache(id) {
@@ -202,12 +248,30 @@ export class EnigmaSession {
      */
     private buildUri(id = EnigmaSession.GLOBAL_SESSION_KEY): string
     {
-        return buildUrl({
+        const options = {
             appId   : id,
-            host    : this.host,
+            host    : this.connectionHost,
             identity: Math.random().toString(32).substr(2),
-            port    : this.port,
-            secure  : this.secure,
+            secure  : false
+        }
+
+        // event notification *
+        return buildUrl(options);
+    }
+
+    /**
+     * create a new websocket
+     */
+    private createWebSocket(url: string): WebSocket {
+
+        const headers = {
+            "Cookie": ""
+        };
+
+        this.connectionHeaders.forEach((value: string, key: string) => {
+            headers.Cookie = headers.Cookie.concat(`${key}=${value};`);
         });
+
+        return new WebSocket(url, { headers });
     }
 }
