@@ -3,8 +3,15 @@ name: Node.js check compile
 on:
   push:
     branches: [ master, development ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+
   pull_request:
     branches: [ master, development ]
+    paths-ignore: 
+      - '*.md'
+      - 'docs/**'
 
 jobs:
   build:
