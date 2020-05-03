@@ -8,11 +8,19 @@
         </label>
     </td>
 
+    <td>
+        <label class="checkobox" [ngClass]="allowUntrusted ? 'checked' : ''">
+            <input type="checkbox" [formControlName]="'untrusted'">
+        </label>
+    </td>
+
     <!--
     <td><input type="text" placeholder="{{connection.settings.password}}"></td>
     -->
     <td class="action-col">
-        <button type="button" class="btn btn-action" (click)="doSave()"><i class="vsqlik-icon vsqlik-icon--save"></i></button>
-        <button type="button" class="btn btn-action" (click)="doCancel()"><i class="vsqlik-icon vsqlik-icon--cancel"></i></button>
+        <button type="button" class="btn btn-action" (click)="doSave()"><i
+                class="vsqlik-icon vsqlik-icon--save"></i></button>
+        <button type="button" class="btn btn-action" (click)="doCancel()"><i
+                class="vsqlik-icon vsqlik-icon--cancel"></i></button>
     </td>
 </tr>

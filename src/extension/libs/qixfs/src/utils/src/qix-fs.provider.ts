@@ -38,10 +38,12 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * return file or directory stats
      */
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
+        console.log(uri.path);
         /** find entry */
         const route = QixRouter.find(uri);
         if(route?.entry) {
-            return route.entry.stat(uri, route.params);
+            const stats = route.entry.stat(uri, route.params);
+            return stats;
         }
         throw vscode.FileSystemError.FileNotFound();
     }
@@ -52,7 +54,8 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
         const route = QixRouter.find(uri);
         if (route?.entry.type === vscode.FileType.Directory) {
-            return (route.entry as QixFsDirectory).readDirectory(uri, route.params);
+            const result = await (route.entry as QixFsDirectory).readDirectory(uri, route.params);
+            return result;
         }
         throw vscode.FileSystemError.FileNotFound();
     }

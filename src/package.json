@@ -61,10 +61,9 @@
                 "settings": {
                   "host": "127.0.0.1",
                   "path": "",
-                  "port": 9076,
+                  "port": 80,
                   "secure": false,
-                  "username": "",
-                  "password": ""
+                  "allowUntrusted": false
                 }
               }
             ]
@@ -91,7 +90,7 @@
     "@types/ws": "7.2.4",
     "copyfiles": "2.2.0",
     "html-loader": "1.1.0",
-    "ts-loader": "7.0.1",
+    "ts-loader": "7.0.2",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "6.1.1",
     "typescript": "3.8.3",
@@ -101,8 +100,9 @@
   "dependencies": {
     "object-hash": "2.0.3",
     "enigma.js": "2.7.0",
+    "request": "^2.88.2",
     "rimraf": "3.0.2",
     "ws": "7.2.3",
-    "yaml": "^1.7.2"
+    "yaml": "^1.9.2"
   }
 }

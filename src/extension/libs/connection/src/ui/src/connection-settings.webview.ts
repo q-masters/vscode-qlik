@@ -1,8 +1,8 @@
 import { ExtensionPath } from "@data/tokens";
 import { VsQlikWebview, SessionCache, SettingsRepository } from "@utils";
 import { resolve } from "path";
-import { ConnectionSetting, ConnectionSettings } from "../../data";
 import { workspace, ConfigurationChangeEvent, window } from "vscode";
+import { ConnectionSetting, ConnectionSettings } from "../../data";
 
 const enum Action {
     Create  = "create",
@@ -30,7 +30,7 @@ interface WebviewResponse {
 /**
  * works as controller between vscode and webview (angular app)
  */
-export class ConnectionWebview extends VsQlikWebview<WebviewRequest> {
+export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
 
     private connectionSettings: SettingsRepository<ConnectionSetting>;
 
