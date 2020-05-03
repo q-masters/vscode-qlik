@@ -1,0 +1,10 @@
+version: 1
+update_configs:
+  - package_manager: "javascript"
+    directory: "/src"
+    update_schedule: "live"
+    target_branch: "development"
+  - package_manager: "javascript"
+    directory: "/src"
+    update_schedule: "src/media/webview"
+    target_branch: "development"
