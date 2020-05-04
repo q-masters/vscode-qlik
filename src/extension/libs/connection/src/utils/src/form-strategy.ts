@@ -1,7 +1,12 @@
-import * as vscode from "vscode";
 import request from "request";
 import { Response } from "request";
+import { InputStep, Stepper } from "@lib/stepper";
 import { SessionCookie, AuthorizationStrategy,  } from "../../api";
+
+interface Credentials {
+    domain: string;
+    password: string;
+}
 
 /**
  * login to qlik with form strategy
@@ -116,24 +121,21 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
     /**
      * create login process input fields
      */
-    private async resolveLoginCredentials() {
+    private async resolveLoginCredentials(): Promise<Credentials> {
 
-        const credentials = {
-            domain: { prompt: "Domain\\User" },
-            password: { prompt: "password", password: true}
-        } 
+        const domainStep   = new InputStep(`domain\\user`, this.connectionSetting.host);
+        const passwordStep = new InputStep(`password`, this.connectionSetting.host, true);
 
-        const loginData = { domain: "", password: "" };
-        const steps = Object.keys(credentials);
+        const stepper  = new Stepper(this.title);
+        stepper.addStep(domainStep);
+        stepper.addStep(passwordStep);
 
-        for(let i = 0, ln = steps.length; i < ln; i++) {
-            const step   = steps[i];
-            const option = credentials[step];
-            const value  = await vscode.window.showInputBox(option);
+        const [domain, password] = await stepper.run<string>();
 
-            loginData[step] = value;
+        if (!domain || !password) {
+            throw new Error("could not resolve credentials");
         }
 
-        return loginData;
+        return {domain, password};
     }
 }
