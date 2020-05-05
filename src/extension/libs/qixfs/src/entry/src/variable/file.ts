@@ -32,7 +32,9 @@ export class VariableFile extends QixFsFileAdapter {
                 qComment: properties?.qComment ?? "",
                 qNumberPresentation: properties?.qNumberPresentation,
                 qIncludeInBookmark: properties?.qIncludeInBookmark ?? false
-            }, 4));
+            }, {
+                indent: 4
+            }));
         }
         return Buffer.from("Error");
     }

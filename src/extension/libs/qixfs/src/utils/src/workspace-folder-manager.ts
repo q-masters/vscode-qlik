@@ -64,7 +64,7 @@ export class WorkspaceFolderManager {
         const connection    = connections?.find(setting => folder.name === setting.label);
 
         if (connection) {
-            const qixWSFolder = new QixWorkspaceFolder(connection.settings);
+            const qixWSFolder = new QixWorkspaceFolder(connection.settings, folder.name);
             /** set auth strategy here ? */
             this.workspaceFolders.set(folder, qixWSFolder);
         }
