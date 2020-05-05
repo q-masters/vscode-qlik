@@ -36,7 +36,7 @@ interface IVariableListItem {
 export class VariableDirectory extends QixFsDirectoryAdapter {
 
     public async delete(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
-        const connection = this.getConnection(uri);
+        const connection = await this.getConnection(uri);
         const app        = await connection.open(params.app);
         const varName    = name.substr(0, name.indexOf(posix.extname(name)));
 
@@ -51,7 +51,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter {
 
     public async readDirectory(uri: vscode.Uri, params: RouteParam): Promise<[string, vscode.FileType][]> {
 
-        const connection   = this.getConnection(uri);
+        const connection   = await this.getConnection(uri);
         const session      = await connection.open(params.app);
         const listObject   = await session.createSessionObject(variableDef);
         const layout       = await listObject.getLayout() as any;

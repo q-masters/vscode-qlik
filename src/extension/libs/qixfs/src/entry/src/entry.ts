@@ -19,11 +19,14 @@ export abstract class QixFsEntry {
 
     public isTemporary = false;
 
-    protected getConnection(uri: vscode.Uri): EnigmaSession {
+    protected getConnection(uri: vscode.Uri): Promise<EnigmaSession> {
+
+        console.log(uri);
         const workspaceFolder = WorkspaceFolderManager.resolveWorkspaceFolder(uri);
         if (workspaceFolder) {
             return workspaceFolder.connection;
         }
+
         throw new Error("not found");
     }
 

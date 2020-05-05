@@ -4,7 +4,7 @@ import { RouteParam } from "../../../utils";
 
 export class AppDirectory extends QixFsDirectoryAdapter {
 
-    readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] {
+    readDirectory(): [string, vscode.FileType][] {
         return [
             ['script', vscode.FileType.Directory],
             ['variables', vscode.FileType.Directory]
@@ -12,7 +12,7 @@ export class AppDirectory extends QixFsDirectoryAdapter {
     }
 
     async stat(uri: vscode.Uri, params: RouteParam | undefined): Promise<vscode.FileStat> {
-        if (params?.app && await this.getConnection(uri).isApp(params.app)) {
+        if (params?.app && ! await this.appExists(uri, params.app)) {
             return {
                 ctime: Date.now(),
                 mtime: Date.now(),
@@ -20,6 +20,14 @@ export class AppDirectory extends QixFsDirectoryAdapter {
                 type: vscode.FileType.Directory
             };
         }
+
         throw vscode.FileSystemError.FileNotFound();
+    }
+
+    private async appExists(uri: vscode.Uri, app: string): Promise<boolean> {
+
+        console.log("this.appExists");
+        const connection = await this.getConnection(uri);
+        return connection.isApp(app);
     }
 }

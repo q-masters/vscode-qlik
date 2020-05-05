@@ -61,6 +61,7 @@ export class QixRouter {
                 (params, routeParam, index) => (params[routeParam] = matches?.[index +1] || "", params)
                 ,{}
             );
+
             return {
                 entry: route.control.getControl(),
                 params
