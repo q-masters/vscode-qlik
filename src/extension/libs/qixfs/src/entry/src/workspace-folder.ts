@@ -12,6 +12,7 @@ export class QixWorkspaceFolder {
 
     public constructor(
         private connectionSettings: any,
+        private name: string
     ) {
         this.authService = AuthorizationService.getInstance();
     }
@@ -23,7 +24,6 @@ export class QixWorkspaceFolder {
         if (!this._connection) {
             this._connection = this.establishConnection();
         }
-        console.log(this._connection);
         return this._connection;
     }
 
@@ -37,6 +37,8 @@ export class QixWorkspaceFolder {
     private async establishConnection(): Promise<EnigmaSession> {
 
         const authStrategy = new FormAuthorizationStrategy(this.connectionSettings);
+        authStrategy.title = `Login: ${this.name}`;
+
         const authorize    = await this.authService.authorize(authStrategy) ;
 
         if (authorize) {
