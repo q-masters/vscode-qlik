@@ -20,14 +20,18 @@ export abstract class QixFsEntry {
     public isTemporary = false;
 
     protected getConnection(uri: vscode.Uri): Promise<EnigmaSession> {
-
-        console.log(uri);
         const workspaceFolder = WorkspaceFolderManager.resolveWorkspaceFolder(uri);
         if (workspaceFolder) {
             return workspaceFolder.connection;
         }
 
         throw new Error("not found");
+    }
+
+    protected async openApp(workspaceUri: vscode.Uri, id: string): Promise<EngineAPI.IApp | undefined> {
+        const connection = await this.getConnection(workspaceUri);
+        const session    = await connection.open(id);
+        return session?.openDoc(id);
     }
 
     abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;

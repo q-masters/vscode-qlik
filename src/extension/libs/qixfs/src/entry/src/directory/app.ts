@@ -12,7 +12,7 @@ export class AppDirectory extends QixFsDirectoryAdapter {
     }
 
     async stat(uri: vscode.Uri, params: RouteParam | undefined): Promise<vscode.FileStat> {
-        if (params?.app && ! await this.appExists(uri, params.app)) {
+        if (params?.app && await this.appExists(uri, params.app)) {
             return {
                 ctime: Date.now(),
                 mtime: Date.now(),
@@ -25,8 +25,6 @@ export class AppDirectory extends QixFsDirectoryAdapter {
     }
 
     private async appExists(uri: vscode.Uri, app: string): Promise<boolean> {
-
-        console.log("this.appExists");
         const connection = await this.getConnection(uri);
         return connection.isApp(app);
     }

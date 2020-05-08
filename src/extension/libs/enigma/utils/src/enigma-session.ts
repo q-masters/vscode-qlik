@@ -101,9 +101,7 @@ export class EnigmaSession {
     /**
      * return an existing session object or create a new one
      */
-    public async open(): Promise<EngineAPI.IGlobal>;
-    public async open(appId: string): Promise<EngineAPI.IApp>;
-    public async open(appId?: string): Promise<EngineAPI.IGlobal | EngineAPI.IApp | undefined>
+    public async open(appId?: string): Promise<EngineAPI.IGlobal | undefined>
     {
         const id = appId || EnigmaSession.GLOBAL_SESSION_KEY;
         let session: enigmaJS.IGeneratedAPI;
@@ -114,7 +112,8 @@ export class EnigmaSession {
         } else {
             session = await this.activateSession(id);
         }
-        return "global" in session ? session as EngineAPI.IApp: session as EngineAPI.IGlobal;
+
+        return session as EngineAPI.IGlobal;
     }
 
     public async close(appId?: string): Promise<void> {
@@ -126,13 +125,15 @@ export class EnigmaSession {
 
     public async isApp(appid: string): Promise<boolean> {
         const global = await this.open();
-        try {
+
+        if (global) {
             const doc = await global.openDoc(appid);
-            doc.session.close();
+                  doc.session.close();
+
             return true;
-        } catch (error) {
-            return false;
         }
+
+        return false;
     }
 
     /** 
@@ -183,8 +184,6 @@ export class EnigmaSession {
     }
 
     private async openSession(id = EnigmaSession.GLOBAL_SESSION_KEY): Promise<enigmaJS.IGeneratedAPI | undefined> {
-        /** get the session cookie first */
-
         const session = create({
             schema,
             url: this.buildUri(id),

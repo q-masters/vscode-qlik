@@ -38,13 +38,13 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * return file or directory stats
      */
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
-        console.log(uri.path);
         /** find entry */
         const route = QixRouter.find(uri);
         if(route?.entry) {
             const stats = route.entry.stat(uri, route.params);
             return stats;
         }
+
         throw vscode.FileSystemError.FileNotFound();
     }
 

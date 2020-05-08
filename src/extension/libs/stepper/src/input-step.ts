@@ -23,7 +23,7 @@ export class InputStep extends Step<string> {
 
         return new Promise((resolve, reject) => {
             this.disposeables = [
-                this.field.onDidAccept(() => (console.log("resolved"), resolve(this.field.value))),
+                this.field.onDidAccept(() => resolve(this.field.value)),
                 this.field.onDidHide(() => reject())
             ];
         });

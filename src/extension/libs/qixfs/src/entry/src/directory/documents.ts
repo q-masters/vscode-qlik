@@ -11,7 +11,7 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
         try {
             const connection = await this.getConnection(uri)
             const session    = await connection.open();
-            const docList: EngineAPI.IDocListEntry[] = await session.getDocList() as any;
+            const docList: EngineAPI.IDocListEntry[] = await session?.getDocList() as any ?? [];
 
             return docList.map<[string, vscode.FileType]>((doc) => [doc.qDocId, vscode.FileType.Directory]);
         } catch (error) {
@@ -27,7 +27,10 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
     public async createDirectory(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
         const connection = await this.getConnection(uri);
         const session = await connection.open();
-        await session.createApp(name);
+
+        if (session) {
+            await session.createApp(name);
+        }
     }
 
     /** 
@@ -40,7 +43,10 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
 
         /** get global and delete app */
         const session = await connection.open();
-        await session.deleteApp(app);
+
+        if (session) {
+            await session.deleteApp(app);
+        }
     }
 
     stat(): vscode.FileStat | Thenable<vscode.FileStat> {
