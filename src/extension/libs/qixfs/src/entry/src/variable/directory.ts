@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { QixFsDirectory, QixFsDirectoryAdapter } from "../entry";
+import { QixFsDirectoryAdapter } from "../entry";
 import { RouteParam } from "../../../utils";
 import { posix } from "path";
 
@@ -62,7 +62,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter {
             app.destroySessionObject(listObject.id);
 
             const result = variableList.map<[string, vscode.FileType.File]>((variable) => {
-                return [`${variable.qName}.yaml`, vscode.FileType.File]
+                return [`${variable.qName}.yaml`, vscode.FileType.File];
             });
             return result;
         }
@@ -70,12 +70,12 @@ export class VariableDirectory extends QixFsDirectoryAdapter {
         return [];
     }
 
-    stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat {
+    stat(): vscode.FileStat {
         return {
             ctime: Date.now(),
             mtime: Date.now(),
             size: 1,
             type: vscode.FileType.Directory
-        }
+        };
     }
 }

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { RouteParam, QixRouter } from "../../../utils";
+import { QixRouter } from "../../../utils";
 import { QixFsDirectory, QixFsFileAdapter } from "../entry";
 import { posix } from "path";
 
@@ -15,7 +15,7 @@ export class TemporaryFile extends QixFsFileAdapter {
      * if a file should be written we delegate the request to parent directory with
      * create file
      */
-    public async writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
+    public async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
 
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const route = QixRouter.find(parentUri);

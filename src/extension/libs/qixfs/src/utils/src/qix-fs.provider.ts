@@ -11,9 +11,9 @@ export namespace QixFsCommands {
     export const DELETE_FILE_COMMAND = `vscodeQlik.qixfs.deleteFileCommand`;
 }
 
-/** 
+/**
  * Qix File System
- * 
+ *
  * soll das immer mit enigma arbeiten ?
  */
 export class QixFSProvider implements vscode.FileSystemProvider {
@@ -30,7 +30,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         this.onDidChangeFile = this.emitter.event;
     }
 
-    watch(_resource: vscode.Uri): vscode.Disposable {
+    watch(): vscode.Disposable {
         return new vscode.Disposable(() => void 0);
     }
 
@@ -63,7 +63,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     /**
      * create new directory
      */
-    async createDirectory(uri: vscode.Uri, silent = false): Promise<void> {
+    async createDirectory(uri: vscode.Uri): Promise<void> {
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);
 

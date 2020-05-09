@@ -22,7 +22,7 @@ export class ScriptFile extends QixFsFileAdapter {
             mtime: Date.now(),
             size: 0,
             type: vscode.FileType.File,
-        }
+        };
     }
 
     public async readFile(uri: vscode.Uri, params: RouteParam): Promise<Uint8Array> {

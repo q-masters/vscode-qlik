@@ -65,7 +65,7 @@ export class VariableFile extends QixFsFileAdapter {
                 mtime: Date.now(),
                 size: 1,
                 type: vscode.FileType.File,
-            }
+            };
         }
     }
 
@@ -82,14 +82,14 @@ export class VariableFile extends QixFsFileAdapter {
             return;
         }
 
-        variable 
+        variable
             ? await this.updateVariable(variable, content)
             : await this.createVariable(app, varName, content.length ? content.toString() : void 0);
 
         await app.doSave();
     }
 
-    /** 
+    /**
      * get name of variable
      */
     private sanitizeName(value: string = ""): string {
@@ -97,7 +97,7 @@ export class VariableFile extends QixFsFileAdapter {
     }
 
     /**
-     * checks if a variable exists if this is not 
+     * checks if a variable exists if this is not
      */
     private async getVariable(app: EngineAPI.IApp | undefined, name: string): Promise<EngineAPI.IGenericVariable | undefined> {
         try {
@@ -125,7 +125,7 @@ export class VariableFile extends QixFsFileAdapter {
                 qOp   : "Replace",
                 qPath : `/${property}`,
                 qValue: `${JSON.stringify(data[property], null, 4)}`
-            }
+            };
         });
         await variable.applyPatches(patches);
     }

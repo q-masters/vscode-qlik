@@ -39,7 +39,7 @@ export class AuthorizationService {
      * run authorization strategy in queue
      */
     public async authorize(strategy: AuthorizationStrategy): Promise<any> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.authorizationQueueItems.set(strategy, (data: any) => resolve(data));
 
             if (!this.authorizationProcessIsRunning) {
@@ -56,12 +56,12 @@ export class AuthorizationService {
         this.authorizationProcessIsRunning = true;
 
         const entries = this.authorizationQueueItems.entries();
-        let entry   = entries.next();
+        let entry     = entries.next();
 
         while (!entry.done) {
 
             const [strategy, callback] = entry.value;
-            const result = await strategy.run();
+            await strategy.run();
 
             callback(strategy.sessionCookies);
             this.authorizationQueueItems.delete(strategy);
