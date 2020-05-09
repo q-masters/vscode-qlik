@@ -4,7 +4,7 @@ import fs, { existsSync, statSync } from "fs";
 
 /**
  * abstract webview class
- * 
+ *
  * generic param T: message format we resolve from html view
  */
 export abstract class VsQlikWebview<T> {
@@ -47,7 +47,7 @@ export abstract class VsQlikWebview<T> {
         const fileUri = vscode.Uri.file(posix.dirname(path));
         const baseUri = this.view.webview.asWebviewUri(fileUri);
 
-        if (existsSync(path) && statSync(path).isFile) { 
+        if (existsSync(path) && statSync(path).isFile) {
             return fs
                 .readFileSync(path, { encoding: 'utf8' })
                 .replace('<base href="/">', `<base href="${String(baseUri)}/">`);

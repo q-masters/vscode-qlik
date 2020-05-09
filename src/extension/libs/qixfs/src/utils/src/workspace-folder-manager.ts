@@ -37,7 +37,7 @@ export class WorkspaceFolderManager {
      * find our workspace folder by uri, default we could have multiple
      * workspace folders and each have an own enigma connection but qixfs provider
      * dosent know this.
-     * 
+     *
      * so we need to find correct workspace folder and get the correct enigma session context.
      */
     public static resolveWorkspaceFolder(uri: vscode.Uri): QixWorkspaceFolder | undefined {
@@ -48,13 +48,13 @@ export class WorkspaceFolderManager {
         throw new Error("Workspace Folder not found");
     }
 
-    public static find<T>(uri: vscode.Uri): T | undefined {
+    public static find<T>(): T | undefined {
         return void 0;
     }
 
     /**
      * register new qix workspace folder
-     * 
+     *
      * @param folder
      */
     private static addWorkspaceFolder(folder: vscode.WorkspaceFolder): void {

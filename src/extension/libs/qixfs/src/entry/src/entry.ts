@@ -6,10 +6,10 @@ export interface QixFsEntryConstructor {
     new(): QixFsEntry;
 }
 
-/** 
+/**
  * der würde nun mehrfach existieren
  * aber quasi als singleton
- * 
+ *
  * er sucht sich immer die passende connection raus und leitet diese
  * an die eigentliche methode weiter
  */
@@ -28,7 +28,7 @@ export abstract class QixFsEntry {
         throw new Error("not found");
     }
 
-    protected async openApp(workspaceUri: vscode.Uri, id: string): Promise<EngineAPI.IApp | undefined> {
+    protected async openApp(workspaceUri: vscode.Uri, id: string): Promise<EngineAPI.IApp | undefined> {
         const connection = await this.getConnection(workspaceUri);
         const session    = await connection.open(id);
         return session?.openDoc(id);
@@ -60,19 +60,11 @@ export abstract class QixFsDirectory extends QixFsEntry {
 
     public readonly type = vscode.FileType.Directory;
 
-    /**
-     * read a directory
-     */
     abstract readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]>;
 
-    /**
-     * create a new directory
-     */
     abstract createDirectory(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
 
-    /**
-     * create new file in directory
-     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async createFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
     }
 }
@@ -84,22 +76,27 @@ export abstract class QixFsDirectory extends QixFsEntry {
  */
 export class QixFsFileAdapter extends QixFsFile {
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     readFile(uri: vscode.Uri, params: RouteParam): Uint8Array | Thenable<Uint8Array> {
         throw new Error("Method not implemented.");
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): void | Thenable<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat | Thenable<vscode.FileStat> {
         throw vscode.FileSystemError.NoPermissions();
     }
@@ -111,22 +108,28 @@ export class QixFsFileAdapter extends QixFsFile {
  * and override these methods.
  */
 export class QixFsDirectoryAdapter extends QixFsDirectory {
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     createDirectory(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat | Thenable<vscode.FileStat> {
         throw vscode.FileSystemError.NoPermissions();
     }

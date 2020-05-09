@@ -38,18 +38,18 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
      * initialize login process by call server directly
      * this returns an login form by default if this running
      * against a qlik server.
-     * 
+     *
      * this uri is required since it contains a ticket id
      */
     private initializeLoginProcess(): Promise<string> {
 
         const options = {
-            uri: `http://${this.connectionSetting.host}`,
+            uri: `http://${this.connectionSetting.host as string}`,
             method: "GET"
         };
 
         return new Promise((resolve, reject) => {
-            request(options, (error, response, body) => {
+            request(options, (error, response) => {
                 if (error) {
                     reject(error);
                 }
@@ -100,7 +100,7 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
                     return;
                 }
                 /**
-                 * @example respsonse 
+                 * @example respsonse
                  * set-cookie:Array[1]
                  *   0:"X-Qlik-Session-HTTP=eccfad38-8851-4064-85fd-79c1d0a6bc84; Path=/; HttpOnly"
                  */
@@ -132,7 +132,7 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
         const [domain, password] = await stepper.run<string>();
 
-        if (!domain || !password) {
+        if (!domain || !password) {
             throw new Error("could not resolve credentials");
         }
 
