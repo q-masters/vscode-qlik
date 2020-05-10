@@ -14,8 +14,7 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
 
             return docList.map<[string, vscode.FileType]>((doc) => [doc.qDocId, vscode.FileType.Directory]);
         } catch (error) {
-            console.log("error something went very bad");
-            console.log(error);
+            console.error(error);
             return [];
         }
     }

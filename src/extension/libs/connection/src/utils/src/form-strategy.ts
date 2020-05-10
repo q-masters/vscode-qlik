@@ -24,7 +24,7 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
             await this.finalizeLoginProcess(redirectUri);
         } catch (error) {
             /** @todo log error not console.log */
-            console.log(error);
+            console.error(error);
             return false;
         }
         return true;

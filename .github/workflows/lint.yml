@@ -1,4 +1,4 @@
-name: Node.js check compile
+name: Code quality
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
       - 'docs/**'
 
 jobs:
-  build:
+  lint:
 
     runs-on: ubuntu-latest
     
