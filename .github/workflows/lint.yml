@@ -1,0 +1,40 @@
+name: Code quality
+
+on:
+  push:
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+
+  pull_request:
+    paths-ignore: 
+      - '*.md'
+      - 'docs/**'
+
+jobs:
+  lint:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Node.js 
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: Install packages 
+      working-directory: src
+      run: |
+        npm ci
+
+    - name: lint extension
+      working-directory: src
+      run: |
+        npm run lint:extension
+
+    - name: lint webview
+      working-directory: src
+      run: |
+        npm run lint:webview

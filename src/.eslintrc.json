@@ -31,8 +31,10 @@
             "error",
             "always"
         ],
+        "eol-last": "error",
         "no-trailing-spaces": ["error"],
         "no-unused-vars": "off",
+        "no-console": ["error", {"allow": ["error", "warn"]}],
         "@typescript-eslint/no-unused-vars": ["error"],
         "@typescript-eslint/restrict-template-expressions": ["error"]
     }
