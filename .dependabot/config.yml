@@ -8,4 +8,3 @@ update_configs:
     directory: "/src/media/webview"
     update_schedule: "live"
     target_branch: "development"
-    
