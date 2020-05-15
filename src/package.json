@@ -88,7 +88,7 @@
     "@types/enigma.js": "2.2.1",
     "@types/node": "13.13.5",
     "@types/qlik-engineapi": "12.67.8",
-    "@types/vscode": "1.45.0",
+    "@types/vscode": "1.45.1",
     "@types/ws": "7.2.4",
     "@typescript-eslint/eslint-plugin": "^2.31.0",
     "@typescript-eslint/parser": "^2.31.0",
