@@ -35,6 +35,6 @@ export async function CreateWorkspaceFolder() {
 }
 
 function createWorkspaceFolderPath(connection: ConnectionSetting): string {
-    let path = `qix://`;
+    const path = `qix://`;
     return path.concat(connection.label, '.', connection.settings.host, connection.settings.port ?? '');
 }

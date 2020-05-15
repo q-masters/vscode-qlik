@@ -213,7 +213,7 @@ export class EnigmaSession {
      */
     private loadFromCache(id = EnigmaSession.GLOBAL_SESSION_KEY): enigmaJS.IGeneratedAPI
     {
-        let session = this.sessionCache.get(id);
+        const session = this.sessionCache.get(id);
         if (session) {
             return session;
         }
