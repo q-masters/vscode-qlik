@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { QixFsDirectory, QixFsDirectoryAdapter } from "../entry";
+import { QixFsDirectoryAdapter } from "../entry";
 import { RouteParam } from "../../../utils";
 import { posix } from "path";
 
@@ -36,42 +36,46 @@ interface IVariableListItem {
 export class VariableDirectory extends QixFsDirectoryAdapter {
 
     public async delete(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
-        const connection = this.getConnection(uri);
-        const app        = await connection.open(params.app);
-        const varName    = name.substr(0, name.indexOf(posix.extname(name)));
+        const connection = await this.getConnection(uri);
+        const session    = await connection.open(params.app);
 
-        try {
+        if (session) {
+            const app     = await session.openDoc(params.app);
+            const varName = name.substr(0, name.indexOf(posix.extname(name)));
+
             await app.destroyVariableByName(varName);
             await app.doSave();
-        } catch (error) {
-            vscode.window.showErrorMessage(`Could not delete Variable: ${varName}`);
-            throw vscode.FileSystemError.NoPermissions;
         }
     }
 
     public async readDirectory(uri: vscode.Uri, params: RouteParam): Promise<[string, vscode.FileType][]> {
 
-        const connection   = this.getConnection(uri);
+        const connection   = await this.getConnection(uri);
         const session      = await connection.open(params.app);
-        const listObject   = await session.createSessionObject(variableDef);
-        const layout       = await listObject.getLayout() as any;
-        const variableList = layout.qVariableList.qItems as IVariableListItem[];
+        const app          = await session?.openDoc(params.app);
 
-        session.destroySessionObject(listObject.id);
+        if (app) {
+            const listObject   = await app.createSessionObject(variableDef);
+            const layout       = await listObject.getLayout() as any;
+            const variableList = layout.qVariableList.qItems as IVariableListItem[];
 
-        const result = variableList.map<[string, vscode.FileType.File]>((variable) => {
-            return [`${variable.qName}.yaml`, vscode.FileType.File]
-        });
+            app.destroySessionObject(listObject.id);
 
-        return result;
+            const result = variableList.map<[string, vscode.FileType.File]>((variable) => {
+                return [`${variable.qName}.yaml`, vscode.FileType.File];
+            });
+            return result;
+        }
+
+        return [];
     }
 
-    stat(uri: vscode.Uri, params?: RouteParam | undefined): vscode.FileStat {
+    stat(): vscode.FileStat {
         return {
             ctime: Date.now(),
             mtime: Date.now(),
             size: 1,
             type: vscode.FileType.Directory
-        }
+        };
     }
 }

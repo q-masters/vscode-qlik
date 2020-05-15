@@ -20,8 +20,8 @@ export class VariableFile extends QixFsFileAdapter {
      * read variable data
      */
     public async readFile(uri: vscode.Uri, params: RouteParam): Promise<Uint8Array> {
-        const connection = this.getConnection(uri);
-        const app        = await connection.open(params.app);
+
+        const app = await this.openApp(uri, params.app);
         const varName    = this.sanitizeName(params.variable);
         const variable   = await this.getVariable(app, varName);
 
@@ -32,19 +32,20 @@ export class VariableFile extends QixFsFileAdapter {
                 qComment: properties?.qComment ?? "",
                 qNumberPresentation: properties?.qNumberPresentation,
                 qIncludeInBookmark: properties?.qIncludeInBookmark ?? false
-            }, 4));
+            }, {
+                indent: 4
+            }));
         }
         return Buffer.from("Error");
     }
 
     public async rename(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
 
-        const connection = this.getConnection(uri);
-        const app        = await connection.open(params.app);
+        const app        = await this.openApp(uri, params.app);
         const varName    = this.sanitizeName(params.variable);
         const variable   = await this.getVariable(app, varName);
 
-        if (variable) {
+        if (app && variable) {
             await this.updateVariable(variable, {qName: this.sanitizeName(name)});
             await app.doSave();
         }
@@ -54,8 +55,7 @@ export class VariableFile extends QixFsFileAdapter {
      * get stats of variable for vscode file system
      */
     public async stat(uri: vscode.Uri, params: RouteParam): Promise<vscode.FileStat | void> {
-        const connection = this.getConnection(uri);
-        const app        = await connection.open(params.app);
+        const app        = await this.openApp(uri, params.app);
         const varName    = this.sanitizeName(params.variable);
         const variable   = await this.getVariable(app, varName);
 
@@ -65,7 +65,7 @@ export class VariableFile extends QixFsFileAdapter {
                 mtime: Date.now(),
                 size: 1,
                 type: vscode.FileType.File,
-            }
+            };
         }
     }
 
@@ -74,19 +74,22 @@ export class VariableFile extends QixFsFileAdapter {
      */
     public async writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
 
-        const connection = this.getConnection(uri);
-        const app        = await connection.open(params.app);
+        const app        = await this.openApp(uri, params.app);
         const varName    = this.sanitizeName(params.variable);
         const variable   = await this.getVariable(app, varName);
 
-        variable 
+        if (!app) {
+            return;
+        }
+
+        variable
             ? await this.updateVariable(variable, content)
             : await this.createVariable(app, varName, content.length ? content.toString() : void 0);
 
         await app.doSave();
     }
 
-    /** 
+    /**
      * get name of variable
      */
     private sanitizeName(value: string = ""): string {
@@ -94,11 +97,11 @@ export class VariableFile extends QixFsFileAdapter {
     }
 
     /**
-     * checks if a variable exists if this is not 
+     * checks if a variable exists if this is not
      */
-    private async getVariable(app: EngineAPI.IApp, name: string): Promise<EngineAPI.IGenericVariable | undefined> {
+    private async getVariable(app: EngineAPI.IApp | undefined, name: string): Promise<EngineAPI.IGenericVariable | undefined> {
         try {
-            return await app.getVariableByName(name);
+            return await app?.getVariableByName(name);
         } catch (error) {
             return void 0;
         }
@@ -122,7 +125,7 @@ export class VariableFile extends QixFsFileAdapter {
                 qOp   : "Replace",
                 qPath : `/${property}`,
                 qValue: `${JSON.stringify(data[property], null, 4)}`
-            }
+            };
         });
         await variable.applyPatches(patches);
     }

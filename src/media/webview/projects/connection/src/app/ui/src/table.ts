@@ -111,10 +111,9 @@ export class TableComponent implements OnInit, OnDestroy {
             uid: Math.random().toString(32),
             settings: {
                 host: "127.0.0.1",
-                password: "",
-                port: 9076,
+                port: 443,
                 secure: true,
-                username: ""
+                allowUntrusted: false
             }
         };
         this.editConnection(phantomConnection);

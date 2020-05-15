@@ -72,7 +72,7 @@ class ChangelogMarkDown {
         return gitLog;
     }
 
-    /** 
+    /**
      * generate changelog as markdown
      */
     private generateChangeLogMarkDown(data: ChangeLogData) {
@@ -104,7 +104,7 @@ class ChangelogMarkDown {
         return changelog;
     }
 
-    private writeHeader(name: string): string {
+    private writeHeader(): string {
         return `##`;
     }
 
@@ -124,8 +124,8 @@ class ChangelogMarkDown {
      * extract github uri for commit messages
      */
     private getCommitUri(): string {
-        const remote = execSync('git config --get remote.origin.url').toString(); 
-        return remote.replace(/^(?:git@[^:]+:|https:\/\/[^\/]+\/)(.*?)\.git/, "https://github.com/$1/commit").replace(EOL, '');
+        const remote = execSync('git config --get remote.origin.url').toString();
+        return remote.replace(/^(?:git@[^:]+:|https:\/\/[^/]+\/)(.*?)\.git/, "https://github.com/$1/commit").replace(EOL, '');
     }
 }
 

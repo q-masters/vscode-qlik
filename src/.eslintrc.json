@@ -1,0 +1,43 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 11,
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "modules": true
+        },
+        "project": "./tsconfig.json"
+    },
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "indent": [
+            "error", 4, { "SwitchCase": 1 }
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "eol-last": "error",
+        "no-trailing-spaces": ["error"],
+        "no-unused-vars": "off",
+        // "no-console": ["error", {"allow": ["error", "warn"]}],
+        "@typescript-eslint/no-unused-vars": ["error"],
+        "@typescript-eslint/restrict-template-expressions": ["error", {
+            "allowAny": true
+        }]
+    }
+}

@@ -4,9 +4,8 @@ import { QixFsEntry, QixFsEntryConstructor } from "../../entry";
 export interface Route {
     path: string;
     ctrl: QixFsEntryConstructor,
-    /** @todo implement children ... maybe */
     children?: Route[]
-};
+}
 
 export interface QixFsRoute {
     entry: QixFsEntry,
@@ -22,16 +21,16 @@ interface RouteData {
     params: string[];
     control: ControllerFactory;
     route: string;
-};
+}
 
 interface ControllerFactory {
     getControl(): QixFsEntry;
 }
 
 /**
- * factory to create a concrete adapter 
+ * factory to create a concrete adapter
  * like a qlik script file adapter or documents directory adapter
- * 
+ *
  * works as flyweight, routes allways return allways same instance from a adapter
  */
 export class QixRouter {
@@ -61,10 +60,11 @@ export class QixRouter {
                 (params, routeParam, index) => (params[routeParam] = matches?.[index +1] || "", params)
                 ,{}
             );
+
             return {
                 entry: route.control.getControl(),
                 params
-            }
+            };
         }
     }
 
@@ -77,7 +77,7 @@ export class QixRouter {
 
     /**
      * register route to router
-     * 
+     *
      * @todo check correct behavior route allready registered (maybe show warning)
      */
     private static registerRoute(route: Route) {
@@ -97,14 +97,35 @@ export class QixRouter {
      * parse route data
      */
     private static parseRoute(route: string): any {
-        let params  = route.match(/:([^\/]+)/g) || [];
-        let matcher = new RegExp('^/' + route.replace(/:([^\/]+)/g, "([^/]+)") + '$');
 
-        return {
-            matcher,
-            params : params.map((segment) => segment.substr(1)),
-            route: route
-        };
+        /**
+         * extract all params and remove trainling :
+         */
+        let params = route.match(/:([^/]+)/g) || [];
+        params = params.map((param) => param.substr(1));
+
+        /**
+         * create match pattern for given route
+         *
+         * so we know RegExp.$1 = appId
+         * so we know RegExp.$2 = varName
+         *
+         * /:appId/vars/:varName becomes ([^/]+)/script/([^/]+)
+         */
+        let routePattern = route.replace(/:([^/]+)/g, "([^/]+)");
+
+        /**
+         * build matcher for real route which will given
+         * like /1234-5678-9012-3456/script/border-color
+         *
+         * after route pattern has been called params will be
+         * all that matches will maped to params in order
+         *     appId   = 1234-5678-9012-3456
+         *     varName = border-color
+         */
+        let matcher = new RegExp('^/' + routePattern + '$');
+
+        return { matcher, params, route };
     }
 
     /**
@@ -120,6 +141,6 @@ export class QixRouter {
                 }
                 return instance;
             }
-        }
+        };
     }
 }
