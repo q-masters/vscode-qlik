@@ -18,7 +18,7 @@ export class QixWorkspaceFolder {
     }
 
     /**
-     * gute frage was ist wenn die 
+     * gute frage was ist wenn die
      */
     public get connection(): Promise<EnigmaSession> {
         if (!this._connection) {

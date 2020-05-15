@@ -1,31 +1,40 @@
-name: Node.js check compile
+name: Code quality
 
 on:
   push:
-    branches: [ master, development ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
 
   pull_request:
-    branches: [ master, development ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
 
 jobs:
-  build:
+  lint:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Setup Node.js
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    - name: compile
+
+    - name: Install packages
       working-directory: src
       run: |
         npm ci
-        npm run build --if-present
+
+    - name: lint extension
+      working-directory: src
+      run: |
+        npm run lint:extension
+
+    - name: lint webview
+      working-directory: src
+      run: |
+        npm run lint:webview

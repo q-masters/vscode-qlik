@@ -15,7 +15,9 @@
     "postbuild": "npm run webview:build",
     "webview:build": "npm run build --prefix ./media/webview -- --prod",
     "changelog:compile": "tsc -p ./ci",
-    "changelog:generate": "node ./dist/ci/changelog"
+    "changelog:generate": "node ./dist/ci/changelog",
+    "lint:extension": "node bin/eslint-reporter './extension/**/*.ts'",
+    "lint:webview": "npm run lint --prefix ./media/webview"
   },
   "engines": {
     "vscode": "^1.22.0"
@@ -84,13 +86,18 @@
   "homepage": "https://github.com/PLH-Coding/vscodeQ#readme",
   "devDependencies": {
     "@types/enigma.js": "2.2.1",
-    "@types/node": "13.13.4",
+    "@types/node": "13.13.5",
     "@types/qlik-engineapi": "12.67.8",
-    "@types/vscode": "1.44.0",
+    "@types/vscode": "1.45.0",
     "@types/ws": "7.2.4",
+    "@typescript-eslint/eslint-plugin": "^2.31.0",
+    "@typescript-eslint/parser": "^2.31.0",
+    "chalk": "^4.0.0",
     "copyfiles": "2.2.0",
+    "eslint": "^7.0.0",
     "html-loader": "1.1.0",
-    "ts-loader": "7.0.2",
+    "ts-loader": "7.0.3",
+    "minimist": "1.2.5",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "6.1.2",
     "typescript": "3.8.3",
@@ -102,7 +109,7 @@
     "enigma.js": "2.7.0",
     "request": "2.88.2",
     "rimraf": "3.0.2",
-    "ws": "7.2.5",
+    "ws": "7.3.0",
     "yaml": "1.9.2"
   }
 }

@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import { RouteParam } from "../../../utils";
 import { QixFsDirectoryAdapter } from "../entry";
 
 export class DocumentsDirectory extends QixFsDirectoryAdapter {
@@ -9,14 +8,13 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
      */
     public async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
         try {
-            const connection = await this.getConnection(uri)
+            const connection = await this.getConnection(uri);
             const session    = await connection.open();
-            const docList: EngineAPI.IDocListEntry[] = await session.getDocList() as any;
+            const docList: EngineAPI.IDocListEntry[] = await session?.getDocList() as any ?? [];
 
             return docList.map<[string, vscode.FileType]>((doc) => [doc.qDocId, vscode.FileType.Directory]);
         } catch (error) {
-            console.log("error something went very bad");
-            console.log(error);
+            console.error(error);
             return [];
         }
     }
@@ -24,23 +22,29 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
     /**
      * create new app
      */
-    public async createDirectory(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
+    public async createDirectory(uri: vscode.Uri, name: string): Promise<void> {
         const connection = await this.getConnection(uri);
         const session = await connection.open();
-        await session.createApp(name);
+
+        if (session) {
+            await session.createApp(name);
+        }
     }
 
-    /** 
+    /**
      * delete app
      */
     public async delete(uri: vscode.Uri, app: string): Promise<void> {
         /** first close session on app */
         const connection = await this.getConnection(uri);
-        await connection.close(app)
+        await connection.close(app);
 
         /** get global and delete app */
         const session = await connection.open();
-        await session.deleteApp(app);
+
+        if (session) {
+            await session.deleteApp(app);
+        }
     }
 
     stat(): vscode.FileStat | Thenable<vscode.FileStat> {
@@ -49,6 +53,6 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
             mtime: Date.now(),
             size: 10,
             type: vscode.FileType.Directory
-        }
+        };
     }
 }

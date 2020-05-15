@@ -5,8 +5,8 @@ import WebSocket from "ws";
 
 /**
  * Services to create, cache and handle enigma session
- * 
- * ich müsste die gesammte klasse weg speichern 
+ *
+ * ich müsste die gesammte klasse weg speichern
  * aber das ist auch nicht so übel sprach der dübel
  */
 export class EnigmaSession {
@@ -88,9 +88,6 @@ export class EnigmaSession {
         this.requestHooks.push(hook);
     }
 
-    public removeRequestHook(hook: enigmaJS.IRequestInterceptors) {
-    }
-
     /**
      * adds a header
      */
@@ -101,9 +98,7 @@ export class EnigmaSession {
     /**
      * return an existing session object or create a new one
      */
-    public async open(): Promise<EngineAPI.IGlobal>;
-    public async open(appId: string): Promise<EngineAPI.IApp>;
-    public async open(appId?: string): Promise<EngineAPI.IGlobal | EngineAPI.IApp | undefined>
+    public async open(appId?: string): Promise<EngineAPI.IGlobal | undefined>
     {
         const id = appId || EnigmaSession.GLOBAL_SESSION_KEY;
         let session: enigmaJS.IGeneratedAPI;
@@ -114,7 +109,8 @@ export class EnigmaSession {
         } else {
             session = await this.activateSession(id);
         }
-        return "global" in session ? session as EngineAPI.IApp: session as EngineAPI.IGlobal;
+
+        return session as EngineAPI.IGlobal;
     }
 
     public async close(appId?: string): Promise<void> {
@@ -126,16 +122,18 @@ export class EnigmaSession {
 
     public async isApp(appid: string): Promise<boolean> {
         const global = await this.open();
-        try {
+
+        if (global) {
             const doc = await global.openDoc(appid);
             doc.session.close();
+
             return true;
-        } catch (error) {
-            return false;
         }
+
+        return false;
     }
 
-    /** 
+    /**
      * activate session if not allready in active stack
      */
     private async activateSession(id: string): Promise<enigmaJS.IGeneratedAPI>
@@ -153,38 +151,34 @@ export class EnigmaSession {
      * create new session object, buffer current connections into map
      * so if same connection wants to open twice take existing Promise
      * and return this one.
-     * 
+     *
      * @todo refactor this one
      */
     private async createSessionObject(id: string): Promise<enigmaJS.IGeneratedAPI>
     {
         if (!this.connectionQueue.has(id)) {
-            this.connectionQueue.set(id, new Promise(async (resolve) => {
-                await this.suspendOldestSession();
-
-                try {
-                    const session = await this.openSession(id);
-
-                    if (session) {
-                        session.on("closed", () => this.removeSessionFromCache(id));
-                        this.sessionCache.set(id, session);
-                        this.activeStack.push(id);
-                        this.connectionQueue.delete(id);
-                        resolve(session);
-                    }
-                } catch (error) {
-                    console.log("enigma session error:");
-                    console.log(error);
-                    throw error;
-                }
-            }));
+            this.connectionQueue.set(id, this.resolveSession(id));
         }
         return this.connectionQueue.get(id) as Promise<enigmaJS.IGeneratedAPI>;
     }
 
-    private async openSession(id = EnigmaSession.GLOBAL_SESSION_KEY): Promise<enigmaJS.IGeneratedAPI | undefined> {
-        /** get the session cookie first */
+    private async resolveSession(id: string): Promise<enigmaJS.IGeneratedAPI> {
+        await this.suspendOldestSession();
 
+        const session = await this.openSession(id);
+
+        if (session) {
+            session.on("closed", () => this.removeSessionFromCache(id));
+            this.sessionCache.set(id, session);
+            this.activeStack.push(id);
+            this.connectionQueue.delete(id);
+            return session;
+        }
+
+        throw new Error(`could not open session for: ${id}`);
+    }
+
+    private async openSession(id = EnigmaSession.GLOBAL_SESSION_KEY): Promise<enigmaJS.IGeneratedAPI | undefined> {
         const session = create({
             schema,
             url: this.buildUri(id),
@@ -253,7 +247,7 @@ export class EnigmaSession {
             host    : this.connectionHost,
             identity: Math.random().toString(32).substr(2),
             secure  : false
-        }
+        };
 
         // event notification *
         return buildUrl(options);
