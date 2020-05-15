@@ -17,9 +17,9 @@
     "webview:build": "npm run build --prefix ./media/webview -- --prod",
     "changelog:compile": "tsc -p ./ci",
     "changelog:generate": "node ./dist/ci/changelog",
-    "vscode:prepublish": "npm run build"
+    "vscode:prepublish": "npm run build",
     "lint:extension": "node bin/eslint-reporter './extension/**/*.ts'",
-    "lint:webview": "npm run lint --prefix ./media/webview
+    "lint:webview": "npm run lint --prefix ./media/webview"
   },
   "engines": {
     "vscode": "^1.22.0"
