@@ -112,7 +112,7 @@ export class QixRouter {
          *
          * /:appId/vars/:varName becomes ([^/]+)/script/([^/]+)
          */
-        let routePattern = route.replace(/:([^/]+)/g, "([^/]+)");
+        const routePattern = route.replace(/:([^/]+)/g, "([^/]+)");
 
         /**
          * build matcher for real route which will given
@@ -123,7 +123,7 @@ export class QixRouter {
          *     appId   = 1234-5678-9012-3456
          *     varName = border-color
          */
-        let matcher = new RegExp('^/' + routePattern + '$');
+        const matcher = new RegExp('^/' + routePattern + '$');
 
         return { matcher, params, route };
     }

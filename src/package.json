@@ -1,9 +1,9 @@
 {
   "name": "vscode-qlik",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "vscode extension for qlik",
   "main": "./dist/extension.js",
-  "publisher": "vsqlik",
+  "publisher": "q-masters",
   "scripts": {
     "copyhtml": "copyfiles extension/**/*.html ./out",
     "clear": "rimraf ./out",
@@ -19,10 +19,11 @@
     "changelog:generate": "node ./dist/ci/changelog",
     "vscode:prepublish": "npm run build",
     "lint:extension": "node bin/eslint-reporter './extension/**/*.ts'",
-    "lint:webview": "npm run lint --prefix ./media/webview"
+    "lint:webview": "npm run lint --prefix ./media/webview",
+    "vsce:publish": "./node_modules/.bin/vsce publish"
   },
   "engines": {
-    "vscode": "^1.45.0"
+    "vscode": "1.45.1"
   },
   "activationEvents": [
     "onFileSystem:qix",
@@ -90,22 +91,22 @@
     "@types/enigma.js": "2.2.1",
     "@types/node": "14.0.1",
     "@types/qlik-engineapi": "12.67.9",
-    "@types/vscode": "^1.45.1",
+    "@types/vscode": "1.45.1",
     "@types/ws": "7.2.4",
-    "@typescript-eslint/eslint-plugin": "^2.33.0",
-    "@typescript-eslint/parser": "^2.33.0",
-    "chalk": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "3.0.0-alpha.25",
+    "@typescript-eslint/parser": "^3.0.0-alpha.25",
+    "chalk": "4.0.0",
     "copyfiles": "2.2.0",
-    "eslint": "^7.0.0",
+    "eslint": "7.0.0",
     "html-loader": "1.1.0",
-    "ts-loader": "7.0.4",
     "minimist": "1.2.5",
+    "ts-loader": "7.0.4",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "6.1.2",
     "typescript": "3.9.2",
+    "vsce": "1.75.0",
     "webpack": "4.43.0",
-    "webpack-cli": "3.3.11",
-    "vsce": "1.75.0"
+    "webpack-cli": "3.3.11"
   },
   "dependencies": {
     "object-hash": "2.0.3",
