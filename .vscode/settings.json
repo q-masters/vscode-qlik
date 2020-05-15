@@ -1,3 +1,9 @@
 {
-    "typescript.tsdk": "./src/node_modules/typescript/lib"
+    "typescript.tsdk": "./src/node_modules/typescript/lib",
+    "eslint.workingDirectories": [
+        {
+            "directory": "./src",
+            "changeProcessCWD": true
+        }
+    ],
 }
