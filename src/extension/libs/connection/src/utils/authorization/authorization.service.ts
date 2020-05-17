@@ -1,4 +1,4 @@
-import { AuthorizationStrategy } from "../../api";
+import { AuthorizationStrategy } from "./strategies/authorization.strategy";
 
 declare type IteratorResult = [AuthorizationStrategy, (data: any) => any];
 

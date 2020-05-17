@@ -1,5 +1,5 @@
 import { EnigmaSession } from "extension/libs/enigma";
-import { AuthorizationService, FormAuthorizationStrategy } from "@lib/connection";
+import { AuthorizationService, AuthorizatioHeaderStrategy } from "extension/libs/connection/src/utils/authorization";
 
 /**
  * QixWorkspaceFolder represents the connection to the Qlik Server
@@ -36,7 +36,7 @@ export class QixWorkspaceFolder {
      */
     private async establishConnection(): Promise<EnigmaSession> {
 
-        const authStrategy = new FormAuthorizationStrategy(this.connectionSettings);
+        const authStrategy = new AuthorizatioHeaderStrategy(this.connectionSettings);
         authStrategy.title = `Login: ${this.name}`;
 
         const authorize    = await this.authService.authorize(authStrategy) ;

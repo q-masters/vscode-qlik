@@ -1,4 +1,4 @@
-import { AuthorizationStrategy } from "../../api";
+import { AuthorizationStrategy } from "./authorization.strategy";
 
 export class NoAuthStrategy extends AuthorizationStrategy {
 

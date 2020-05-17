@@ -1,7 +1,8 @@
 import request from "request";
 import { Response } from "request";
-import { InputStep, Stepper } from "@lib/stepper";
-import { SessionCookie, AuthorizationStrategy,  } from "../../api";
+import { SessionCookie  } from "../../../api";
+import { AuthorizationStrategy } from "./authorization.strategy";
+import { Stepper, InputStep } from "@lib/stepper";
 
 interface Credentials {
     domain: string;
@@ -119,23 +120,28 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
     }
 
     /**
-     * create login process input fields
+     * show input fields
      */
     private async resolveLoginCredentials(): Promise<Credentials> {
 
-        const domainStep   = new InputStep(`domain\\user`, this.connectionSetting.host);
-        const passwordStep = new InputStep(`password`, this.connectionSetting.host, true);
+        const domainStep   = new InputStep(`Domain`, this.connectionSetting.host);
+        const userStep     = new InputStep(`UserDirectory`, this.connectionSetting.host);
+        const passwordStep = new InputStep(`Password`, this.connectionSetting.host, true);
 
         const stepper  = new Stepper(this.title);
         stepper.addStep(domainStep);
+        stepper.addStep(userStep);
         stepper.addStep(passwordStep);
 
-        const [domain, password] = await stepper.run<string>();
+        const [domain, username, password] = await stepper.run<string>();
 
         if (!domain || !password) {
             throw new Error("could not resolve credentials");
         }
 
-        return {domain, password};
+        return {
+            domain: `${domain}\\${username as string}`,
+            password
+        };
     }
 }

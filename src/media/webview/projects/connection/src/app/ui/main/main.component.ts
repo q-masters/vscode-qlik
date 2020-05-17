@@ -1,37 +1,40 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { VsCodeConnector } from "@vsqlik/core";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
-import { Connection, Action } from "../../data";
-import { TableRowSaveEvent } from "./table-row-edit";
+import { VsCodeConnector } from "@vsqlik/core";
+import { Connection, AuthorizationStrategy, Action } from "../../data";
+
+enum ViewMode {
+    LIST,
+    EDIT
+}
 
 @Component({
-    selector: "vsqlik-connection--table",
-    templateUrl: "table.html",
-    styleUrls: ["./table.scss"]
+    selector: "vsqlik-connection--root",
+    templateUrl: "./main.component.html",
+    styleUrls: ["./main.component.scss"]
 })
-export class TableComponent implements OnInit, OnDestroy {
+export class MainComponent implements OnInit, OnDestroy {
 
     /**
      * hash to hold existing connections
      */
     public connections: Connection[] = [];
 
+    public selectedConnection: Connection;
+
+    public viewMode = ViewMode;
+
+    public currentViewMode: ViewMode = ViewMode.LIST;
+
     /**
      * component gets destroyed
      */
     private destroy$: Subject<boolean>;
 
-    /**
-     * weakset where all connections will be added which are currently
-     * in edit mode
-     */
-    private editConnections: WeakSet<Connection>;
-
     constructor(
         private vsCodeConnector: VsCodeConnector
     ) {
-        this.editConnections = new WeakSet();
         this.destroy$ = new Subject();
     }
 
@@ -39,9 +42,7 @@ export class TableComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.vsCodeConnector.exec({action: Action.List})
             .pipe(takeUntil(this.destroy$))
-            .subscribe((data: Connection[]) => {
-                this.connections = data;
-            });
+            .subscribe((data: Connection[]) => this.connections = data);
     }
 
     /** component gets destroyed */
@@ -53,26 +54,22 @@ export class TableComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * check connection is in edit mode
-     */
-    public isEditMode(connection: Connection): boolean {
-        return this.editConnections.has(connection);
-    }
-
-    /**
      * stop edit mode
      */
-    public cancelEdit(connection: Connection) {
-        if (connection.isPhantom) {
-            this.connections = this.connections.filter((con) => con !== connection);
+    public cancelEdit() {
+        if (this.selectedConnection.isPhantom) {
+            // this.connections = this.connections.filter((con) => con !== connection);
         }
-        this.editConnections.delete(connection);
+        this.currentViewMode    = ViewMode.LIST;
+        this.selectedConnection = null;
     }
 
     /**
      * after we edit an connection it should be saved
      */
-    public saveConnection(event: TableRowSaveEvent) {
+    public saveConnection(connection: Connection) {
+        console.log(connection);
+        /*
         const request = event.old.isPhantom
             ? this.vsCodeConnector.exec({action: Action.Create, data: event.new})
             : this.vsCodeConnector.exec({action: Action.Update, data: event.new});
@@ -83,6 +80,7 @@ export class TableComponent implements OnInit, OnDestroy {
                 this.editConnections.delete(event.old);
                 this.connections = this.connections.map((connection) => connection.uid === event.old.uid ? response : connection);
             });
+            */
     }
 
     /**
@@ -92,7 +90,7 @@ export class TableComponent implements OnInit, OnDestroy {
         this.vsCodeConnector.exec({action: Action.Destroy, data: connection})
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
-                 this.connections = this.connections.filter((_) => _.uid !== connection.uid);
+                this.connections = this.connections.filter((_) => _.uid !== connection.uid);
             });
     }
 
@@ -100,7 +98,8 @@ export class TableComponent implements OnInit, OnDestroy {
      * sets an connection to edit mode
      */
     public editConnection(connection: Connection) {
-        this.editConnections.add(connection);
+        this.currentViewMode = ViewMode.EDIT;
+        this.selectedConnection = connection;
     }
 
     /** add to list and update */
@@ -113,7 +112,15 @@ export class TableComponent implements OnInit, OnDestroy {
                 host: "127.0.0.1",
                 port: 443,
                 secure: true,
-                allowUntrusted: false
+                allowUntrusted: false,
+                authorization: {
+                    strategy: AuthorizationStrategy.FORM,
+                    data: {
+                        username: null,
+                        password: null,
+                        domain: null
+                    }
+                }
             }
         };
         this.editConnection(phantomConnection);

@@ -1,16 +1,18 @@
 window.acquireVsCodeApi = () => ({
-    postMessage: (message) =>  {
-        switch (message.command) {
-            case 'Connection.Read':
-                window.postMessage(window.connectionListCommand);
+    postMessage: (request) =>  {
+        switch (request.body.action) {
+            case 'read':
+                window.postMessage({
+                    request,
+                    body: window.connectionListCommand,
+                    success: true
+                });
                 break;
         }
     }
-})
+});
 
-window.connectionListCommand = {
-    command: "Connection.Update",
-    data: [{
+window.connectionListCommand = [{
         label: 'Qlik Local',
         settings: {
             username : 'user',
@@ -26,7 +28,14 @@ window.connectionListCommand = {
             password : '',
             host     : '127.0.0.1',
             port     : '9077',
-            secure   : true
+            secure   : true,
+            authorization: {
+                strategy: 1,
+                data: {
+                    domain: "hannuschkar4fa4",
+                    username: "qlik",
+                    password: "qlik2020"
+                }
+            }
         }
-    }]
-}
+    }];

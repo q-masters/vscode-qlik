@@ -1,3 +1,4 @@
-export * from "./src/authorization.service";
-export * from "./src/form-strategy";
-export * from "./src/no-auth-strategy";
+export * from "./authorization/authorization.service";
+export * from "./authorization/strategies/form-authorization.strategy";
+export * from "./authorization/strategies/no-authorization.strategy";
+export * from "./authorization/strategies/authorization-header.strategy";

@@ -1,0 +1,72 @@
+@import "./icons";
+
+.form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-control {
+    display: flex;
+    margin-bottom: 2rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.form-control .description {
+    flex: 0 0 100%;
+    margin-bottom: .5rem;
+}
+
+.form-control span {
+    flex: 0 0 200px;
+}
+
+.form-control input:not([type="checkbox"]):not([type="radio"]),
+.form-control select {
+    flex: 1;
+    font-size: inherit;
+    line-height: inherit;
+    padding: .25rem .5rem;
+    max-width: 500px;
+}
+
+input {
+    border: var(--vscode-input-border);
+
+    &[type="text"] {
+        background: var(--vscode-settings-textInputBackground);
+        color: var(--vscode-settings-textInputForeground);
+    }
+}
+
+select {
+    background: var(--vscode-dropdown-background);
+    width: 100%;
+    line-height: 1.25rem;
+}
+
+.checkbox {
+
+    &::before {
+        cursor: pointer;
+        content: '';
+        display: block;
+        box-sizing: border-box;
+        padding: .2rem;
+        height: 1rem;
+        width: 1.1rem;
+
+        background-color: var(--vscode-settings-checkboxBackground);
+        color: var(--vscode-settings-checkboxForground);
+        border: var(--vscode-settings-checkboxBorder);
+    }
+
+    &.checked::before {
+        @include vscodeIcon(check);
+        font-size: .7rem;
+    }
+
+    input[type="checkbox"] {
+        display: none;
+    }
+}

@@ -1,0 +1,24 @@
+.btn {
+    padding: .5rem 1rem;
+    font-size: inherit;
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    outline: none;
+
+    &:hover {
+        background: var(--vscode-button-hoverBackground);
+    }
+}
+
+.btn-bar {
+    display: flex;
+    flex-direction: row-reverse;
+
+    .btn {
+        margin-right: .5rem;
+
+        &:first-child {
+            margin-right: 0;
+        }
+    }
+}

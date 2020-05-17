@@ -1,0 +1,66 @@
+<div [formGroup]="connectionForm" class="form">
+
+    <!-- label -->
+    <h3>Default Settings</h3>
+
+    <label class="form-control">
+        <span>Name</span>
+        <input type="text" formControlName="nameCtrl">
+    </label>
+
+
+    <h3>Connection Settings</h3>
+
+    <label class="form-control">
+        <span>Host Url</span>
+        <input type="text" formControlName="hostCtrl">
+    </label>
+
+    <label class="form-control">
+        <span>Port</span>
+        <input type="text" formControlName="portCtrl">
+    </label>
+
+    <label class="form-control">
+        <span>Connection is secure</span>
+        <input type="checkbox" formControlName="saveCtrl">
+    </label>
+
+    <label class="form-control">
+        <span>Allow untrusted certificate</span>
+        <input type="checkbox" formControlName="saveCtrl">
+    </label>
+
+    <p>Select your authorization strategy like certificate, form or some custom</p>
+    <label class="form-control">
+        <span>Authorization Strategy</span>
+        <select [formControl]="authorizationStrategyCtrl">
+            <option *ngFor="let strategy of authorizationStrategy | enumToArray" [value]="strategy.value"
+                [selected]="strategy.value === authorizationStrategyCtrl.value">
+                {{strategy.label}}
+            </option>
+        </select>
+    </label>
+    
+
+    <div [ngSwitch]="connection.settings.authorization.strategy">
+        <p *ngSwitchCase="authorizationStrategy.CUSTOM">
+            custom strategy
+        </p>
+        <p *ngSwitchCase="authorizationStrategy.CERTIFICATE">
+            CERTIFICATE
+        </p>
+
+        <!-- 
+            Form Authorization
+        -->
+        <vsqlik-connection--form-strategy *ngSwitchDefault [data]="connection.settings.authorization.data">
+        </vsqlik-connection--form-strategy>
+    </div>
+
+</div>
+
+<div class="footer btn-bar">
+    <button class="btn" type="button" (click)="doSave()">save</button>
+    <button class="btn" type="button" (click)="doCancel()">cancel</button>
+</div>

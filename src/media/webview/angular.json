@@ -28,6 +28,7 @@
                             "projects/connection/src/assets"
                         ],
                         "styles": [
+                            "assets/scss/_form.scss",
                             "projects/connection/src/styles.scss"
                         ],
                         "stylePreprocessorOptions": {
@@ -70,6 +71,11 @@
                         "browser": {
                             "scripts": [
                                 "bin/mock/vscode-api-mock.js"
+                            ],
+                            "styles": [
+                                "assets/scss/_form.scss",
+                                "projects/connection/src/styles.scss",
+                                "assets/scss/_browser.scss"
                             ]
                         }
                     }
