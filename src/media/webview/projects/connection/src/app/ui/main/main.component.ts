@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 import { VsCodeConnector } from "@vsqlik/core";
-import { Connection, AuthorizationStrategy, Action } from "../../data";
+import { Connection, AuthorizationStrategy, Action } from "../../data/api";
+import { ConnectionFormHelper } from "../../utils";
 
 enum ViewMode {
     LIST,
@@ -33,7 +34,8 @@ export class MainComponent implements OnInit, OnDestroy {
     private destroy$: Subject<boolean>;
 
     constructor(
-        private vsCodeConnector: VsCodeConnector
+        private vsCodeConnector: VsCodeConnector,
+        private connectionFormHelper: ConnectionFormHelper
     ) {
         this.destroy$ = new Subject();
     }
@@ -57,30 +59,14 @@ export class MainComponent implements OnInit, OnDestroy {
      * stop edit mode
      */
     public cancelEdit() {
-        if (this.selectedConnection.isPhantom) {
-            // this.connections = this.connections.filter((con) => con !== connection);
-        }
-        this.currentViewMode    = ViewMode.LIST;
-        this.selectedConnection = null;
+        this.currentViewMode = ViewMode.LIST;
+        this.connectionFormHelper.unload();
     }
 
     /**
      * after we edit an connection it should be saved
      */
-    public saveConnection(connection: Connection) {
-        console.log(connection);
-        /*
-        const request = event.old.isPhantom
-            ? this.vsCodeConnector.exec({action: Action.Create, data: event.new})
-            : this.vsCodeConnector.exec({action: Action.Update, data: event.new});
-
-        request
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((response) => {
-                this.editConnections.delete(event.old);
-                this.connections = this.connections.map((connection) => connection.uid === event.old.uid ? response : connection);
-            });
-            */
+    public connectionSaved() {
     }
 
     /**
@@ -98,8 +84,8 @@ export class MainComponent implements OnInit, OnDestroy {
      * sets an connection to edit mode
      */
     public editConnection(connection: Connection) {
+        this.connectionFormHelper.load(connection);
         this.currentViewMode = ViewMode.EDIT;
-        this.selectedConnection = connection;
     }
 
     /** add to list and update */
@@ -124,6 +110,5 @@ export class MainComponent implements OnInit, OnDestroy {
             }
         };
         this.editConnection(phantomConnection);
-        this.connections.push(phantomConnection);
     }
 }

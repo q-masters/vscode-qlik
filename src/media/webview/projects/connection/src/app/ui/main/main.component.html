@@ -38,7 +38,7 @@
     Section Template: Edit / Create Connection
 -->
 <ng-template #edit>
-    <vsqlik-connection--edit [connection]="selectedConnection" (cancel)="cancelEdit()" (save)="saveConnection($event)">
+    <vsqlik-connection--edit (cancel)="cancelEdit()" (save)="connectionSaved()">
     </vsqlik-connection--edit>
 </ng-template>
 

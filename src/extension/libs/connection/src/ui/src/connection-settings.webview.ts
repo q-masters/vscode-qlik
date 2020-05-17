@@ -55,6 +55,8 @@ export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
          */
         this.isSilent = true;
 
+        console.log(request);
+
         switch (request.body.action) {
             case Action.Create:  this.createConnection(request);  break;
             case Action.Update:  this.updateConnection(request);  break;
@@ -92,6 +94,7 @@ export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
      */
     private async updateConnection(request: WebviewRequest) {
         const setting = request.body.data;
+        console.log(setting);
         if (!this.isUniqe(setting)) {
             const error = `A connection with the name ${setting.label} allready exists`;
             window.showErrorMessage(error);
