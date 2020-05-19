@@ -28,7 +28,6 @@ export class VsCodeConnector {
 
     /** post message command to vscode */
     public exec<T>(action: VsCodeRequest<T>): Observable<T> {
-
         /**
          * create request container, this is lazy and will only sends
          * if subscribed to it

@@ -1,5 +1,5 @@
 import { EnigmaSession } from "extension/libs/enigma";
-import { AuthorizationService, FormAuthorizationStrategy } from "@lib/connection";
+import { AuthorizationService, FormAuthorizationStrategy } from "@lib/connection/authorization";
 
 /**
  * QixWorkspaceFolder represents the connection to the Qlik Server

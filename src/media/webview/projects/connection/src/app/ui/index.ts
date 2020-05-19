@@ -1,3 +1,4 @@
-export * from "./src/table";
-export * from "./src/table-row";
-export * from "./src/table-row-edit";
+export * from "./table/table-row";
+export * from "./table/table-row-edit";
+export * from "./edit/edit";
+export * from "./strategy/form";

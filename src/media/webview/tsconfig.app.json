@@ -4,5 +4,8 @@
  */
 {
 	"extends": "./tsconfig",
-	"include": ["./types/**/*.d.ts"]
+    "include": [
+        "./types/**/*.d.ts",
+        "../../types/*.d.ts"
+    ]
 }

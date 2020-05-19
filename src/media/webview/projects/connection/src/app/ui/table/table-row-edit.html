@@ -1,0 +1,23 @@
+<tr [formGroup]="connectionForm">
+    <td><input type="text" placeholder="{{connection.label}}" [formControlName]="'label'"></td>
+    <td><input type="text" placeholder="{{connection.host}}" [formControlName]="'host'"></td>
+    <td><input type="text" placeholder="{{connection.port}}" [formControlName]="'port'"></td>
+    <td>
+        <label class="checkbox" [ngClass]="isSecure ? 'checked' : ''">
+            <input type="checkbox" [formControlName]="'secure'">
+        </label>
+    </td>
+
+    <td>
+        <label class="checkobox" [ngClass]="allowUntrusted ? 'checked' : ''">
+            <input type="checkbox" [formControlName]="'untrusted'">
+        </label>
+    </td>
+
+    <td class="action-col">
+        <button type="button" class="btn btn-action" (click)="doSave()"><i
+                class="vsqlik-icon vsqlik-icon--save"></i></button>
+        <button type="button" class="btn btn-action" (click)="doCancel()"><i
+                class="vsqlik-icon vsqlik-icon--cancel"></i></button>
+    </td>
+</tr>

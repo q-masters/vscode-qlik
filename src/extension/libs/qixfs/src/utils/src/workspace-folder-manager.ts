@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ConnectionSetting } from "@lib/connection";
+import { Connection } from "@lib/connection";
 import { QixWorkspaceFolder } from "../../entry/src/workspace-folder";
 
 /**
@@ -60,11 +60,11 @@ export class WorkspaceFolderManager {
     private static addWorkspaceFolder(folder: vscode.WorkspaceFolder): void {
 
         const configuration = vscode.workspace.getConfiguration();
-        const connections   = configuration.get<ConnectionSetting[]>(`vsQlik.Connection`);
-        const connection    = connections?.find(setting => folder.name === setting.label);
+        const connections   = configuration.get<Connection[]>(`vsQlik.Connection`);
+        const connection    = connections?.find(connection => folder.name === connection.label);
 
         if (connection) {
-            const qixWSFolder = new QixWorkspaceFolder(connection.settings, folder.name);
+            const qixWSFolder = new QixWorkspaceFolder(connection, folder.name);
             /** set auth strategy here ? */
             this.workspaceFolders.set(folder, qixWSFolder);
         }
