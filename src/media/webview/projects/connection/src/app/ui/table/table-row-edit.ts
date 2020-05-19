@@ -36,11 +36,11 @@ export class TableRowEditComponent implements OnInit {
     public connectionForm: FormGroup;
 
     ngOnInit() {
-        this.isSecure = this.connection?.settings.secure ?? true;
+        this.isSecure = this.connection?.secure ?? true;
 
         const label  = this.formBuilder.control(this.connection?.label           || "");
-        const host   = this.formBuilder.control(this.connection?.settings.host   || "");
-        const port   = this.formBuilder.control(this.connection?.settings.port   || "");
+        const host   = this.formBuilder.control(this.connection?.host   || "");
+        const port   = this.formBuilder.control(this.connection?.port   || "");
         const secure = this.formBuilder.control(this.isSecure);
         const untrusted = this.formBuilder.control(this.allowUntrusted);
         secure.valueChanges.subscribe((value) => this.isSecure = value);
@@ -89,7 +89,6 @@ export class TableRowEditComponent implements OnInit {
     }
 
     private saveConnection(connection: Connection) {
-        delete connection.isPhantom;
         this.save.emit({new: connection, old: this.connection});
     }
 }

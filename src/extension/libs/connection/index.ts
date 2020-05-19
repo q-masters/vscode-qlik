@@ -1,3 +1,4 @@
-export * from "./src/connection.module";
-export * from "./src/data";
-export * from "./src/utils";
+export * from "./connection.module";
+export * from "./data";
+export * from "./utils";
+export * from "./api";

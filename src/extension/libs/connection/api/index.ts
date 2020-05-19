@@ -1,3 +1,11 @@
+import * as vscode from "vscode";
+import { Setting } from "@utils";
+
+export interface SessionCookie {
+    name: string;
+    value: (string | boolean);
+}
+
 export enum AuthorizationStrategy {
     CERTIFICATE,
     FORM,
@@ -15,23 +23,13 @@ export interface CertificateAuthorizationData {
     path: string;
 }
 
-/**
- * action commands which are send to vscode
- */
-export enum Action {
-    Create  = "create",
-    List    = "read",
-    Update  = "update",
-    Destroy = "destroy",
-    Error   = "error"
-}
+export interface Connection extends Setting {
 
-export interface Connection {
-    /**  */
+    /**
+     * label from connection this will used also as
+     * workspace folder name and is uid too
+     */
     label: string;
-
-    /** */
-    uid?: string;
 
     /**
      * host where to connect
@@ -65,6 +63,13 @@ export interface Connection {
         strategy: AuthorizationStrategy,
         data: FormAuthorizationData | CertificateAuthorizationData | unknown
     }
+}
 
-    phantom?: boolean;
+export interface ConnectionQuickPickItem extends vscode.QuickPickItem {
+    connection: Connection
+}
+
+export interface WorkspaceFolderScheme {
+    uri: vscode.Uri,
+    name: string
 }

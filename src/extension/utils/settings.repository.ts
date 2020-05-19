@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import ObjectHash from "object-hash";
 
 export interface Setting {
     uid: string;
@@ -26,7 +25,7 @@ export class SettingsRepository<T extends Setting> {
      */
     public async create(data: T): Promise<T> {
         const override = !!this.isArrayStorage;
-        const setting  = this.addId(data);
+        const setting  = {...data, uid: this.generateId()};
 
         !override
             ? this.data = [setting]
@@ -34,6 +33,13 @@ export class SettingsRepository<T extends Setting> {
 
         await this.writeSettings();
         return setting;
+    }
+
+    /**
+     * returns true if settings exists
+     */
+    public exists(id: string): boolean {
+        return this.data.some((setting) => setting.uid === id);
     }
 
     /**
@@ -46,11 +52,9 @@ export class SettingsRepository<T extends Setting> {
     /**
      * update setting in storage
      */
-    public async update(source: T): Promise<T> {
-        const updated: T = this.addId(source);
-        this.data = this.data.map<T>((setting: T) => setting.uid === source.uid ? updated: setting);
+    public async update(source: T): Promise<void> {
+        this.data = this.data.map<T>((setting: T) => setting.uid === source.uid ? source : setting);
         await this.writeSettings();
-        return updated;
     }
 
     /**
@@ -69,6 +73,40 @@ export class SettingsRepository<T extends Setting> {
     }
 
     /**
+     * generates an id which is used to identify this setting
+     * again
+     */
+    public generateId(): string {
+        const chars = [
+            97, 122,  // a-z
+            65,  90,  // A-Z
+            48,  57
+        ]; // 0-9
+
+        let key = '';
+
+        for (let i = 0, ln = 16; i < ln; i++) {
+            /** get starting index for chars 0, 2 or 4*/
+            const startIndex = Math.floor(Math.random() * 3) * 2;
+            /** slice range from startIndex + 2 Elements and get char code range */
+            const range = chars.slice(startIndex, startIndex + 2);
+            /** get delta from ascii code range */
+            const delta = range[1] - range[0];
+            /** create dezimal charCode */
+            const charCode = Math.round(Math.random() * delta) + range[0];
+
+            /** generate char code and append to current key */
+            key += String.fromCharCode(charCode);
+
+            if (i % 4 === 0 && i > 0) {
+                key += "-";
+            }
+        }
+
+        return key;
+    }
+
+    /**
      * load settings from vscode
      */
     private loadData() {
@@ -77,7 +115,8 @@ export class SettingsRepository<T extends Setting> {
 
         if (data) {
             const settings = !Array.isArray(data) ? (this.isArrayStorage = false, [data]) : data;
-            this.data = settings.map((setting: T) => this.addId(setting));
+            /** write an id to current setting, has to be removed before save */
+            this.data = settings.map((setting: T) => ({ ...setting, uid: this.generateId()}));
         } else {
             throw new Error(`Could not find Settings for ${this.section}`);
         }
@@ -96,11 +135,11 @@ export class SettingsRepository<T extends Setting> {
      * adds an id to current settings object
      */
     private addId(setting: T): T {
-        return {...setting, ...{uid: ObjectHash(setting)}};
+        return setting;
     }
 
     /**
-     * removes settings id before we write
+     * removes settings uid before we write
      */
     private cleanUpSetting(setting: T): T {
         const cloned = {...setting};

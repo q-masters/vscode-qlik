@@ -1,4 +1,4 @@
-<div [formGroup]="connectionForm" class="form" *ngIf="connection">
+<div [formGroup]="connectionForm" class="form">
 
     <!-- label -->
     <h3>Default Settings</h3>
@@ -23,12 +23,12 @@
 
     <label class="form-control">
         <span>Connection is secure</span>
-        <input type="checkbox" formControlName="saveCtrl">
+        <input type="checkbox" formControlName="secureCtrl">
     </label>
 
     <label class="form-control">
         <span>Allow untrusted certificate</span>
-        <input type="checkbox" formControlName="secureCtrl">
+        <input type="checkbox" formControlName="untrustedCertCtrl">
     </label>
 
     <p>Select your authorization strategy like certificate, form or some custom</p>
@@ -43,7 +43,7 @@
     </label>
     
 
-    <div [ngSwitch]="connection.settings.authorization.strategy">
+    <div [ngSwitch]="authorizationStrategyCtrl.value">
 
         <p *ngSwitchCase="authorizationStrategy.CUSTOM">
             custom strategy

@@ -17,8 +17,9 @@
       "@lib/qixfs": ["extension/libs/qixfs"],
       "@lib/settings" : ["extension/libs/settings"],
       "@lib/connection" : ["extension/libs/connection"],
-      "@lib/connection/*" : ["extension/libs/connection/src/utils/src/*"],
+      "@lib/connection/*" : ["extension/libs/connection/utils/*"],
       "@lib/stepper": ["extension/libs/stepper"],
+      "@shared/*": ["shared/*"]
     }
   },
   "exclude": [

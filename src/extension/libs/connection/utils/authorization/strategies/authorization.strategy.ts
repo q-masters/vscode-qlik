@@ -1,12 +1,11 @@
-import { SessionCookie } from "../../../api";
-import { ConnectionSetting } from "../../../data";
+import { SessionCookie, Connection } from "../../../api";
 
 export abstract class AuthorizationStrategy {
 
     private authTitle = "";
 
     constructor(
-        protected connectionSetting: ConnectionSetting
+        protected connection: Connection
     ) { }
 
     public set title(title: string) {

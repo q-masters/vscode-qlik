@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormBuilder, FormControl } from "@angular/forms";
 import { ConnectionFormHelper, BeforeSaveHook } from "../../utils/connection-form.helper";
-import { Connection, AuthorizationStrategy, ConnectionSettings } from "../../data/api";
+import { Connection, AuthorizationStrategy } from "../../data/api";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 
@@ -39,11 +39,14 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+
+        this.initFormControls();
+
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
             .subscribe((connection: Connection) => {
-                this.strategyData = connection.settings.authorization.data as FormStrategyData;
-                this.initFormControls();
+                this.strategyData = connection.authorization.data as FormStrategyData;
+                this.reloadData();
             });
 
         this.connectionFormHelper.registerBeforeSave(this.beforeSaveHook);
@@ -62,14 +65,14 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
      * apply data to connection data
      */
     private applyPatch(connection: Connection): Connection {
-        const settingsPatch = this.createPatch({...connection.settings});
+        const settingsPatch = this.createPatch({...connection});
         return Object.assign({}, connection, settingsPatch);
     }
 
     /**
      * create patch for authorization settings
      */
-    private createPatch(settings: ConnectionSettings): ConnectionSettings {
+    private createPatch(settings: Connection): Connection {
         return Object.assign(settings, {
             authorization: {
                 strategy: AuthorizationStrategy.FORM,
@@ -86,8 +89,17 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
      * initialize required form controls
      */
     private initFormControls() {
-        this.usernameCtrl = this.formbuilder.control(this.strategyData.username, {updateOn: "blur"});
-        this.passwordCtrl = this.formbuilder.control(this.strategyData.password, {updateOn: "blur"});
-        this.domainCtrl   = this.formbuilder.control(this.strategyData.domain,   {updateOn: "blur"});
+        this.usernameCtrl = this.formbuilder.control("", {updateOn: "blur"});
+        this.passwordCtrl = this.formbuilder.control("", {updateOn: "blur"});
+        this.domainCtrl   = this.formbuilder.control("",   {updateOn: "blur"});
+    }
+
+    /**
+     * update form controls
+     */
+    private reloadData() {
+        this.usernameCtrl.setValue(this.strategyData.username, {emitEvent: false});
+        this.passwordCtrl.setValue(this.strategyData.password, {emitEvent: false});
+        this.domainCtrl.setValue(this.strategyData.domain, {emitEvent: false});
     }
 }

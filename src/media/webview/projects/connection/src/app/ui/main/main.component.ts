@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
-import { VsCodeConnector } from "@vsqlik/core";
-import { Connection, AuthorizationStrategy, Action } from "../../data/api";
+import { Connection } from "../../data/api";
 import { ConnectionFormHelper } from "../../utils";
+import { ConnectionRepository } from "../../utils/connection-repository";
 
 enum ViewMode {
     LIST,
@@ -34,7 +34,7 @@ export class MainComponent implements OnInit, OnDestroy {
     private destroy$: Subject<boolean>;
 
     constructor(
-        private vsCodeConnector: VsCodeConnector,
+        private connectionRepository: ConnectionRepository,
         private connectionFormHelper: ConnectionFormHelper
     ) {
         this.destroy$ = new Subject();
@@ -42,9 +42,15 @@ export class MainComponent implements OnInit, OnDestroy {
 
     /** component gets initialized */
     ngOnInit() {
-        this.vsCodeConnector.exec({action: Action.List})
+
+        this.connectionRepository.connections
             .pipe(takeUntil(this.destroy$))
-            .subscribe((data: Connection[]) => this.connections = data);
+            .subscribe((data) => {
+                this.currentViewMode = ViewMode.LIST;
+                this.connections = data;
+            });
+
+        this.connectionRepository.read();
     }
 
     /** component gets destroyed */
@@ -66,18 +72,17 @@ export class MainComponent implements OnInit, OnDestroy {
     /**
      * after we edit an connection it should be saved
      */
-    public connectionSaved() {
+    public onSave(connection: Connection) {
+        !connection.uid
+            ? this.connectionRepository.add(connection)
+            : this.connectionRepository.update(connection);
     }
 
     /**
      * delete an existing connection
      */
     public deleteConnection(connection: Connection) {
-        this.vsCodeConnector.exec({action: Action.Destroy, data: connection})
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(() => {
-                this.connections = this.connections.filter((_) => _.uid !== connection.uid);
-            });
+        this.connectionRepository.delete(connection);
     }
 
     /**
@@ -90,25 +95,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
     /** add to list and update */
     public createConnection() {
-        const phantomConnection: Connection = {
-            label: "New Connection",
-            isPhantom: true,
-            uid: Math.random().toString(32),
-            settings: {
-                host: "127.0.0.1",
-                port: 443,
-                secure: true,
-                allowUntrusted: false,
-                authorization: {
-                    strategy: AuthorizationStrategy.FORM,
-                    data: {
-                        username: null,
-                        password: null,
-                        domain: null
-                    }
-                }
-            }
-        };
-        this.editConnection(phantomConnection);
+        const connection = this.connectionFormHelper.createEmptyConnection();
+        this.editConnection(connection);
     }
 }

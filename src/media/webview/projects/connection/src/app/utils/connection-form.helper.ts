@@ -1,19 +1,19 @@
 import { Injectable } from "@angular/core";
 import { map, take } from "rxjs/operators";
-import { Observable, ReplaySubject } from "rxjs";
-import { Connection } from "../data/api";
+import { Observable, BehaviorSubject } from "rxjs";
+import { Connection, AuthorizationStrategy } from "../data/api";
 
 export declare type BeforeSaveHook = (connection: Connection) => Connection;
 
 @Injectable({providedIn: "root"})
 export class ConnectionFormHelper {
 
-    private connection$: ReplaySubject<Connection>;
+    private connection$: BehaviorSubject<Connection>;
 
     private hooks: BeforeSaveHook[] = [];
 
     public constructor() {
-        this.connection$ = new ReplaySubject();
+        this.connection$ = new BehaviorSubject(this.createEmptyConnection());
     }
 
     public get connection(): Observable<Connection> {
@@ -21,11 +21,13 @@ export class ConnectionFormHelper {
     }
 
     public load(connection: Connection) {
-        this.connection$.next(connection);
+        /** ensure nothing is missing in our data model */
+        const loaded = Object.assign({}, this.createEmptyConnection(), connection);
+        this.connection$.next(loaded);
     }
 
     public unload() {
-        this.connection$.next(null);
+        this.connection$.next(this.createEmptyConnection());
     }
 
     /**
@@ -57,5 +59,23 @@ export class ConnectionFormHelper {
                 return connection;
             })
        );
+    }
+
+    /**
+     * create only a empty connection
+     */
+    public createEmptyConnection(): Connection {
+        return {
+            label: "",
+            host: "",
+            port: null,
+            secure: true,
+            allowUntrusted: false,
+            authorization: {
+                strategy: AuthorizationStrategy.FORM,
+                data: {
+                }
+            }
+        }
     }
 }

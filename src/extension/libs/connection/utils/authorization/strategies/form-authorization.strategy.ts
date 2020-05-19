@@ -45,7 +45,7 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
     private initializeLoginProcess(): Promise<string> {
 
         const options = {
-            uri: `http://${this.connectionSetting.host as string}`,
+            uri: `http://${this.connection.host as string}`,
             method: "GET"
         };
 
@@ -124,9 +124,9 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
      */
     private async resolveLoginCredentials(): Promise<Credentials> {
 
-        const domainStep   = new InputStep(`Domain`, this.connectionSetting.host);
-        const userStep     = new InputStep(`UserDirectory`, this.connectionSetting.host);
-        const passwordStep = new InputStep(`Password`, this.connectionSetting.host, true);
+        const domainStep   = new InputStep(`Domain`, this.connection.host);
+        const userStep     = new InputStep(`UserDirectory`, this.connection.host);
+        const passwordStep = new InputStep(`Password`, this.connection.host, true);
 
         const stepper  = new Stepper(this.title);
         stepper.addStep(domainStep);
