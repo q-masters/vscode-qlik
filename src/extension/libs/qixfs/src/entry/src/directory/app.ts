@@ -7,7 +7,7 @@ export class AppDirectory extends QixFsDirectoryAdapter {
     readDirectory(): [string, vscode.FileType][] {
         return [
             ['script', vscode.FileType.Directory],
-            /* ['variables', vscode.FileType.Directory] */
+            ['variables', vscode.FileType.Directory]
         ];
     }
 
