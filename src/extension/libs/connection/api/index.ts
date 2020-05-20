@@ -6,7 +6,7 @@ export interface SessionCookie {
     value: (string | boolean);
 }
 
-export enum AuthorizationStrategy {
+export enum AuthStrategy {
     CERTIFICATE,
     FORM,
     CUSTOM
@@ -60,7 +60,7 @@ export interface Connection extends Setting {
      * authorization
      */
     authorization: {
-        strategy: AuthorizationStrategy,
+        strategy: AuthStrategy,
         data: FormAuthorizationData | CertificateAuthorizationData | unknown
     }
 }

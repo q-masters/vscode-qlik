@@ -1,8 +1,9 @@
 import request from "request";
 import { Response } from "request";
-import { SessionCookie  } from "../../../api";
+import { SessionCookie, FormAuthorizationData  } from "../../../api";
 import { AuthorizationStrategy } from "./authorization.strategy";
-import { Stepper, InputStep } from "@lib/stepper";
+import { Stepper, InputStep, IStep } from "@lib/stepper";
+import { ResolvedStep } from "extension/libs/stepper/resolved-step";
 
 interface Credentials {
     domain: string;
@@ -12,7 +13,7 @@ interface Credentials {
 /**
  * login to qlik with form strategy
  */
-export class FormAuthorizationStrategy extends AuthorizationStrategy {
+export default class FormAuthorizationStrategy extends AuthorizationStrategy {
 
     private cookies: SessionCookie[];
 
@@ -124,24 +125,31 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
      */
     private async resolveLoginCredentials(): Promise<Credentials> {
 
-        const domainStep   = new InputStep(`Domain`, this.connection.host);
-        const userStep     = new InputStep(`UserDirectory`, this.connection.host);
-        const passwordStep = new InputStep(`Password`, this.connection.host, true);
+        const authData = this.connection.authorization.data as FormAuthorizationData;
 
         const stepper  = new Stepper(this.title);
-        stepper.addStep(domainStep);
-        stepper.addStep(userStep);
-        stepper.addStep(passwordStep);
+        stepper.addStep(this.createStep(authData.domain));
+        stepper.addStep(this.createStep(authData.username));
+        stepper.addStep(this.createStep(authData.password));
 
         const [domain, username, password] = await stepper.run<string>();
 
-        if (!domain || !password) {
+        if (!domain || !username || !password) {
             throw new Error("could not resolve credentials");
         }
+
+        console.log(domain, username, password);
 
         return {
             domain: `${domain}\\${username as string}`,
             password
         };
+    }
+
+    private createStep(value: string | undefined): IStep {
+        if (!value || value.trim() === "") {
+            return new InputStep("");
+        }
+        return new ResolvedStep(value);
     }
 }

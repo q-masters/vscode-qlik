@@ -1,4 +1,5 @@
-import { AuthorizationStrategy } from "./strategies/authorization.strategy";
+import { AuthStrategy, Connection } from "../../api";
+import { AuthorizationStrategy, AuthorizationStrategyConstructor } from "./strategies/authorization.strategy";
 
 declare type IteratorResult = [AuthorizationStrategy, (data: any) => any];
 
@@ -38,14 +39,31 @@ export class AuthorizationService {
     /**
      * run authorization strategy in queue
      */
-    public async authorize(strategy: AuthorizationStrategy): Promise<any> {
+    public async authorize(connection: Connection): Promise<any> {
+
+        const Strategy = await this.resolveStrategy(connection.authorization.strategy);
+        const instance = new Strategy(connection);
+
         return new Promise((resolve) => {
-            this.authorizationQueueItems.set(strategy, (data: any) => resolve(data));
+            this.authorizationQueueItems.set(instance, (data: any) => resolve(data));
 
             if (!this.authorizationProcessIsRunning) {
                 this.runAuthorization();
             }
         });
+    }
+
+    private async resolveStrategy(strategy: AuthStrategy): Promise<AuthorizationStrategyConstructor> {
+        let resolvedStrat: unknown;
+        switch (strategy) {
+            case AuthStrategy.CERTIFICATE: {
+                break;
+            }
+            default: {
+                resolvedStrat = await (await import("./strategies/form-authorization.strategy")).default;
+            }
+        }
+        return resolvedStrat as AuthorizationStrategyConstructor;
     }
 
     /**

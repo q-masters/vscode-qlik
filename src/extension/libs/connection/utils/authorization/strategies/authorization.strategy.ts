@@ -1,5 +1,9 @@
 import { SessionCookie, Connection } from "../../../api";
 
+export interface AuthorizationStrategyConstructor {
+    new(connection: Connection): AuthorizationStrategy;
+}
+
 export abstract class AuthorizationStrategy {
 
     private authTitle = "";
