@@ -7,7 +7,6 @@ import { takeUntil } from "rxjs/operators";
 
 export interface FormStrategyData {
     domain: string;
-    username: string | undefined;
     password: string | undefined;
 }
 
@@ -17,8 +16,6 @@ export interface FormStrategyData {
     styleUrls: ["./form.scss"]
 })
 export class FormStrategyComponent implements OnInit, OnDestroy {
-
-    public usernameCtrl: FormControl;
 
     public domainCtrl: FormControl;
 
@@ -39,9 +36,7 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-
         this.initFormControls();
-
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
             .subscribe((connection: Connection) => {
@@ -73,12 +68,12 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
      * create patch for authorization settings
      */
     private createPatch(settings: Connection): Connection {
+
         return Object.assign(settings, {
             authorization: {
                 strategy: AuthorizationStrategy.FORM,
                 data: {
                     domain: this.domainCtrl.value,
-                    username: this.usernameCtrl.value,
                     password: this.passwordCtrl.value,
                 }
             }
@@ -89,17 +84,15 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
      * initialize required form controls
      */
     private initFormControls() {
-        this.usernameCtrl = this.formbuilder.control("", {updateOn: "blur"});
-        this.passwordCtrl = this.formbuilder.control("", {updateOn: "blur"});
         this.domainCtrl   = this.formbuilder.control("",   {updateOn: "blur"});
+        this.passwordCtrl = this.formbuilder.control("", {updateOn: "blur"});
     }
 
     /**
      * update form controls
      */
     private reloadData() {
-        this.usernameCtrl.setValue(this.strategyData.username, {emitEvent: false});
-        this.passwordCtrl.setValue(this.strategyData.password, {emitEvent: false});
         this.domainCtrl.setValue(this.strategyData.domain, {emitEvent: false});
+        this.passwordCtrl.setValue(this.strategyData.password, {emitEvent: false});
     }
 }

@@ -1,9 +1,9 @@
 import request from "request";
 import { Response } from "request";
-import { SessionCookie, FormAuthorizationData  } from "../../../api";
-import { AuthorizationStrategy } from "./authorization.strategy";
-import { Stepper, InputStep, IStep } from "@lib/stepper";
-import { ResolvedStep } from "extension/libs/stepper/resolved-step";
+import { Stepper, InputStep, IStep, ResolvedStep } from "@lib/stepper";
+import { FormAuthorizationData, Cookie  } from "../../../api";
+import { ConnectionHelper } from "../../connection.helper";
+import { AuthorizationStrategy, AuthorizationResult } from "./authorization.strategy";
 
 interface Credentials {
     domain: string;
@@ -15,25 +15,27 @@ interface Credentials {
  */
 export default class FormAuthorizationStrategy extends AuthorizationStrategy {
 
-    private cookies: SessionCookie[];
-
-    public async run(): Promise<boolean>
+    public async run(): Promise<AuthorizationResult>
     {
+        const response: AuthorizationResult = {
+            success: false,
+            cookies: []
+        };
+
         try {
             const loginCredentials = await this.resolveLoginCredentials();
             const formUri          = await this.initializeLoginProcess();
             const redirectUri      = await this.submitForm(formUri, loginCredentials.domain, loginCredentials.password);
-            await this.finalizeLoginProcess(redirectUri);
-        } catch (error) {
-            /** @todo log error not console.log */
-            console.error(error);
-            return false;
-        }
-        return true;
-    }
+            const cookies          = await this.finalizeLoginProcess(redirectUri);
 
-    public get sessionCookies(): SessionCookie[] {
-        return this.cookies;
+            response.success = true;
+            response.cookies = cookies;
+
+        } catch (error) {
+            response.success = false;
+        }
+
+        return response;
     }
 
     /**
@@ -46,7 +48,7 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
     private initializeLoginProcess(): Promise<string> {
 
         const options = {
-            uri: `http://${this.connection.host as string}`,
+            uri: ConnectionHelper.buildUrl(this.connection),
             method: "GET"
         };
 
@@ -73,6 +75,7 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
         return new Promise((resolve, reject) => {
             const options = { body, headers, method: "POST", uri };
             request(options, (error, response: Response) => {
+                console.dir(response);
                 if (error) {
                     reject(error);
                     return;
@@ -92,7 +95,7 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
      * finalize login process, since we know now the redirect uri which is called
      * after login is working
      */
-    private finalizeLoginProcess(uri: string): Promise<SessionCookie[]> {
+    private finalizeLoginProcess(uri: string): Promise<Cookie[]> {
         return new Promise((resolve, reject) => {
             const options = { method: "GET", uri };
             request(options, (error, response: Response) => {
@@ -101,12 +104,13 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
                     reject(error);
                     return;
                 }
+
                 /**
                  * @example respsonse
                  * set-cookie:Array[1]
                  *   0:"X-Qlik-Session-HTTP=eccfad38-8851-4064-85fd-79c1d0a6bc84; Path=/; HttpOnly"
                  */
-                this.cookies = response.headers['set-cookie']
+                const cookies: Cookie[] = response.headers['set-cookie']
                     /** remove Path and HttpOnly from cookie we dont care */
                     .map((cookie) => cookie.split(";")[0])
                     /** split every cookie by = and map to key, value pair */
@@ -115,7 +119,7 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
                         return {name, value};
                     });
 
-                resolve([]);
+                resolve(cookies);
             });
         });
     }
@@ -128,27 +132,21 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
         const authData = this.connection.authorization.data as FormAuthorizationData;
 
         const stepper  = new Stepper(this.title);
-        stepper.addStep(this.createStep(authData.domain));
-        stepper.addStep(this.createStep(authData.username));
-        stepper.addStep(this.createStep(authData.password));
+        stepper.addStep(this.createStep(authData.domain, "domain\\username"));
+        stepper.addStep(this.createStep(authData.password, "password", true));
 
-        const [domain, username, password] = await stepper.run<string>();
+        const [domain, password] = await stepper.run<string>();
 
-        if (!domain || !username || !password) {
+        if (!domain || !password) {
             throw new Error("could not resolve credentials");
         }
 
-        console.log(domain, username, password);
-
-        return {
-            domain: `${domain}\\${username as string}`,
-            password
-        };
+        return { domain, password };
     }
 
-    private createStep(value: string | undefined): IStep {
+    private createStep(value: string | undefined, placeholder = "", password = false): IStep {
         if (!value || value.trim() === "") {
-            return new InputStep("");
+            return new InputStep(placeholder, this.connection.host, password);
         }
         return new ResolvedStep(value);
     }

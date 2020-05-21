@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { map, take } from "rxjs/operators";
 import { Observable, BehaviorSubject } from "rxjs";
-import { Connection, AuthorizationStrategy } from "../data/api";
+import { Connection, AuthorizationStrategy, ObjectRenderStrategy } from "../data/api";
 
 export declare type BeforeSaveHook = (connection: Connection) => Connection;
 
@@ -66,11 +66,12 @@ export class ConnectionFormHelper {
      */
     public createEmptyConnection(): Connection {
         return {
+            allowUntrusted: false,
+            objectRenderer: ObjectRenderStrategy.YAML,
             label: "",
             host: "",
             port: null,
             secure: true,
-            allowUntrusted: false,
             authorization: {
                 strategy: AuthorizationStrategy.FORM,
                 data: {

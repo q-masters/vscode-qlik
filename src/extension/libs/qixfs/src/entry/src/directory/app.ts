@@ -28,4 +28,9 @@ export class AppDirectory extends QixFsDirectoryAdapter {
         const connection = await this.getConnection(uri);
         return connection.isApp(app);
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
+        throw vscode.FileSystemError.NoPermissions();
+    }
 }

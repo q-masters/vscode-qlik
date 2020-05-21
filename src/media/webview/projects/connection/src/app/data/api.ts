@@ -4,9 +4,17 @@ export enum AuthorizationStrategy {
     CUSTOM
 }
 
+/**
+ * in which format objects should rendered
+ * for example variables
+ */
+export enum ObjectRenderStrategy {
+    JSON,
+    YAML
+}
+
 export interface FormAuthorizationData {
     domain?: string;
-    username?: string;
     password?: string;
 }
 
@@ -29,6 +37,11 @@ export enum Action {
 export interface Connection {
     /**  */
     label: string;
+
+    /**
+     * how should objects rendered (yaml, json, ...)
+     */
+    objectRenderer: ObjectRenderStrategy,
 
     /** */
     uid?: string;

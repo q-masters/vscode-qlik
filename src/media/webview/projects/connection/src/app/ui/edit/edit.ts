@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, EventEmitter, Output } from "@angular/cor
 import { FormBuilder, FormGroup, FormControl } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
-import { AuthorizationStrategy, Connection } from "../../data/api";
-import { ConnectionFormHelper, BeforeSaveHook } from "../../utils";
+import { AuthorizationStrategy, Connection, ObjectRenderStrategy } from "../../data/api";
+import { ConnectionFormHelper } from "../../utils";
 
 @Component({
     selector: "vsqlik-connection--edit",
@@ -27,6 +27,17 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      */
     public authorizationStrategyCtrl: FormControl;
 
+    /**
+     * enum data objects (like variables) should rendererd in this format
+     * (yaml, json, ...)
+     */
+    public objectRenderStrategy = ObjectRenderStrategy;
+
+    /**
+     * form control for render strategy
+     */
+    public objectRenderStrategyCtrl: FormControl;
+
     @Output()
     public cancel: EventEmitter<void>;
 
@@ -43,11 +54,6 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      */
     private destroy$: Subject<boolean>;
 
-    /**
-     * hook before data will be saved
-     */
-    private beforeSaveHook: BeforeSaveHook;
-
     constructor(
         private formbuilder: FormBuilder,
         private connectionFormHelper: ConnectionFormHelper,
@@ -55,16 +61,15 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         this.destroy$ = new Subject();
         this.cancel   = new EventEmitter();
         this.save     = new EventEmitter();
-
-        this.beforeSaveHook = (connection) => this.applyPatch(connection);
     }
 
     ngOnInit(): void {
 
         this.initConnectionForm();
         this.initAuthorizationStrategyCtrl();
+        this.initObjectRenderStrategyCtrl();
 
-        this.connectionFormHelper.registerBeforeSave(this.beforeSaveHook);
+        this.connectionFormHelper.registerBeforeSave(this.beforeSaveHook.bind(this));
 
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
@@ -82,8 +87,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
         this.destroy$ = null;
 
-        this.connectionFormHelper.unregisterBeforeSave(this.beforeSaveHook);
-        this.beforeSaveHook = null;
+        this.connectionFormHelper.unregisterBeforeSave(this.beforeSaveHook.bind(this));
     }
 
     /**
@@ -116,26 +120,6 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * update form controls if a new connection model has been loaded
-     */
-    private reloadFormData() {
-        /** update base connection */
-        this.connectionForm.patchValue({
-            nameCtrl: this.connection.label,
-            hostCtrl: this.connection.host,
-            portCtrl: this.connection.port,
-            secureCtrl: this.connection.secure,
-            untrustedCertCtrl: this.connection.allowUntrusted
-        }, {onlySelf: true, emitEvent: false});
-
-        /** update strategy */
-        this.authorizationStrategyCtrl.setValue(
-            this.connection.authorization.strategy,
-            {emitEvent: false}
-        );
-    }
-
-    /**
      * initialize authorization strategy form
      */
     private initAuthorizationStrategyCtrl() {
@@ -150,10 +134,41 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * write data do connection which should be saved
+     * initialize object render strategy control
      */
-    private applyPatch(connection: Connection): Connection {
+    private initObjectRenderStrategyCtrl() {
+        this.objectRenderStrategyCtrl = this.formbuilder.control(ObjectRenderStrategy.YAML);
 
+        /** register on value changes to update strategy */
+        this.objectRenderStrategyCtrl.valueChanges
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((value) => this.connection.objectRenderer = value);
+    }
+
+    /**
+     * update form controls if a new connection model has been loaded
+     */
+    private reloadFormData() {
+        /** update base connection */
+        this.connectionForm.patchValue({
+            nameCtrl: this.connection.label,
+            hostCtrl: this.connection.host,
+            portCtrl: this.connection.port,
+            secureCtrl: this.connection.secure,
+            untrustedCertCtrl: this.connection.allowUntrusted
+        }, {onlySelf: true, emitEvent: false});
+
+        /** update authorization strategy */
+        this.authorizationStrategyCtrl.setValue(this.connection.authorization.strategy, {emitEvent: false});
+
+        /** update object renderer strategy */
+        this.objectRenderStrategyCtrl.setValue(this.connection.objectRenderer, {emitEvent: false});
+    }
+
+    /**
+     * form helper want to save the data so we can write them
+     */
+    private beforeSaveHook(connection: Connection): Connection {
         return Object.assign({}, connection, {
             label: this.connectionForm.controls.nameCtrl.value,
             ...{

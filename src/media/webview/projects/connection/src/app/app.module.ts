@@ -4,7 +4,7 @@ import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { VsQlikCoreModule } from "@vsqlik/core";
 import { TableRowComponent, TableRowEditComponent, FormStrategyComponent, ConnectionEditComponent } from "./ui";
-import { EnumToArrayPipe } from "./ui/utils/enum-to-array";
+import { EnumToOptionPipe } from "./ui/utils/enum-to-array";
 import { MainComponent } from "./ui/main/main.component";
 
 @NgModule({
@@ -14,7 +14,7 @@ import { MainComponent } from "./ui/main/main.component";
         FormStrategyComponent,
         TableRowComponent,
         TableRowEditComponent,
-        EnumToArrayPipe
+        EnumToOptionPipe
     ],
     imports: [
         CommonModule,

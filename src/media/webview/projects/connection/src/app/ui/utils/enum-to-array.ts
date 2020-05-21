@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from "@angular/core";
 
-@Pipe({name: "enumToArray"})
-export class EnumToArrayPipe implements PipeTransform {
+@Pipe({name: "enumToOption"})
+export class EnumToOptionPipe implements PipeTransform {
 
     transform<T>(data: T): Array<{label: string, value: number}> {
 

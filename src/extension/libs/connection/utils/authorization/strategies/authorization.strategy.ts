@@ -1,7 +1,13 @@
-import { SessionCookie, Connection } from "../../../api";
+import { Cookie, Connection } from "../../../api";
 
 export interface AuthorizationStrategyConstructor {
     new(connection: Connection): AuthorizationStrategy;
+}
+
+export interface AuthorizationResult {
+    success: boolean;
+
+    cookies: Cookie[],
 }
 
 export abstract class AuthorizationStrategy {
@@ -20,7 +26,5 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    public abstract run(): Promise<boolean>;
-
-    readonly sessionCookies: SessionCookie[];
+    public abstract run(): Promise<AuthorizationResult>;
 }

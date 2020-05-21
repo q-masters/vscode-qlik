@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { Setting } from "@utils";
 
-export interface SessionCookie {
+export interface Cookie {
     name: string;
     value: (string | boolean);
 }
@@ -63,6 +63,16 @@ export interface Connection extends Setting {
         strategy: AuthStrategy,
         data: FormAuthorizationData | CertificateAuthorizationData | unknown
     }
+
+    /**
+     * njom njom
+     */
+    cookies: Cookie[];
+
+    /**
+     *
+     */
+    authorized: boolean;
 }
 
 export interface ConnectionQuickPickItem extends vscode.QuickPickItem {

@@ -2,18 +2,20 @@
 
 <div class="form">
 
-    <label class="form-control">
-        <span>Domain</span>
-        <input type="text" [formControl]="domainCtrl">
-    </label> 
+    <div class="form-control">
+        <label class="label">Username</label>
+        <div class="control">
+            <input type="text" [formControl]="domainCtrl" placeholder="domain\user">
+        </div>
+    </div> 
 
-    <label class="form-control">
-        <span>Username</span>
-        <input type="text" [formControl]="usernameCtrl">
-    </label> 
-
-    <label class="form-control">
-        <span>Password</span>
-        <input type="text" [formControl]="passwordCtrl">
-    </label> 
+    <div class="form-control">
+        <label class="label">Password</label>
+        <div class="control">
+            <input type="password" [formControl]="passwordCtrl">
+            <small>
+                Warning: password will saved plain to settings file in vscode and can be seen by everyone.
+            </small>
+        </div>
+    </div> 
 </div>

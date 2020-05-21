@@ -1,9 +1,12 @@
-import { AuthorizationStrategy } from "./authorization.strategy";
+import { AuthorizationStrategy, AuthorizationResult } from "./authorization.strategy";
 
 export class NoAuthStrategy extends AuthorizationStrategy {
 
-    run(): Promise<boolean> {
-        return Promise.resolve(true);
+    run(): Promise<AuthorizationResult> {
+        return Promise.resolve({
+            success: true,
+            cookies: []
+        });
     }
 
     sessionCookies = [];

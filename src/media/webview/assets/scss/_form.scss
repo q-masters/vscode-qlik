@@ -10,15 +10,27 @@
     margin-bottom: 2rem;
     align-items: center;
     flex-wrap: wrap;
+
+    .control {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        input + small,
+        select + small {
+            margin: 1rem 0 0;
+        }
+    }
+
+    .label {
+        align-self: baseline;
+        flex: 0 0 200px;
+    }
 }
 
 .form-control .description {
     flex: 0 0 100%;
     margin-bottom: .5rem;
-}
-
-.form-control span {
-    flex: 0 0 200px;
 }
 
 .form-control input:not([type="checkbox"]):not([type="radio"]),
@@ -33,7 +45,8 @@
 input {
     border: var(--vscode-input-border);
 
-    &[type="text"] {
+    &[type="text"], 
+    &[type="password"] {
         background: var(--vscode-settings-textInputBackground);
         color: var(--vscode-settings-textInputForeground);
     }
