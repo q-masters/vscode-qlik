@@ -29,6 +29,7 @@ export class QixWorkspaceFolder {
     }
 
     public destroy() {
+        throw new Error("@todo implement");
     }
 
     /**

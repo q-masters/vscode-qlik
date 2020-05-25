@@ -21,7 +21,7 @@ export class VariableFile extends QixFsFileAdapter {
      */
     public async readFile(uri: vscode.Uri, params: RouteParam): Promise<Uint8Array> {
 
-        const app = await this.openApp(uri, params.app);
+        const app        = await this.openApp(uri, this.extractAppId(params.app));
         const varName    = this.sanitizeName(params.variable);
         const variable   = await this.getVariable(app, varName);
 
@@ -41,7 +41,7 @@ export class VariableFile extends QixFsFileAdapter {
 
     public async rename(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
 
-        const app        = await this.openApp(uri, params.app);
+        const app        = await this.openApp(uri, this.extractAppId(params.app));
         const varName    = this.sanitizeName(params.variable);
         const variable   = await this.getVariable(app, varName);
 
@@ -55,9 +55,10 @@ export class VariableFile extends QixFsFileAdapter {
      * get stats of variable for vscode file system
      */
     public async stat(uri: vscode.Uri, params: RouteParam): Promise<vscode.FileStat | void> {
-        const app        = await this.openApp(uri, params.app);
-        const varName    = this.sanitizeName(params.variable);
-        const variable   = await this.getVariable(app, varName);
+
+        const app      = await this.openApp(uri, this.extractAppId(params.app));
+        const varName  = this.sanitizeName(params.variable);
+        const variable = await this.getVariable(app, varName);
 
         if (variable) {
             return {
@@ -74,7 +75,7 @@ export class VariableFile extends QixFsFileAdapter {
      */
     public async writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
 
-        const app        = await this.openApp(uri, params.app);
+        const app        = await this.openApp(uri, this.extractAppId(params.app));
         const varName    = this.sanitizeName(params.variable);
         const variable   = await this.getVariable(app, varName);
 

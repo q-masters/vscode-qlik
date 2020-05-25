@@ -75,7 +75,6 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
         return new Promise((resolve, reject) => {
             const options = { body, headers, method: "POST", uri };
             request(options, (error, response: Response) => {
-                console.dir(response);
                 if (error) {
                     reject(error);
                     return;

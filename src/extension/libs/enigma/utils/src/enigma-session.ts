@@ -59,6 +59,12 @@ export class EnigmaSession {
         this.requestHooks.push(hook);
     }
 
+    public destroy() {
+        this.sessionCache.forEach((session) => session.session.close());
+        this.sessionCache.clear();
+        this.requestHooks = [];
+    }
+
     /**
      * return an existing session object or create a new one
      */
@@ -88,9 +94,13 @@ export class EnigmaSession {
         const global = await this.open();
 
         if (global) {
-            const doc = await global.openDoc(appid);
-            doc.session.close();
-            return true;
+            try {
+                const doc = await global.openDoc(appid);
+                doc.session.close();
+                return true;
+            } catch (errorr) {
+                return false;
+            }
         }
         return false;
     }

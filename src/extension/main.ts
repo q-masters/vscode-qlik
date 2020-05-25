@@ -23,4 +23,5 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
+    throw new Error("@todo not implemented yet");
 }

@@ -44,7 +44,6 @@ export class QixFSProvider implements vscode.FileSystemProvider {
             const stats = route.entry.stat(uri, route.params);
             return stats;
         }
-
         throw vscode.FileSystemError.FileNotFound();
     }
 
@@ -114,6 +113,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri): void | Thenable<void> {
+        console.log("rename this now");
         const route = QixRouter.find(oldUri);
         if (route?.entry.type === vscode.FileType.File) {
             return (route.entry as QixFsFile).rename(oldUri, posix.basename(newUri.path), route.params);

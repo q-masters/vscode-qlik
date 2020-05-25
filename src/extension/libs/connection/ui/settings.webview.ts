@@ -55,8 +55,6 @@ export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
      */
     public async handleMessage(request: WebviewRequest): Promise<void> {
 
-        console.log(request);
-
         /**
          * forces to ignore configuration changed event
          * will set on false after connection has changed event triggered
