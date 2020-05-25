@@ -50,6 +50,5 @@ export class AppDirectory extends QixFsDirectoryAdapter {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
-        console.log("ich rename nun");
     }
 }

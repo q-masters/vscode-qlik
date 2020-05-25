@@ -49,7 +49,6 @@ export class SheetFile extends QixFsFileAdapter {
             return Buffer.from(YAML.stringify(sheetData, { indent: 4}));
         }
 
-        console.log("nun kommt nen error ????");
         throw new Error("something failed");
     }
 }
