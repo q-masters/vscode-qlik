@@ -15,4 +15,8 @@ export class QixFsModule {
             WorkspaceFolderManager.removeFolder(event.removed);
         });
     }
+
+    public static destroy() {
+        // WorkspaceFolderManager.destroy();
+    }
 }

@@ -44,7 +44,6 @@ export class QixFSProvider implements vscode.FileSystemProvider {
             const stats = route.entry.stat(uri, route.params);
             return stats;
         }
-
         throw vscode.FileSystemError.FileNotFound();
     }
 

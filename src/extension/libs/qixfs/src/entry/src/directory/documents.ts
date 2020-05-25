@@ -1,18 +1,26 @@
 import * as vscode from "vscode";
 import { QixFsDirectoryAdapter } from "../entry";
+import { TemporayFileStorage } from "../../../utils/src/temporary-file-storage";
 
 export class DocumentsDirectory extends QixFsDirectoryAdapter {
+
+    public constructor() {
+        super();
+    }
 
     /**
      * read all qlik documents (apps) from enigma session
      */
     public async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+
         try {
             const connection = await this.getConnection(uri);
             const session    = await connection.open();
             const docList: EngineAPI.IDocListEntry[] = await session?.getDocList() as any ?? [];
 
-            return docList.map<[string, vscode.FileType]>((doc) => [doc.qDocId, vscode.FileType.Directory]);
+            return docList.map<[string, vscode.FileType]>((doc) => [
+                `${doc.qDocName}\n${doc.qDocId}`, vscode.FileType.Directory
+            ]);
         } catch (error) {
             console.error(error);
             return [];
@@ -27,7 +35,8 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
         const session = await connection.open();
 
         if (session) {
-            await session.createApp(name);
+            const result = await session.createApp(name);
+            TemporayFileStorage.register(uri, result);
         }
     }
 
@@ -36,14 +45,15 @@ export class DocumentsDirectory extends QixFsDirectoryAdapter {
      */
     public async delete(uri: vscode.Uri, app: string): Promise<void> {
         /** first close session on app */
+        const appId = this.extractAppId(app);
         const connection = await this.getConnection(uri);
-        await connection.close(app);
+        await connection.close(appId);
 
         /** get global and delete app */
         const session = await connection.open();
 
         if (session) {
-            await session.deleteApp(app);
+            await session.deleteApp(appId);
         }
     }
 

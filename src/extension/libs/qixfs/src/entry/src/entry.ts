@@ -34,6 +34,13 @@ export abstract class QixFsEntry {
         return session?.openDoc(id);
     }
 
+    /**
+     * extract app id from file path
+     */
+    protected extractAppId(app: string): string {
+        return app.split(/\n/)[1];
+    }
+
     abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
 
     abstract rename(uri: vscode.Uri, name: string, params?: RouteParam): Promise<void> | void;
@@ -66,6 +73,7 @@ export abstract class QixFsDirectory extends QixFsEntry {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async createFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): Promise<void> {
+        throw Error("Could not create a new file");
     }
 }
 

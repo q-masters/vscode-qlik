@@ -1,0 +1,55 @@
+<!--
+    Section Template: list of available connections
+-->
+<ng-template #list>
+    <header>
+        <div class="label">
+            Available Connections
+        </div>
+        <div class="actions">
+            <button class="btn action" (click)="createConnection()">
+                <i class="vsqlik-icon vsqlik-icon--add"></i>
+                <span class="label">Add Connection</span>
+            </button>
+        </div>
+    </header>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Host</th>
+                <th>Port</th>
+                <th>Secure</th>
+                <th>Skip Certificate</th>
+                <th class="action-col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <vsqlik-connection--table-row *ngFor="let connection of connections" 
+                [connection]="connection"
+                (edit)="editConnection($event)"
+                (delete)="deleteConnection($event)">
+            </vsqlik-connection--table-row>
+        </tbody>
+    </table>
+</ng-template>
+
+<!--
+    Section Template: Edit / Create Connection
+-->
+<ng-template #edit>
+    <vsqlik-connection--edit (cancel)="cancelEdit()" (save)="onSave($event)">
+    </vsqlik-connection--edit>
+</ng-template>
+
+<header class="header">
+    <h3>VsQlik Connection Settings</h3>
+</header>
+
+<div class="main">
+
+    <div class="content">
+        <ng-container [ngTemplateOutlet]="currentViewMode === viewMode.EDIT ? edit : list">
+        </ng-container>
+    </div>
+</div>

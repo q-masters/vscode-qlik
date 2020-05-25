@@ -31,7 +31,7 @@ interface ControllerFactory {
  * factory to create a concrete adapter
  * like a qlik script file adapter or documents directory adapter
  *
- * works as flyweight, routes allways return allways same instance from a adapter
+ * works as flyweight, routes allways return same instance from a adapter
  */
 export class QixRouter {
 
@@ -43,6 +43,7 @@ export class QixRouter {
      * find endpoint by given uri
      */
     public static find(uri: vscode.Uri): QixFsRoute | undefined {
+
         if (uri.scheme !== "qix") {
             return;
         }
@@ -112,7 +113,7 @@ export class QixRouter {
          *
          * /:appId/vars/:varName becomes ([^/]+)/script/([^/]+)
          */
-        let routePattern = route.replace(/:([^/]+)/g, "([^/]+)");
+        const routePattern = route.replace(/:([^/]+)/g, "([^/]+)");
 
         /**
          * build matcher for real route which will given
@@ -123,7 +124,7 @@ export class QixRouter {
          *     appId   = 1234-5678-9012-3456
          *     varName = border-color
          */
-        let matcher = new RegExp('^/' + routePattern + '$');
+        const matcher = new RegExp('^/' + routePattern + '$');
 
         return { matcher, params, route };
     }

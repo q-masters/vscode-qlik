@@ -1,0 +1,97 @@
+<div [formGroup]="connectionForm" class="form">
+
+    <!-- label -->
+    <h3>Default Settings</h3>
+
+    <div class="form-control">
+        <label class="label">Name</label>
+        <div class="control">
+            <input type="text" formControlName="nameCtrl">
+            <small>* Will also used as workspace folder name and has to been uniqe</small>
+        </div>
+    </div>
+
+    <div class="form-control">
+        <label class="label">Object renderer</label>
+        <div class="control">
+            <select>
+                <option *ngFor="let strategy of objectRenderStrategy | enumToOption" [value]="strategy.value"
+                    [selected]="strategy.value === objectRenderStrategyCtrl.value">
+                    {{strategy.label}}
+                </option>
+            </select>
+            <small>In which format data objects should be rendered (for example variables)</small>
+        </div>
+    </div>
+
+    <h3>Connection Settings</h3>
+
+    <div class="form-control">
+        <label class="label">Host Name</label>
+        <div class="control">
+            <input type="text" formControlName="hostCtrl">
+            <small>Name of the host @example qlik.company.com</small>
+        </div>
+    </div>
+
+    <div class="form-control">
+        <label class="label">Port</label>
+        <div class="control">
+            <input type="text" formControlName="portCtrl">
+            <small>Define different port, by default port 80 / 443 (secure enabled) are used.</small>
+        </div>
+    </div>
+
+    <div class="form-control">
+        <label class="label">Secure connection</label>
+        <div class="control">
+            <input type="checkbox" formControlName="secureCtrl">
+            <small>If enabled secure connection is used (wss/https)</small>
+        </div>
+    </div>
+
+    <div class="form-control">
+        <label class="label">Allow untrusted</label>
+        <div class="control">
+            <input type="checkbox" formControlName="untrustedCertCtrl">
+            <small>If enabled bypass untrusted certificates for connection.</small>
+        </div>
+    </div>
+
+    <div class="form-control">
+        <label class="label">Authorization Strategy</label>
+        <div class="control">
+            <select [formControl]="authorizationStrategyCtrl">
+                <option *ngFor="let strategy of authorizationStrategy | enumToOption" [value]="strategy.value"
+                    [selected]="strategy.value === authorizationStrategyCtrl.value">
+                    {{strategy.label}}
+                </option>
+            </select>
+            <small>Which strategy should be used to connect to our server</small>
+        </div>
+    </div>
+    
+
+    <div [ngSwitch]="authorizationStrategyCtrl.value">
+
+        <p *ngSwitchCase="authorizationStrategy.CUSTOM">
+            custom strategy
+        </p>
+
+        <p *ngSwitchCase="authorizationStrategy.CERTIFICATE">
+            CERTIFICATE
+        </p>
+
+        <!-- 
+            Form Authorization
+        -->
+        <vsqlik-connection--form-strategy *ngSwitchDefault>
+        </vsqlik-connection--form-strategy>
+    </div>
+
+</div>
+
+<div class="footer btn-bar">
+    <button class="btn" type="button" (click)="doSave()">save</button>
+    <button class="btn" type="button" (click)="doCancel()">cancel</button>
+</div>

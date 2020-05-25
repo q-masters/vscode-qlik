@@ -1,5 +1,6 @@
 import { EnigmaSession } from "extension/libs/enigma";
-import { AuthorizationService, FormAuthorizationStrategy } from "@lib/connection";
+import { AuthorizationService } from "@lib/connection/authorization";
+import { Connection } from "@lib/connection";
 
 /**
  * QixWorkspaceFolder represents the connection to the Qlik Server
@@ -11,7 +12,7 @@ export class QixWorkspaceFolder {
     private authService: AuthorizationService
 
     public constructor(
-        private connectionSettings: any,
+        private connectionModel: Connection,
         private name: string
     ) {
         this.authService = AuthorizationService.getInstance();
@@ -28,6 +29,7 @@ export class QixWorkspaceFolder {
     }
 
     public destroy() {
+        throw new Error("@todo implement");
     }
 
     /**
@@ -35,23 +37,12 @@ export class QixWorkspaceFolder {
      * we have to create a enigma session
      */
     private async establishConnection(): Promise<EnigmaSession> {
+        this.connectionModel = await this.authService.authorize(this.connectionModel);
 
-        const authStrategy = new FormAuthorizationStrategy(this.connectionSettings);
-        authStrategy.title = `Login: ${this.name}`;
-
-        const authorize    = await this.authService.authorize(authStrategy) ;
-
-        if (authorize) {
-            const connection  = new EnigmaSession();
-            connection.host   = this.connectionSettings.host;
-            connection.port   = this.connectionSettings.port;
-            connection.secure = this.connectionSettings.secure;
-
-            authorize.forEach(cookie => {
-                connection.addHeader(cookie.name, cookie.value as string);
-            });
-            return connection;
+        if (this.connectionModel.authorized) {
+            return new EnigmaSession(this.connectionModel);
         }
-        throw new Error();
+
+        throw new Error(`could not login to: ${this.connectionModel.host}`);
     }
 }

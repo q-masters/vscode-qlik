@@ -36,11 +36,14 @@ interface IVariableListItem {
 export class VariableDirectory extends QixFsDirectoryAdapter {
 
     public async delete(uri: vscode.Uri, name: string, params: RouteParam): Promise<void> {
+
+        const appId = this.extractAppId(params.app);
+
         const connection = await this.getConnection(uri);
-        const session    = await connection.open(params.app);
+        const session    = await connection.open(appId);
 
         if (session) {
-            const app     = await session.openDoc(params.app);
+            const app     = await session.openDoc(appId);
             const varName = name.substr(0, name.indexOf(posix.extname(name)));
 
             await app.destroyVariableByName(varName);
@@ -50,9 +53,11 @@ export class VariableDirectory extends QixFsDirectoryAdapter {
 
     public async readDirectory(uri: vscode.Uri, params: RouteParam): Promise<[string, vscode.FileType][]> {
 
+        const appId = this.extractAppId(params.app);
+
         const connection   = await this.getConnection(uri);
-        const session      = await connection.open(params.app);
-        const app          = await session?.openDoc(params.app);
+        const session      = await connection.open(appId);
+        const app          = await session?.openDoc(appId);
 
         if (app) {
             const listObject   = await app.createSessionObject(variableDef);

@@ -1,3 +1,4 @@
-export * from "./src/api";
-export * from "./src/stepper";
-export * from "./src/input-step";
+export * from "./api";
+export * from "./stepper";
+export * from "./input-step";
+export * from "./resolved-step";

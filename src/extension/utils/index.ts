@@ -1,3 +1,3 @@
-export * from "./src/session-cache";
-export * from "./src/webview";
-export * from "./src/settings.repository";
+export * from "./session-cache";
+export * from "./webview";
+export * from "./settings.repository";
