@@ -1,7 +1,7 @@
 [![CLA assistant](https://cla-assistant.io/readme/badge/q-masters/vsqlik)](https://cla-assistant.io/q-masters/vsqlik)
 ![compile](https://github.com/q-masters/vsqlik/workflows/Node.js%20check%20compile/badge.svg)
 [![CodeFactor](https://www.codefactor.io/repository/github/q-masters/vsqlik/badge)](https://www.codefactor.io/repository/github/q-masters/vsqlik)
-[![Visual Studio Marketplace](https://vsmarketplacebadge.apphb.com/installs-short/vsqlik.vsqlik.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=q-masters.vscode-qlik)
+[![Visual Studio Marketplace](https://vsmarketplacebadge.apphb.com/installs-short/q-masters.vscode-qlik.svg)](https://marketplace.visualstudio.com/items?itemName=q-masters.vscode-qlik)
 
 # Visual Studio Code - Qlik Extension
 
