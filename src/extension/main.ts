@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { OpenSettingsCommand } from "@vsqlik/settings/commands";
-import "reflect-metadata";
+import { container } from "tsyringe";
+import { ExtensionContext } from "@data/tokens";
 
 /*
 import { ExtensionContext, ExtensionPath } from "backup/data/tokens";
@@ -14,10 +15,7 @@ import { CreateWorkspaceFolderCommand } from "backup/libs/workspace/commands";
  */
 export async function activate(context: vscode.ExtensionContext) {
 
-    /** add some data to session cache
-    SessionCache.add(ExtensionContext, context);
-    SessionCache.add(ExtensionPath, context.extensionPath);
-    */
+    container.register(ExtensionContext, {useValue: context});
 
     /**
      * register commands

@@ -1,10 +1,10 @@
 import { resolve } from "path";
-import { workspace, window, ConfigurationChangeEvent } from "vscode";
+import * as vscode from "vscode";
+import { injectable, inject, container } from "tsyringe";
+import { ExtensionContext } from "@vsqlik/core/data/tokens";
+import { VsQlikWebview } from "@vsqlik/core/utils/webview";
 import { WorkspaceSetting } from "../api";
 import { SettingsRepository } from "../utils/settings.repository";
-import { VsQlikWebview } from "@vsqlik/core/utils/webview";
-import { SessionCache } from "@vsqlik/core/utils/session-cache";
-import { ExtensionPath } from "@vsqlik/core/data/tokens";
 
 const enum Action {
     Create  = "create",
@@ -32,22 +32,24 @@ interface WebviewResponse {
 /**
  * works as controller between vscode and webview (angular app)
  */
+@injectable()
 export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
 
     private isSilent = false;
 
     public constructor(
-        private settingsRepository: SettingsRepository
+        @inject(SettingsRepository) private settingsRepository: SettingsRepository,
     ) {
         super();
-        workspace.onDidChangeConfiguration(this.onConfigurationChanged, this);
+        vscode.workspace.onDidChangeConfiguration(this.onConfigurationChanged, this);
     }
 
     /**
      * path where our view html file is located
      */
     public getViewPath(): string {
-        return resolve(SessionCache.get(ExtensionPath), 'dist/webview/connection/index.html');
+        const context = container.resolve(ExtensionContext);
+        return resolve(context.extensionPath, 'dist/webview/connection/index.html');
     }
 
     /**
@@ -78,7 +80,7 @@ export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
 
         if (this.settingsRepository.exists(setting.label)) {
             const error = `A connection with the name ${setting.label} allready exists`;
-            window.showErrorMessage(error);
+            vscode.window.showErrorMessage(error);
         } else {
             const created  = await this.settingsRepository.create(setting);
             this.send<WebviewResponse>({request, body: created, success: true, error: ""});
@@ -119,7 +121,7 @@ export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
     /**
      * configuration has been changed reload webview
      */
-    private onConfigurationChanged(event: ConfigurationChangeEvent) {
+    private onConfigurationChanged(event: vscode.ConfigurationChangeEvent) {
         if (!this.isSilent && event.affectsConfiguration('vsQlik.Connection')) {
             this.settingsRepository.reload();
         }

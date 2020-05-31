@@ -17,12 +17,6 @@ export class SettingsRepository {
 
     private isArrayStorage = true;
 
-    public constructor(
-        private section: string
-    ) {
-        this.loadData();
-    }
-
     /**
      * create new setting, automatically adds an id
      */
@@ -49,6 +43,9 @@ export class SettingsRepository {
      * return all data we have allready loaded
      */
     public read(): WorkspaceSetting[] {
+        if (!this.data) {
+            this.loadData();
+        }
         return Array.from(this.data);
     }
 
@@ -114,14 +111,14 @@ export class SettingsRepository {
      */
     private loadData() {
         const configuration = vscode.workspace.getConfiguration();
-        const data = configuration.get(`vsQlik.${this.section}`);
+        const data = configuration.get(`vsQlik.Connection`);
 
         if (data) {
             const settings = !Array.isArray(data) ? (this.isArrayStorage = false, [data]) : data;
             /** write an id to current setting, has to be removed before save */
             this.data = settings.map((setting: WorkspaceSetting) => ({ ...setting, uid: this.generateId()}));
         } else {
-            throw new Error(`Could not find Settings for ${this.section}`);
+            throw new Error(`Could not find Settings for Connection`);
         }
     }
 
@@ -131,7 +128,7 @@ export class SettingsRepository {
     private async writeSettings(): Promise<void> {
         const configuration = vscode.workspace.getConfiguration();
         const data =  this.data.map((setting) => this.cleanUpSetting(setting));
-        await configuration.update(`vsQlik.${this.section}`, this.isArrayStorage ? data : data[0], true);
+        await configuration.update(`vsQlik.Connection`, this.isArrayStorage ? data : data[0], true);
     }
 
     /**

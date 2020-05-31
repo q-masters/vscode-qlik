@@ -1,5 +1,4 @@
 import { AuthorizationStrategy, AuthorizationStrategyConstructor, AuthorizationResult } from "../strategies/authorization.strategy";
-import { AuthStrategy } from "../api";
 import { ConnectionSetting } from "@core/connection/api";
 
 export class AuthorizationService {
@@ -40,7 +39,7 @@ export class AuthorizationService {
      */
     public async authorize(connection: ConnectionSetting): Promise<ConnectionSetting> {
 
-        const Strategy = await this.resolveStrategy(connection.authorization.strategy);
+        const Strategy = await this.resolveStrategy();
         const instance = new Strategy(connection);
 
         return new Promise((resolve) => {
@@ -63,16 +62,18 @@ export class AuthorizationService {
     /**
      * resolve correct strategy
      */
-    private async resolveStrategy(strategy: AuthStrategy): Promise<AuthorizationStrategyConstructor> {
+    private async resolveStrategy(): Promise<AuthorizationStrategyConstructor> {
+        /*
         let resolvedStrat: unknown;
         switch (strategy) {
             case AuthStrategy.CERTIFICATE: {
                 break;
             }
             default: {
-                resolvedStrat = await (await import("../strategies/form-authorization.strategy")).default;
             }
         }
+        */
+        const resolvedStrat = await (await import("../strategies/form-authorization.strategy")).default;
         return resolvedStrat as AuthorizationStrategyConstructor;
     }
 

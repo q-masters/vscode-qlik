@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "typeRoots": ["node_modules/@types", "./types"],
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "paths": {
       "@data/*": ["extension/core/data/*"],
       "@utils" : ["../backup/utils"],

@@ -44,6 +44,7 @@ export abstract class VsQlikWebview<T> {
      */
     private getHtml(): string {
         const path    = this.getViewPath();
+        console.log(path);
         const fileUri = vscode.Uri.file(posix.dirname(path));
         const baseUri = this.view.webview.asWebviewUri(fileUri);
 

@@ -94,6 +94,7 @@
     "@types/chai": "4.2.11",
     "@types/enigma.js": "2.2.1",
     "@types/node": "14.0.5",
+    "@types/mocha": "^7.0.2",
     "@types/qlik-engineapi": "12.67.9",
     "@types/sinon": "^9.0.4",
     "@types/vscode": "1.45.1",

@@ -8,6 +8,7 @@ const config = {
     target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
     entry: {
         "extension": [
+            './node_modules/reflect-metadata/Reflect.js',
             './core/public.api',
             './extension/main.ts'
         ],
