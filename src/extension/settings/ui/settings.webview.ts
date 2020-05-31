@@ -1,9 +1,10 @@
-import { ExtensionPath } from "backup/data/tokens";
-import { VsQlikWebview, SessionCache } from "backup/utils";
 import { resolve } from "path";
 import { workspace, window, ConfigurationChangeEvent } from "vscode";
 import { WorkspaceSetting } from "../api";
 import { SettingsRepository } from "../utils/settings.repository";
+import { VsQlikWebview } from "@vsqlik/core/utils/webview";
+import { SessionCache } from "@vsqlik/core/utils/session-cache";
+import { ExtensionPath } from "@vsqlik/core/data/tokens";
 
 const enum Action {
     Create  = "create",

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { QixFsEntry, QixFsEntryConstructor } from "../../libs/qixfs/entry";
 import { singleton } from "tsyringe";
+import { QixFsEntryConstructor, QixFsEntry } from "@core/qixfs";
 
 export interface Route {
     path: string;

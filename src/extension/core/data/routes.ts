@@ -1,9 +1,8 @@
-import { AppDirectory, ScriptDirectory, ScriptFile, TemporaryFile, VariableDirectory, VariableFile } from "backup/libs/qixfs";
-import { SheetDirectory } from "backup/libs/qixfs/entry/sheet-directory";
-import { SheetFile } from "backup/libs/qixfs/entry/sheet-file";
-import { DocumentsDirectory } from "backup/libs/qixfs";
-import { Route } from "backup/core/router/router";
-import { AuthGuard } from "backup/core/authorization/utils/auth-guard";
+import { Route } from "@core/router";
+import { DocumentsDirectory, AppDirectory, ScriptDirectory, ScriptFile, TemporaryFile, VariableDirectory, VariableFile } from "@core/qixfs";
+import { SheetDirectory } from "@core/qixfs/entry/sheet-directory";
+import { SheetFile } from "@core/qixfs/entry/sheet-file";
+import { AuthGuard } from "@core/authorization/utils/auth-guard";
 
 export const Routes: Route[] = [{
     path: "",

@@ -7,7 +7,9 @@ export interface AuthorizationStrategyConstructor {
 export interface AuthorizationResult {
     success: boolean;
 
-    cookies: any[],
+    cookies: any[];
+
+    error?: "";
 }
 
 export abstract class AuthorizationStrategy {
@@ -26,5 +28,5 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    public abstract run(): Promise<AuthorizationResult>;
+    public abstract run(...args): Promise<AuthorizationResult>;
 }

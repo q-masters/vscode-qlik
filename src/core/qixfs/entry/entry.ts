@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { WorkspaceFolderManager } from "../utils";
-import { RouteParam } from "backup/core/router/router";
-import { EnigmaSession } from "backup/core/connection/utils/enigma-session";
+import { RouteParam } from "../backup/core/router/router";
+import { EnigmaSession } from "../backup/core/connection/utils/enigma-session";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;

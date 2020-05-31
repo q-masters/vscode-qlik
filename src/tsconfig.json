@@ -11,24 +11,25 @@
     "typeRoots": ["node_modules/@types", "./types"],
     "experimentalDecorators": true,
     "paths": {
-      "@data/*": ["backup/data/*"],
-      "@utils" : ["backup/utils"],
-      "@vsqlik/enigma" : ["backup/enigma"],
-      "@vsqlik/qixfs": ["backup/qixfs"],
-      "@vsqlik/qixfs/entry/*": ["backup/libs/qixfs/entry/*"],
-      "@vsqlik/connection" : ["backup/core/connection"],
-      "@vsqlik/connection/*" : ["backup/core/connection/utils/*"],
-      "@vsqlik/stepper": ["backup/libs/stepper"],
-      "@vsqlik/authorization/*": ["backup/core/authorization/*"],
+      "@data/*": ["extension/core/data/*"],
+      "@utils" : ["../backup/utils"],
+      "@vsqlik/enigma" : ["../backup/enigma"],
+      "@vsqlik/qixfs": ["../backup/qixfs"],
+      "@vsqlik/qixfs/entry/*": ["../backup/libs/qixfs/entry/*"],
+      "@vsqlik/connection" : ["../backup/core/connection"],
+      "@vsqlik/connection/*" : ["../backup/core/connection/utils/*"],
+      "@vsqlik/stepper": ["../backup/libs/stepper"],
+      "@vsqlik/authorization/*": ["../backup/core/authorization/*"],
       "@vsqlik/settings/*": ["extension/settings/*"],
       "@shared/*": ["shared/*"],
-      "@vsqlik/workspace/*": ["backup/libs/workspace/*"],
+      "@vsqlik/workspace/*": ["../backup/libs/workspace/*"],
+      "@vsqlik/core/*": ["extension/core/*"],
       "@core/*": ["core/*"],
     }
   },
   "exclude": [
     "node_modules",
     "media/webview",
-    "backup"
+    "../backup"
   ]
 }

@@ -15,7 +15,7 @@ export interface ConnectionSetting {
      * only if a custom port is set, by default this is
      * 80 / 443
      */
-    port: number;
+    port?: number;
 
     /**
      * additional path (proxy)
@@ -31,9 +31,4 @@ export interface ConnectionSetting {
      * for self signed certificates
      */
     allowUntrusted: boolean;
-
-    authorization: {
-        data: AuthorizationData;
-        strategy: AuthStrategy;
-    }
 }

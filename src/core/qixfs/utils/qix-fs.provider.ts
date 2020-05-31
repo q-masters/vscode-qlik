@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { QixRouter } from "backup/core/router/router";
+import { QixRouter } from "../backup/core/router/router";
 import { QixFsDirectory, QixFsFile } from "../entry";
 import { posix } from "path";
 import { inject } from "tsyringe";

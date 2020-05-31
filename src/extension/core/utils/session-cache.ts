@@ -1,4 +1,4 @@
-import { SessionToken } from "backup/data/tokens";
+import { SessionToken } from "../data/tokens";
 
 declare type R = any;
 

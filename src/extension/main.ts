@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { OpenSettingsCommand } from "@vsqlik/settings/commands";
+import "reflect-metadata";
 
 /*
 import { ExtensionContext, ExtensionPath } from "backup/data/tokens";

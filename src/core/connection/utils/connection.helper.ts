@@ -2,7 +2,7 @@ import { buildUrl } from "enigma.js/sense-utilities";
 import { create } from "enigma.js";
 import schema from "enigma.js/schemas/12.20.0.json";
 import WebSocket from "ws";
-import { ConnectionSetting } from "backup/libs/settings/api";
+import { ConnectionSetting } from "../api";
 
 export abstract class ConnectionHelper {
 

@@ -1,7 +1,7 @@
 import request from "request";
 import { Response } from "request";
 import { AuthorizationStrategy, AuthorizationResult } from "./authorization.strategy";
-import { FormAuthorizationData } from "../api";
+import { ConnectionHelper } from "@core/connection";
 
 interface Credentials {
     domain: string;
@@ -11,25 +11,26 @@ interface Credentials {
 /**
  * login to qlik with form strategy
  */
-export default class FormAuthorizationStrategy extends AuthorizationStrategy {
+export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
-    public async run(): Promise<AuthorizationResult>
+    public async run(domain: string, password: string): Promise<AuthorizationResult>
     {
         const response: AuthorizationResult = {
             success: false,
-            cookies: []
+            cookies: [],
+            error: ""
         };
 
         try {
-            const loginCredentials = await this.resolveLoginCredentials();
-            const formUri          = await this.initializeLoginProcess();
-            const redirectUri      = await this.submitForm(formUri, loginCredentials.domain, loginCredentials.password);
-            const cookies          = await this.finalizeLoginProcess(redirectUri);
+            const formUri     = await this.initializeLoginProcess();
+            const redirectUri = await this.submitForm(formUri, domain, password);
+            const cookies     = await this.finalizeLoginProcess(redirectUri);
 
             response.success = true;
             response.cookies = cookies;
 
         } catch (error) {
+            response.error   = error;
             response.success = false;
         }
 
@@ -43,8 +44,8 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
      *
      * this uri is required since it contains a ticket id
      */
-    private initializeLoginProcess(): Promise<string> {
-
+    private initializeLoginProcess(): Promise<string>
+    {
         const options = {
             uri: ConnectionHelper.buildUrl(this.connection),
             method: "GET"
@@ -53,7 +54,8 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
         return new Promise((resolve, reject) => {
             request(options, (error, response) => {
                 if (error) {
-                    reject(error);
+                    reject(`${error.code}: ${error.hostname}`);
+                    return;
                 }
                 resolve(response.request.uri.href);
             });
@@ -63,7 +65,8 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
     /**
      * submit form data and returns a redirect uri
      */
-    private submitForm(uri: string, username: string, password: string): Promise<string> {
+    private submitForm(uri: string, username: string, password: string): Promise<string>
+    {
         const body = `username=${username}&pwd=${password}`;
         const headers = {
             "Content-length": body.length,
@@ -92,7 +95,8 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
      * finalize login process, since we know now the redirect uri which is called
      * after login is working
      */
-    private finalizeLoginProcess(uri: string): Promise<any[]> {
+    private finalizeLoginProcess(uri: string): Promise<any[]>
+    {
         return new Promise((resolve, reject) => {
             const options = { method: "GET", uri };
             request(options, (error, response: Response) => {
@@ -120,31 +124,35 @@ export default class FormAuthorizationStrategy extends AuthorizationStrategy {
             });
         });
     }
-
-    /**
-     * show input fields
-     */
-    private async resolveLoginCredentials(): Promise<Credentials> {
-
-        const authData = this.connection.authorization.data as FormAuthorizationData;
-
-        const stepper  = new Stepper(this.title);
-        stepper.addStep(this.createStep(authData.domain, "domain\\username"));
-        stepper.addStep(this.createStep(authData.password, "password", true));
-
-        const [domain, password] = await stepper.run<string>();
-
-        if (!domain || !password) {
-            throw new Error("could not resolve credentials");
-        }
-
-        return { domain, password };
-    }
-
-    private createStep(value: string | undefined, placeholder = "", password = false): IStep {
-        if (!value || value.trim() === "") {
-            return new InputStep(placeholder, this.connection.host, password);
-        }
-        return new ResolvedStep(value);
-    }
 }
+
+export default FormAuthorizationStrategy;
+
+
+/**
+ * show input fields
+ *
+private async resolveLoginCredentials() {
+    const authData = this.connection.authorization.data as FormAuthorizationData;
+
+    const stepper  = new Stepper(this.title);
+    stepper.addStep(this.createStep(authData.domain, "domain\\username"));
+    stepper.addStep(this.createStep(authData.password, "password", true));
+
+    const [domain, password] = await stepper.run<string>();
+
+    if (!domain || !password) {
+        throw new Error("could not resolve credentials");
+    }
+
+    return { domain, password };
+}
+
+private createStep(value: string | undefined, placeholder = "", password = false): IStep {
+    /*
+    if (!value || value.trim() === "") {
+        return new InputStep(placeholder, this.connection.host, password);
+    }
+    return new ResolvedStep(value);
+}
+*/

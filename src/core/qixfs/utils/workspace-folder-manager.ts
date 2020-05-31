@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { QixWorkspaceFolder } from "../entry/workspace-folder";
-import { ConnectionSetting, WorkspaceSetting } from "backup/libs/settings/api";
+import { ConnectionSetting, WorkspaceSetting } from "../backup/libs/settings/api";
 
 /**
  * holds all active workspace folders

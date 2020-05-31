@@ -1,6 +1,6 @@
 import WebSocket from "ws";
-import { ConnectionSetting } from "backup/libs/settings/api";
 import { ConnectionHelper } from "./connection.helper";
+import { ConnectionSetting } from "../api";
 
 /**
  * Services to create, cache and handle enigma session
