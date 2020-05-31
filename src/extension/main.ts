@@ -1,25 +1,43 @@
 import * as vscode from "vscode";
-import "@lib/enigma";
-import { Routes } from "@data/routes";
-import { ExtensionContext, ExtensionPath } from "@data/tokens";
-import { QixFsModule } from "@lib/qixfs";
-import { SessionCache } from "@utils";
+import { OpenSettingsCommand } from "@vsqlik/settings/commands";
 
-/** todo move to a connection module @lib/connection */
-import { ConnectionModule } from "@lib/connection";
+/*
+import { ExtensionContext, ExtensionPath } from "backup/data/tokens";
+import { SessionCache } from "backup/utils";
+import { OpenSettingsCommand } from "backup/libs/settings/commands";
+import { CreateWorkspaceFolderCommand } from "backup/libs/workspace/commands";
+*/
 
 /**
  * bootstrap extension
  */
 export async function activate(context: vscode.ExtensionContext) {
 
-    /** add some data to session cache */
+    /** add some data to session cache
     SessionCache.add(ExtensionContext, context);
     SessionCache.add(ExtensionPath, context.extensionPath);
+    */
 
-    /** bootstrap modules */
-    QixFsModule.bootstrap(context, Routes);
-    ConnectionModule.bootstrap();
+    /**
+     * register commands
+     *
+    vscode.commands.registerCommand('VSQlik.Connection.Create'  , CreateWorkspaceFolderCommand);
+    */
+    vscode.commands.registerCommand('VSQlik.Connection.Settings', OpenSettingsCommand);
+
+    /** register workspace folders */
+    /*
+        WorkspaceFolderManager.addFolder(vscode.workspace.workspaceFolders || []);
+        QixRouter.addRoutes(routes);
+
+        const qixFs  = new QixFSProvider();
+        context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
+
+        vscode.workspace.onDidChangeWorkspaceFolders((event) => {
+            WorkspaceFolderManager.addFolder(event.added);
+            WorkspaceFolderManager.removeFolder(event.removed);
+        });
+    */
 }
 
 export function deactivate() {
