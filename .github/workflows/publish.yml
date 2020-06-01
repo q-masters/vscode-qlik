@@ -41,12 +41,6 @@ jobs:
         ./node_modules/.bin/vsce package
         ./node_modules/.bin/vsce publish -p ${{ secrets.PUBLISH_TOKEN }}
       continue-on-error: true
-      
-    - name: upload logs
-      uses: actions/upload-artifact@v2
-      with:
-        name: npm logs
-        path: /home/runner/.npm/_logs/
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
