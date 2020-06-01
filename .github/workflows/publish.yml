@@ -38,8 +38,9 @@ jobs:
     - name: Package Publish
       working-directory: src
       run: |
-        npm run vsce:package
-        npm run vsce:publish "-p ${{ secrets.PUBLISH_TOKEN }}"
+        ./node_modules/.bin/vsce package
+        ./node_modules/.bin/vsce login -p ${{ secrets.PUBLISH_TOKEN }}
+        ./node_modules/.bin/vsce publish -p ${{ secrets.PUBLISH_TOKEN }}
       continue-on-error: true
       
     - name: upload logs
