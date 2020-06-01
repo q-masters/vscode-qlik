@@ -11,7 +11,10 @@ categories:
       - 'bugfix'
       - 'bug'
   - title: 'Maintenance'
-    label: 'chore'
+    labels:
+      - 'chore'
+      - 'dependencies '
+    
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 version-resolver:
   major:
