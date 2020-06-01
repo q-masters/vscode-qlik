@@ -44,6 +44,10 @@ export class SettingsRepository {
         return this.data.some((setting) => setting.uid === id);
     }
 
+    public find(name: string): WorkspaceSetting | undefined {
+        return this.read().find((setting) => setting.label === name);
+    }
+
     /**
      * return all data we have allready loaded
      */

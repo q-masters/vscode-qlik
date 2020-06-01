@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { container } from "tsyringe";
 import { SettingsRepository } from "@vsqlik/settings/settings.repository";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
-import { WorkspaceFolderQuickPickItem, WorkspaceFolderScheme } from "./api";
+import { WorkspaceFolderQuickPickItem, WorkspaceFolderScheme } from "../api/api";
 
 /**
  * create a new workspace folder for given connection
@@ -36,7 +36,7 @@ export async function CreateWorkspaceFolderCommand() {
     }
 }
 
-function createWorkspaceFolderPath(connection: WorkspaceSetting): string {
+function createWorkspaceFolderPath(setting: WorkspaceSetting): string {
     const path = `qix://`;
-    return path.concat(connection.name, '.', connection.host);
+    return path.concat(setting.label, '.', setting.connection.host);
 }

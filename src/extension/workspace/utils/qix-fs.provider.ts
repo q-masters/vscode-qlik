@@ -1,9 +1,8 @@
 import * as vscode from "vscode";
-import { QixRouter } from "../backup/core/router/router";
-import { QixFsDirectory, QixFsFile } from "../entry";
 import { posix } from "path";
-import { inject } from "tsyringe";
-
+import { container } from "tsyringe";
+import { QixRouter } from "@core/router";
+import { QixFsDirectory, QixFsFile } from "@core/qixfs";
 
 // der brauch ne Map -> URI -> Connection
 
@@ -23,14 +22,15 @@ export class QixFSProvider implements vscode.FileSystemProvider {
 
     private emitter: vscode.EventEmitter<vscode.FileChangeEvent[]>;
 
+    private qixRouter: QixRouter;
+
     /**
      * construct new Qix file system
      */
-    public constructor(
-        @inject(QixRouter)
-    ) {
+    public constructor() {
         this.emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
         this.onDidChangeFile = this.emitter.event;
+        this.qixRouter       = container.resolve(QixRouter);
     }
 
     watch(): vscode.Disposable {
@@ -42,7 +42,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      */
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
         /** find entry */
-        const route = QixRouter.find(uri);
+        const route = this.qixRouter.find(uri);
         if(route?.entry) {
             const stats = route.entry.stat(uri, route.params);
             return stats;
@@ -54,7 +54,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * read directory
      */
     async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
-        const route = QixRouter.find(uri);
+        const route = this.qixRouter.find(uri);
         if (route?.entry.type === vscode.FileType.Directory) {
             const result = await (route.entry as QixFsDirectory).readDirectory(uri, route.params);
             return result;
@@ -69,7 +69,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);
 
-        const route = QixRouter.find(parentUri);
+        const route = this.qixRouter.find(parentUri);
         if (route?.entry.type === vscode.FileType.Directory) {
             return await (route.entry as QixFsDirectory).createDirectory(uri, name, route.params);
         }
@@ -81,7 +81,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * read file
      */
     async readFile(uri: vscode.Uri): Promise<Uint8Array> {
-        const route = QixRouter.find(uri);
+        const route = this.qixRouter.find(uri);
         if (route?.entry.type === vscode.FileType.File) {
             return (route.entry as QixFsFile).readFile(uri, route.params);
         }
@@ -92,7 +92,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * write file
      */
     async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
-        const route = QixRouter.find(uri);
+        const route = this.qixRouter.find(uri);
         if (route?.entry.type === vscode.FileType.File) {
             return (route.entry as QixFsFile).writeFile(uri, content, route.params);
         }
@@ -107,7 +107,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         const parentUri = uri.with({path: posix.dirname(uri.path)});
         const name      = posix.basename(uri.path);
 
-        const route = QixRouter.find(parentUri);
+        const route = this.qixRouter.find(parentUri);
         if (route?.entry.type === vscode.FileType.Directory) {
             return await (route.entry as QixFsDirectory).delete(uri, name, route.params);
         }
@@ -116,7 +116,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     }
 
     rename(oldUri: vscode.Uri, newUri: vscode.Uri): void | Thenable<void> {
-        const route = QixRouter.find(oldUri);
+        const route = this.qixRouter.find(oldUri);
         if (route?.entry.type === vscode.FileType.File) {
             return (route.entry as QixFsFile).rename(oldUri, posix.basename(newUri.path), route.params);
         }
