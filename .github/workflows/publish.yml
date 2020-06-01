@@ -39,7 +39,7 @@ jobs:
       working-directory: src
       run: |
         npm run vsce:package
-        npm run vsce:publish -p ${{ secrets.PUBLISH_TOKEN }}
+        npm run vsce:publish "-p ${{ secrets.PUBLISH_TOKEN }}"
       continue-on-error: true
       
     - name: upload logs
