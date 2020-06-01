@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormBuilder, FormControl } from "@angular/forms";
 import { ConnectionFormHelper, BeforeSaveHook } from "../../utils/connection-form.helper";
-import { Connection, AuthorizationStrategy } from "../../data/api";
+import { WorkspaceFolderSetting, AuthorizationStrategy } from "../../data/api";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 
@@ -11,7 +11,7 @@ export interface FormStrategyData {
 }
 
 @Component({
-    selector: "vsqlik-connection--form-strategy ",
+    selector: "vsqlik-wfs--form-strategy ",
     templateUrl: "./form.html",
     styleUrls: ["./form.scss"]
 })
@@ -37,9 +37,10 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.initFormControls();
+
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
-            .subscribe((connection: Connection) => {
+            .subscribe((connection: WorkspaceFolderSetting) => {
                 this.strategyData = connection.authorization.data as FormStrategyData;
                 this.reloadData();
             });
@@ -59,7 +60,7 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
     /**
      * apply data to connection data
      */
-    private applyPatch(connection: Connection): Connection {
+    private applyPatch(connection: WorkspaceFolderSetting): WorkspaceFolderSetting {
         const settingsPatch = this.createPatch({...connection});
         return Object.assign({}, connection, settingsPatch);
     }
@@ -67,7 +68,7 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
     /**
      * create patch for authorization settings
      */
-    private createPatch(settings: Connection): Connection {
+    private createPatch(settings: WorkspaceFolderSetting): WorkspaceFolderSetting {
 
         return Object.assign(settings, {
             authorization: {

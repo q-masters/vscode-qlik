@@ -1,5 +1,6 @@
 import { ConnectionSetting } from "@core/connection";
-import { Setting } from "../utils/settings.repository";
+import { Setting } from "./settings.repository";
+import { AuthorizationSetting } from "@core/authorization/api";
 
 export enum FileRenderer {
     JSON,
@@ -8,9 +9,11 @@ export enum FileRenderer {
 
 export interface WorkspaceSetting extends Setting {
 
-    name: string;
+    label: string;
 
     connection: ConnectionSetting;
 
     fileRenderer: FileRenderer;
+
+    authorization: AuthorizationSetting
 }

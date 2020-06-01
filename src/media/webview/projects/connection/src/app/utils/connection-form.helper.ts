@@ -1,14 +1,14 @@
 import { Injectable } from "@angular/core";
 import { map, take } from "rxjs/operators";
 import { Observable, BehaviorSubject } from "rxjs";
-import { Connection, AuthorizationStrategy, ObjectRenderStrategy } from "../data/api";
+import { WorkspaceFolderSetting, AuthorizationStrategy, FileRenderer } from "../data/api";
 
-export declare type BeforeSaveHook = (connection: Connection) => Connection;
+export declare type BeforeSaveHook = (connection: WorkspaceFolderSetting) => WorkspaceFolderSetting;
 
 @Injectable({providedIn: "root"})
 export class ConnectionFormHelper {
 
-    private connection$: BehaviorSubject<Connection>;
+    private connection$: BehaviorSubject<WorkspaceFolderSetting>;
 
     private hooks: BeforeSaveHook[] = [];
 
@@ -16,11 +16,11 @@ export class ConnectionFormHelper {
         this.connection$ = new BehaviorSubject(this.createEmptyConnection());
     }
 
-    public get connection(): Observable<Connection> {
+    public get connection(): Observable<WorkspaceFolderSetting> {
         return this.connection$.asObservable();
     }
 
-    public load(connection: Connection) {
+    public load(connection: WorkspaceFolderSetting) {
         /** ensure nothing is missing in our data model */
         const loaded = Object.assign({}, this.createEmptyConnection(), connection);
         this.connection$.next(loaded);
@@ -50,7 +50,7 @@ export class ConnectionFormHelper {
     /**
      * save current connection but call all hooks before
      */
-    public save(): Observable<Connection> {
+    public save(): Observable<WorkspaceFolderSetting> {
 
        return this.connection.pipe(
             take(1),
@@ -64,19 +64,24 @@ export class ConnectionFormHelper {
     /**
      * create only a empty connection
      */
-    public createEmptyConnection(): Connection {
+    public createEmptyConnection(): WorkspaceFolderSetting {
         return {
-            allowUntrusted: false,
-            objectRenderer: ObjectRenderStrategy.YAML,
-            label: "",
-            host: "",
-            port: null,
-            secure: true,
             authorization: {
                 strategy: AuthorizationStrategy.FORM,
                 data: {
+                    domain: null,
+                    password: null
                 }
-            }
+            },
+            connection: {
+                allowUntrusted: false,
+                host: "localhost",
+                secure: true,
+                path: null,
+                port: null
+            },
+            fileRenderer: FileRenderer.YAML,
+            label: "New Connection"
         }
     }
 }

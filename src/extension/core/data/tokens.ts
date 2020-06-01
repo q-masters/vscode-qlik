@@ -1,9 +1,7 @@
-import * as vscode from "vscode";
 import { InjectionToken } from "tsyringe";
+import * as vscode from "vscode";
 
-export class SessionToken<T>  {
-    public constructor(private description: string = '') {}
-}
 
-export const ExtensionContext: InjectionToken<vscode.ExtensionContext> = "vscode extension context";
-export const WorkspaceFolders   = new SessionToken<string[]>("VSCode Connection Settings");
+export const ExtensionContext: InjectionToken<vscode.ExtensionContext> = "VsCodeExtensionContext";
+export const WorkspaceFolders: InjectionToken<string[]> = "VsCodeWorkspaceFolders";
+export const SettingsWorkspaceFolder: InjectionToken<string> = "VsCodeSettingsWorkspaceFolders";

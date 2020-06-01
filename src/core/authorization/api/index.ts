@@ -10,6 +10,12 @@ export interface AuthorizationData {
 
 export interface FormAuthorizationData extends AuthorizationData {
     domain: string;
-    username: string;
     password: string;
+}
+
+export interface AuthorizationSetting {
+
+    strategy: AuthStrategy;
+
+    data: FormAuthorizationData | unknown;
 }

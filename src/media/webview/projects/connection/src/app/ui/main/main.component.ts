@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
-import { Connection } from "../../data/api";
+import { WorkspaceFolderSetting } from "../../data/api";
 import { ConnectionFormHelper } from "../../utils";
 import { ConnectionRepository } from "../../utils/connection-repository";
 
@@ -11,7 +11,7 @@ enum ViewMode {
 }
 
 @Component({
-    selector: "vsqlik-connection--root",
+    selector: "vsqlik-wfs--root",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"]
 })
@@ -20,9 +20,7 @@ export class MainComponent implements OnInit, OnDestroy {
     /**
      * hash to hold existing connections
      */
-    public connections: Connection[] = [];
-
-    public selectedConnection: Connection;
+    public settings: WorkspaceFolderSetting[] = [];
 
     public viewMode = ViewMode;
 
@@ -47,7 +45,7 @@ export class MainComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe((data) => {
                 this.currentViewMode = ViewMode.LIST;
-                this.connections = data;
+                this.settings = data;
             });
 
         this.connectionRepository.read();
@@ -57,7 +55,7 @@ export class MainComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next(true);
         this.destroy$.complete();
-        this.connections = [];
+        this.settings = [];
         this.destroy$ = null;
     }
 
@@ -72,7 +70,7 @@ export class MainComponent implements OnInit, OnDestroy {
     /**
      * after we edit an connection it should be saved
      */
-    public onSave(connection: Connection) {
+    public onSave(connection: WorkspaceFolderSetting) {
         !connection.uid
             ? this.connectionRepository.add(connection)
             : this.connectionRepository.update(connection);
@@ -81,21 +79,21 @@ export class MainComponent implements OnInit, OnDestroy {
     /**
      * delete an existing connection
      */
-    public deleteConnection(connection: Connection) {
+    public deleteSetting(connection: WorkspaceFolderSetting) {
         this.connectionRepository.delete(connection);
     }
 
     /**
      * sets an connection to edit mode
      */
-    public editConnection(connection: Connection) {
+    public editSetting(connection: WorkspaceFolderSetting) {
         this.connectionFormHelper.load(connection);
         this.currentViewMode = ViewMode.EDIT;
     }
 
     /** add to list and update */
-    public createConnection() {
+    public createSetting() {
         const connection = this.connectionFormHelper.createEmptyConnection();
-        this.editConnection(connection);
+        this.editSetting(connection);
     }
 }

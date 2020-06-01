@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
-import { OpenSettingsCommand } from "@vsqlik/settings/commands";
 import { container } from "tsyringe";
-import { ExtensionContext } from "@data/tokens";
+import { ExtensionContext, SettingsWorkspaceFolder } from "@data/tokens";
+import { OpenSettingsCommand } from "@vsqlik/settings/open-settings.command";
+import { CreateWorkspaceFolderCommand } from "@vsqlik/workspace/create-workspace-folder.command";
 
 /*
 import { ExtensionContext, ExtensionPath } from "backup/data/tokens";
@@ -10,19 +11,20 @@ import { OpenSettingsCommand } from "backup/libs/settings/commands";
 import { CreateWorkspaceFolderCommand } from "backup/libs/workspace/commands";
 */
 
+
 /**
  * bootstrap extension
  */
 export async function activate(context: vscode.ExtensionContext) {
 
     container.register(ExtensionContext, {useValue: context});
+    container.register(SettingsWorkspaceFolder, {useValue: "VsQlikSettings.WorkspaceFolders"});
 
     /**
      * register commands
-     *
-    vscode.commands.registerCommand('VSQlik.Connection.Create'  , CreateWorkspaceFolderCommand);
-    */
-    vscode.commands.registerCommand('VSQlik.Connection.Settings', OpenSettingsCommand);
+     */
+    vscode.commands.registerCommand('VsQlik.Connection.Create'  , CreateWorkspaceFolderCommand);
+    vscode.commands.registerCommand('VsQlik.Connection.Settings', OpenSettingsCommand);
 
     /** register workspace folders */
     /*

@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { ConnectionSetting } from "backup/libs/settings/api";
+import { WorkspaceSetting } from "@vsqlik/settings/api";
 
 export interface WorkspaceFolderQuickPickItem extends vscode.QuickPickItem {
-    connection: ConnectionSetting
+    setting: WorkspaceSetting
 }
 
 export interface WorkspaceFolderScheme {

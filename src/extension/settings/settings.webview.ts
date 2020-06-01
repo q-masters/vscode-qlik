@@ -1,10 +1,8 @@
 import { resolve } from "path";
 import * as vscode from "vscode";
-import { injectable, inject, container } from "tsyringe";
-import { ExtensionContext } from "@vsqlik/core/data/tokens";
 import { VsQlikWebview } from "@vsqlik/core/utils/webview";
-import { WorkspaceSetting } from "../api";
-import { SettingsRepository } from "../utils/settings.repository";
+import { WorkspaceSetting } from "./api";
+import { SettingsRepository } from "./settings.repository";
 
 const enum Action {
     Create  = "create",
@@ -32,13 +30,13 @@ interface WebviewResponse {
 /**
  * works as controller between vscode and webview (angular app)
  */
-@injectable()
 export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
 
     private isSilent = false;
 
     public constructor(
-        @inject(SettingsRepository) private settingsRepository: SettingsRepository,
+        private settingsRepository: SettingsRepository,
+        private extensionContext: vscode.ExtensionContext
     ) {
         super();
         vscode.workspace.onDidChangeConfiguration(this.onConfigurationChanged, this);
@@ -48,8 +46,7 @@ export class ConnectionSettingsWebview extends VsQlikWebview<WebviewRequest> {
      * path where our view html file is located
      */
     public getViewPath(): string {
-        const context = container.resolve(ExtensionContext);
-        return resolve(context.extensionPath, 'dist/webview/connection/index.html');
+        return resolve(this.extensionContext.extensionPath, 'dist/webview/connection/index.html');
     }
 
     /**

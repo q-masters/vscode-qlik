@@ -8,7 +8,7 @@ export enum AuthorizationStrategy {
  * in which format objects should rendered
  * for example variables
  */
-export enum ObjectRenderStrategy {
+export enum FileRenderer {
     JSON,
     YAML
 }
@@ -34,18 +34,7 @@ export enum Action {
     Error   = "error"
 }
 
-export interface Connection {
-    /**  */
-    label: string;
-
-    /**
-     * how should objects rendered (yaml, json, ...)
-     */
-    objectRenderer: ObjectRenderStrategy,
-
-    /** */
-    uid?: string;
-
+export interface ConnectionSetting {
     /**
      * host where to connect
      */
@@ -58,7 +47,7 @@ export interface Connection {
      *  80: if secure is disabled
      * 443: if secure is enabled
      */
-    port: number;
+    port?: number;
 
     /**
      * uses wss if secure is enabled
@@ -71,6 +60,26 @@ export interface Connection {
      */
     allowUntrusted: boolean;
 
+    path?: string;
+}
+
+export interface WorkspaceFolderSetting {
+
+    /**
+     * 
+     */
+    label: string;
+
+    /**
+     *
+     */
+    connection: ConnectionSetting;
+
+    /**
+     * how should files rendered (yaml, json, ...)
+     */
+    fileRenderer: FileRenderer,
+
     /**
      * authorization
      */
@@ -78,6 +87,9 @@ export interface Connection {
         strategy: AuthorizationStrategy,
         data: FormAuthorizationData | CertificateAuthorizationData | unknown
     }
+
+    /** */
+    uid?: string;
 
     phantom?: boolean;
 }

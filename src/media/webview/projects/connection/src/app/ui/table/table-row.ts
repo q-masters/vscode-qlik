@@ -1,20 +1,20 @@
 import { Component, Input, Output, EventEmitter } from "@angular/core";
-import { Connection } from "../../data";
+import { WorkspaceFolderSetting } from '../../data';
 
 @Component({
-    selector: "vsqlik-connection--table-row",
+    selector: "vsqlik-wfs--table-row",
     templateUrl: "table-row.html",
 })
 export class TableRowComponent {
 
     @Input()
-    public connection: Connection;
+    public setting: WorkspaceFolderSetting;
 
     @Output()
-    public delete: EventEmitter<Connection>;
+    public delete: EventEmitter<WorkspaceFolderSetting>;
 
     @Output()
-    public edit: EventEmitter<Connection>;
+    public edit: EventEmitter<WorkspaceFolderSetting>;
 
     public constructor() {
         this.edit   = new EventEmitter();
@@ -25,13 +25,13 @@ export class TableRowComponent {
      * connection should be deleted now
      */
     public doDelete() {
-        this.delete.emit(this.connection);
+        this.delete.emit(this.setting);
     }
 
     /**
      * connection should be edited now
      */
     public doEdit() {
-        this.edit.emit(this.connection);
+        this.edit.emit(this.setting);
     }
 }

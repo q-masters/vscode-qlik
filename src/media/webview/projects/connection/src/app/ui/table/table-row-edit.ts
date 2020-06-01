@@ -1,30 +1,34 @@
 import { Component, OnInit, Input, Output, EventEmitter, HostListener } from "@angular/core";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { Connection } from "../../data";
+import { WorkspaceFolderSetting } from "../../data";
 
 export interface TableRowSaveEvent {
-    new: Connection;
-    old: Connection;
+    new: WorkspaceFolderSetting;
+    old: WorkspaceFolderSetting;
 }
 
 @Component({
-    selector: "vsqlik-connection--table-row-edit",
+    selector: "vsqlik-WorkspaceFolderSetting--table-row-edit",
     templateUrl: "table-row-edit.html"
 })
 export class TableRowEditComponent implements OnInit {
 
     @Input()
-    public connection: Connection;
+    public workspaceFolderSetting: WorkspaceFolderSetting;
 
     @Output()
     public save: EventEmitter<TableRowSaveEvent>;
 
     @Output()
-    public cancel: EventEmitter<Connection>;
+    public cancel: EventEmitter<WorkspaceFolderSetting>;
 
     public isSecure = false;
 
     public allowUntrusted = false;
+
+    public connectionSettingForm: FormGroup;
+
+    public workspaceFolderSettingForm: FormGroup;
 
     public constructor(
         private formBuilder: FormBuilder
@@ -33,19 +37,21 @@ export class TableRowEditComponent implements OnInit {
         this.cancel = new EventEmitter();
     }
 
-    public connectionForm: FormGroup;
 
     ngOnInit() {
-        this.isSecure = this.connection?.secure ?? true;
+        this.isSecure = this.workspaceFolderSetting?.connection.secure ?? true;
 
-        const label  = this.formBuilder.control(this.connection?.label           || "");
-        const host   = this.formBuilder.control(this.connection?.host   || "");
-        const port   = this.formBuilder.control(this.connection?.port   || "");
-        const secure = this.formBuilder.control(this.isSecure);
-        const untrusted = this.formBuilder.control(this.allowUntrusted);
+        const label     = this.formBuilder.control(this.workspaceFolderSetting?.label           || "");
+        const host      = this.formBuilder.control(this.workspaceFolderSetting?.connection.host   || "");
+        const port      = this.formBuilder.control(this.workspaceFolderSetting?.connection.port   || "");
+        const secure    = this.formBuilder.control(this.workspaceFolderSetting?.connection.secure);
+        const untrusted = this.formBuilder.control(this.workspaceFolderSetting.connection.allowUntrusted);
+
         secure.valueChanges.subscribe((value) => this.isSecure = value);
 
-        this.connectionForm = this.formBuilder.group({label, host, port, secure, untrusted});
+        this.connectionSettingForm      = this.formBuilder.group({host, port, secure, untrusted});
+
+        this.workspaceFolderSettingForm = this.formBuilder.group({label, connection: this.connectionSettingForm});
 
         secure.valueChanges.subscribe((value: boolean) => {
             untrusted.setValue(false);
@@ -54,7 +60,7 @@ export class TableRowEditComponent implements OnInit {
     }
 
     public doSave() {
-        const values = this.connectionForm.getRawValue();
+        const values = this.workspaceFolderSettingForm.getRawValue();
         const newSettings = {
             host: values.host,
             port: parseInt(values.port, 10),
@@ -67,16 +73,16 @@ export class TableRowEditComponent implements OnInit {
             settings: newSettings
         };
 
-        const updated = Object.assign({}, this.connection, newData);
+        const updated = Object.assign({}, this.workspaceFolderSetting, newData);
 
-        JSON.stringify(this.connection) !== JSON.stringify(updated)
-            ? this.saveConnection(updated)
+        JSON.stringify(this.workspaceFolderSetting) !== JSON.stringify(updated)
+            ? this.saveWorkspaceFolderSetting(updated)
             : this.doCancel();
     }
 
     public doCancel() {
-        this.connectionForm.disable();
-        this.cancel.emit(this.connection);
+        this.workspaceFolderSettingForm.disable();
+        this.cancel.emit(this.workspaceFolderSetting);
     }
 
     @HostListener("keydown", ["$event"])
@@ -88,7 +94,7 @@ export class TableRowEditComponent implements OnInit {
         }
     }
 
-    private saveConnection(connection: Connection) {
-        this.save.emit({new: connection, old: this.connection});
+    private saveWorkspaceFolderSetting(connection: WorkspaceFolderSetting) {
+        this.save.emit({new: connection, old: this.workspaceFolderSetting});
     }
 }

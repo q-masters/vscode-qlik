@@ -13,19 +13,30 @@ window.acquireVsCodeApi = () => ({
 });
 
 window.connectionListCommand = [{
-        label: 'Qlik Local',
-        username : 'user',
-        password : 'qwertz',
-        host     : '127.0.0.1',
-        port     : '9076',
-        secure   : false
+        label: 'Qlik Local 1',
+        connection: {
+            host     : '127.0.0.1',
+            port     : null,
+            path     : null,
+            secure   : false,
+            allowUntrusted: false
+        },
+        authorization: {
+            strategy: 1,
+            data: {
+                domain: null,
+                password: null
+            }
+        }
     }, {
         label: 'Qlik Local 2',
-        username : '',
-        password : '',
-        host     : '127.0.0.1',
-        port     : '9077',
-        secure   : true,
+        connection: {
+            host     : '127.0.0.1',
+            port     : '9077',
+            path     : 'proxy',
+            secure   : true,
+            allowUntrusted: true
+        },
         authorization: {
             strategy: 1,
             data: {

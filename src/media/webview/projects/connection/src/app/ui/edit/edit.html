@@ -12,15 +12,15 @@
     </div>
 
     <div class="form-control">
-        <label class="label">Object renderer</label>
+        <label class="label">File Renderer</label>
         <div class="control">
-            <select>
+            <select formControlName="fileRendererCtrl">
                 <option *ngFor="let strategy of objectRenderStrategy | enumToOption" [value]="strategy.value"
                     [selected]="strategy.value === objectRenderStrategyCtrl.value">
                     {{strategy.label}}
                 </option>
             </select>
-            <small>In which format data objects should be rendered (for example variables)</small>
+            <small>How should variables or sheets rendererd.</small>
         </div>
     </div>
 
@@ -43,6 +43,14 @@
     </div>
 
     <div class="form-control">
+        <label class="label">Path</label>
+        <div class="control">
+            <input type="text" formControlName="pathCtrl">
+            <small>Path</small>
+        </div>
+    </div>
+
+    <div class="form-control">
         <label class="label">Secure connection</label>
         <div class="control">
             <input type="checkbox" formControlName="secureCtrl">
@@ -58,6 +66,7 @@
         </div>
     </div>
 
+    <h3>Authorization Settings</h3>
     <div class="form-control">
         <label class="label">Authorization Strategy</label>
         <div class="control">
@@ -85,8 +94,8 @@
         <!-- 
             Form Authorization
         -->
-        <vsqlik-connection--form-strategy *ngSwitchDefault>
-        </vsqlik-connection--form-strategy>
+        <vsqlik-wfs--form-strategy *ngSwitchDefault>
+        </vsqlik-wfs--form-strategy>
     </div>
 
 </div>

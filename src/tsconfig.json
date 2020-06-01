@@ -19,11 +19,11 @@
       "@vsqlik/qixfs/entry/*": ["../backup/libs/qixfs/entry/*"],
       "@vsqlik/connection" : ["../backup/core/connection"],
       "@vsqlik/connection/*" : ["../backup/core/connection/utils/*"],
-      "@vsqlik/stepper": ["../backup/libs/stepper"],
+      "@vsqlik/stepper": ["core/stepper"],
       "@vsqlik/authorization/*": ["../backup/core/authorization/*"],
       "@vsqlik/settings/*": ["extension/settings/*"],
       "@shared/*": ["shared/*"],
-      "@vsqlik/workspace/*": ["../backup/libs/workspace/*"],
+      "@vsqlik/workspace/*": ["extension/workspace/*"],
       "@vsqlik/core/*": ["extension/core/*"],
       "@core/*": ["core/*"],
     }

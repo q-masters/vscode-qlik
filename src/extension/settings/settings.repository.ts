@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { singleton } from "tsyringe";
-import { WorkspaceSetting } from "../api";
+import { singleton, inject } from "tsyringe";
+import { WorkspaceSetting } from "./api";
+import { SettingsWorkspaceFolder } from "@data/tokens";
 
 export interface Setting {
     uid: string;
@@ -10,12 +11,16 @@ export interface Setting {
 /**
  * Settings Repository
  */
-@singleton()
+@singleton<SettingsRepository>()
 export class SettingsRepository {
 
     private data: WorkspaceSetting[];
 
     private isArrayStorage = true;
+
+    public constructor(
+        @inject(SettingsWorkspaceFolder) private settingsKey: string
+    ) { }
 
     /**
      * create new setting, automatically adds an id
@@ -111,7 +116,7 @@ export class SettingsRepository {
      */
     private loadData() {
         const configuration = vscode.workspace.getConfiguration();
-        const data = configuration.get(`vsQlik.Connection`);
+        const data = configuration.get(this.settingsKey);
 
         if (data) {
             const settings = !Array.isArray(data) ? (this.isArrayStorage = false, [data]) : data;
@@ -128,7 +133,7 @@ export class SettingsRepository {
     private async writeSettings(): Promise<void> {
         const configuration = vscode.workspace.getConfiguration();
         const data =  this.data.map((setting) => this.cleanUpSetting(setting));
-        await configuration.update(`vsQlik.Connection`, this.isArrayStorage ? data : data[0], true);
+        await configuration.update(this.settingsKey, this.isArrayStorage ? data : data[0], true);
     }
 
     /**

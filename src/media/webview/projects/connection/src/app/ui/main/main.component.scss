@@ -56,13 +56,13 @@
         }
     }
 
-    vsqlik-connection--table-row-edit,
-    vsqlik-connection--table-row {
+    vsqlik-wfs--table-row-edit,
+    vsqlik-wfs--table-row {
         margin-bottom: .5rem;
         display: table-row;
     }
 
-    vsqlik-connection--table-row-edit ::ng-deep {
+    vsqlik-wfs--table-row-edit ::ng-deep {
         
         td:not(.action-col) {
             padding: 0;

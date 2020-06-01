@@ -2,12 +2,12 @@ import { Injectable } from "@angular/core";
 import { VsCodeConnector } from "@vsqlik/core";
 import { Observable, BehaviorSubject, zip } from "rxjs";
 import { take } from "rxjs/operators";
-import { Action, Connection } from "../data/api";
+import { Action, WorkspaceFolderSetting } from "../data/api";
 
 @Injectable({providedIn: "root"})
 export class ConnectionRepository {
 
-    private connection$: BehaviorSubject<Connection[]>;
+    private connection$: BehaviorSubject<WorkspaceFolderSetting[]>;
 
     public constructor(
         private vsCodeConnector: VsCodeConnector,
@@ -15,7 +15,7 @@ export class ConnectionRepository {
         this.connection$ = new BehaviorSubject([]);
     }
 
-    public get connections(): Observable<Connection[]> {
+    public get connections(): Observable<WorkspaceFolderSetting[]> {
         return this.connection$.asObservable();
     }
 
@@ -23,7 +23,7 @@ export class ConnectionRepository {
      * loads all connections
      */
     public read(): void {
-        this.vsCodeConnector.exec<Connection[]>({action: Action.List})
+        this.vsCodeConnector.exec<WorkspaceFolderSetting[]>({action: Action.List})
             .pipe(take(1))
             .subscribe((data) => this.connection$.next(data));
     }
@@ -31,7 +31,7 @@ export class ConnectionRepository {
     /**
      * add a new connection
      */
-    public add(connection: Connection) {
+    public add(connection: WorkspaceFolderSetting) {
         const addCommand = this.vsCodeConnector.exec({action: Action.Create, data: connection});
         zip(this.connection$, addCommand)
             .pipe(take(1))
@@ -41,7 +41,7 @@ export class ConnectionRepository {
     /**
      * delete an existing connection
      */
-    public delete(connection: Connection) {
+    public delete(connection: WorkspaceFolderSetting) {
         const deleteCommand = this.vsCodeConnector.exec({action: Action.Destroy, data: connection});
         zip(this.connection$, deleteCommand)
             .pipe(take(1))
@@ -54,7 +54,7 @@ export class ConnectionRepository {
     /**
      * update an existing connection
      */
-    public update(connection: Connection) {
+    public update(connection: WorkspaceFolderSetting) {
         const updateCommand = this.vsCodeConnector.exec({action: Action.Update, data: connection})
         zip(this.connection$, updateCommand)
             .pipe(take(1))

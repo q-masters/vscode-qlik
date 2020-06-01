@@ -2,11 +2,11 @@ import { Component, OnInit, OnDestroy, EventEmitter, Output } from "@angular/cor
 import { FormBuilder, FormGroup, FormControl } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
-import { AuthorizationStrategy, Connection, ObjectRenderStrategy } from "../../data/api";
+import { AuthorizationStrategy, WorkspaceFolderSetting, FileRenderer } from "../../data/api";
 import { ConnectionFormHelper } from "../../utils";
 
 @Component({
-    selector: "vsqlik-connection--edit",
+    selector: "vsqlik-wfs--edit",
     templateUrl: "./edit.html",
     styleUrls: ["./edit.scss"]
 })
@@ -31,7 +31,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      * enum data objects (like variables) should rendererd in this format
      * (yaml, json, ...)
      */
-    public objectRenderStrategy = ObjectRenderStrategy;
+    public objectRenderStrategy = FileRenderer;
 
     /**
      * form control for render strategy
@@ -42,12 +42,12 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     public cancel: EventEmitter<void>;
 
     @Output()
-    public save: EventEmitter<Connection>;
+    public save: EventEmitter<WorkspaceFolderSetting>;
 
     /**
      * active connection
      */
-    private connection: Connection;
+    private workspaceFolderSetting: WorkspaceFolderSetting;
 
     /**
      * emits true if component gets destroyed
@@ -73,8 +73,8 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
 
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
-            .subscribe((connection: Connection) => {
-                this.connection = connection;
+            .subscribe((setting: WorkspaceFolderSetting) => {
+                this.workspaceFolderSetting = setting;
                 this.reloadFormData();
             });
     }
@@ -96,7 +96,10 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     public doSave() {
         this.connectionFormHelper.save()
             .pipe(takeUntil(this.destroy$))
-            .subscribe((connection) => this.save.emit(connection));
+            .subscribe((connection) => {
+                console.log(connection);
+                this.save.emit(connection)
+            });
     }
 
     /**
@@ -111,9 +114,11 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      */
     private initConnectionForm() {
         this.connectionForm = this.formbuilder.group({
+            fileRendererCtrl: this.formbuilder.control(this.objectRenderStrategy.YAML),
             nameCtrl: this.formbuilder.control(""),
             hostCtrl: this.formbuilder.control(""),
             portCtrl: this.formbuilder.control(null),
+            pathCtrl: this.formbuilder.control(null),
             secureCtrl: this.formbuilder.control(true),
             untrustedCertCtrl: this.formbuilder.control(false)
         });
@@ -129,7 +134,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         this.authorizationStrategyCtrl.valueChanges
             .pipe(takeUntil(this.destroy$))
             .subscribe((value) => {
-                this.connection.authorization.strategy = value;
+                this.workspaceFolderSetting.authorization.strategy = value;
             });
     }
 
@@ -137,12 +142,12 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      * initialize object render strategy control
      */
     private initObjectRenderStrategyCtrl() {
-        this.objectRenderStrategyCtrl = this.formbuilder.control(ObjectRenderStrategy.YAML);
+        this.objectRenderStrategyCtrl = this.formbuilder.control(FileRenderer.YAML);
 
         /** register on value changes to update strategy */
         this.objectRenderStrategyCtrl.valueChanges
             .pipe(takeUntil(this.destroy$))
-            .subscribe((value) => this.connection.objectRenderer = value);
+            .subscribe((value) => this.workspaceFolderSetting.fileRenderer = value);
     }
 
     /**
@@ -151,31 +156,36 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     private reloadFormData() {
         /** update base connection */
         this.connectionForm.patchValue({
-            nameCtrl: this.connection.label,
-            hostCtrl: this.connection.host,
-            portCtrl: this.connection.port,
-            secureCtrl: this.connection.secure,
-            untrustedCertCtrl: this.connection.allowUntrusted
+            fileRendererCtrl: this.workspaceFolderSetting.fileRenderer,
+            nameCtrl: this.workspaceFolderSetting.label,
+            hostCtrl: this.workspaceFolderSetting.connection.host,
+            portCtrl: this.workspaceFolderSetting.connection.port,
+            pathCtrl: this.workspaceFolderSetting.connection.path,
+            secureCtrl: this.workspaceFolderSetting.connection.secure,
+            untrustedCertCtrl: this.workspaceFolderSetting.connection.allowUntrusted
         }, {onlySelf: true, emitEvent: false});
 
         /** update authorization strategy */
-        this.authorizationStrategyCtrl.setValue(this.connection.authorization.strategy, {emitEvent: false});
+        this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.authorization.strategy, {emitEvent: false});
 
         /** update object renderer strategy */
-        this.objectRenderStrategyCtrl.setValue(this.connection.objectRenderer, {emitEvent: false});
+        this.objectRenderStrategyCtrl.setValue(this.workspaceFolderSetting.fileRenderer, {emitEvent: false});
     }
 
     /**
      * form helper want to save the data so we can write them
      */
-    private beforeSaveHook(connection: Connection): Connection {
+    private beforeSaveHook(connection: WorkspaceFolderSetting): WorkspaceFolderSetting {
         return Object.assign({}, connection, {
             label: this.connectionForm.controls.nameCtrl.value,
-            ...{
+            connection: {
                 host: this.connectionForm.controls.hostCtrl.value,
                 port: this.connectionForm.controls.portCtrl.value,
+                path: this.connectionForm.controls.pathCtrl.value,
                 secure: this.connectionForm.controls.secureCtrl.value,
-            }
+                allowUntrusted: this.connectionForm.controls.untrustedCertCtrl.value
+            },
+            fileRenderer: this.connectionForm.controls.fileRendererCtrl.value
         });
     }
 }

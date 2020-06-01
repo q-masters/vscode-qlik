@@ -30,26 +30,26 @@
   },
   "activationEvents": [
     "onFileSystem:qix",
-    "onCommand:VSQlik.Connection.Settings",
-    "onCommand:VSQlik.Connection.Create"
+    "onCommand:VsQlik.Connection.Settings",
+    "onCommand:VsQlik.Connection.Create"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "VSQlik.Connection.Create",
+        "command": "VsQlik.Connection.Create",
         "title": "Connect to Qlik Server",
         "category": "VSQlik"
       },
       {
-        "command": "VSQlik.Connection.Settings",
+        "command": "VsQlik.Connection.Settings",
         "title": "Show Connection Settings",
-        "category": "VSQlik"
+        "category": "VsQlik"
       }
     ],
     "menus": {
       "explorer/context": [
         {
-          "command": "VSQlik.Connection.Create",
+          "command": "VsQlik.Connection.Create",
           "group": "navigation"
         }
       ]
@@ -58,7 +58,7 @@
       {
         "title": "Visual Studio Qlik",
         "properties": {
-          "vsQlik.Connection": {
+          "VsQlikSettings.WorkspaceFolders": {
             "title": "A list of file locations to load SSH FS configurations from",
             "description": "Location of JSON files to load configs from",
             "type": "array",
@@ -66,13 +66,17 @@
             "default": [
               {
                 "label": "Localhost",
-                "settings": {
+                "authorization": {
+                  "strategy": 1
+                },
+                "connection": {
                   "host": "127.0.0.1",
-                  "path": "",
-                  "port": 80,
-                  "secure": false,
+                  "path": null,
+                  "port": null,
+                  "secure": true,
                   "allowUntrusted": false
-                }
+                },
+                "renderer": 1
               }
             ]
           }

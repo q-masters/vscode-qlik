@@ -7,7 +7,7 @@
             Available Connections
         </div>
         <div class="actions">
-            <button class="btn action" (click)="createConnection()">
+            <button class="btn action" (click)="createSetting()">
                 <i class="vsqlik-icon vsqlik-icon--add"></i>
                 <span class="label">Add Connection</span>
             </button>
@@ -25,11 +25,11 @@
             </tr>
         </thead>
         <tbody>
-            <vsqlik-connection--table-row *ngFor="let connection of connections" 
-                [connection]="connection"
-                (edit)="editConnection($event)"
-                (delete)="deleteConnection($event)">
-            </vsqlik-connection--table-row>
+            <vsqlik-wfs--table-row *ngFor="let setting of settings" 
+                [setting]="setting"
+                (edit)="editSetting($event)"
+                (delete)="deleteSetting($event)">
+            </vsqlik-wfs--table-row>
         </tbody>
     </table>
 </ng-template>
@@ -38,8 +38,8 @@
     Section Template: Edit / Create Connection
 -->
 <ng-template #edit>
-    <vsqlik-connection--edit (cancel)="cancelEdit()" (save)="onSave($event)">
-    </vsqlik-connection--edit>
+    <vsqlik-wfs--edit (cancel)="cancelEdit()" (save)="onSave($event)">
+    </vsqlik-wfs--edit>
 </ng-template>
 
 <header class="header">
