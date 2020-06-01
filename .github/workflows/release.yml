@@ -34,3 +34,4 @@ jobs:
         name: 'Release ${{ steps.gitversion.outputs.semVer }}'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
