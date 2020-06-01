@@ -40,7 +40,8 @@ jobs:
       run: |
         npm run vsce:package
         npm run vsce:publish -p ${{ secrets.PUBLISH_TOKEN }}
-
+      continue-on-error: true
+      
     - name: upload logs
       uses: actions/upload-artifact@v2
       with:
