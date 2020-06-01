@@ -5,6 +5,9 @@ import { OpenSettingsCommand } from "@vsqlik/settings/open-settings.command";
 
 import { QixFSProvider, WorkspaceFolderRegistry } from "@vsqlik/workspace/utils";
 import { CreateWorkspaceFolderCommand } from "@vsqlik/workspace/commands";
+import { QixRouter } from "@core/router";
+
+import { Routes } from "./file-system/data/routes";
 
 /**
  * bootstrap extension
@@ -23,13 +26,14 @@ export async function activate(context: vscode.ExtensionContext) {
     /** register workspace folders */
     container.resolve(WorkspaceFolderRegistry).register(vscode.workspace.workspaceFolders || []);
 
+    /** register routes */
+    container.resolve(QixRouter).addRoutes(Routes);
+
+
     const qixFs  = new QixFSProvider();
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
 
     /*
-    QixRouter.addRoutes(routes);
-
-
     vscode.workspace.onDidChangeWorkspaceFolders((event) => {
         WorkspaceFolderManager.addFolder(event.added);
         WorkspaceFolderManager.removeFolder(event.removed);

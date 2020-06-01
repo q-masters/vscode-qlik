@@ -1,16 +1,14 @@
-import * as vscode from "vscode";
-import { singleton } from "tsyringe";
-import { QixFsEntryConstructor, QixFsEntry } from "@core/qixfs";
+import { singleton, container } from "tsyringe";
 
-export interface Route {
+export interface Route<T extends any> {
     path: string;
-    ctrl: QixFsEntryConstructor;
-    children?: Route[];
+    ctrl: ClassConstructor<T>;
+    children?: Route<T>[];
     canActivate?: Array<() => Promise<boolean>>;
 }
 
-export interface QixFsRoute {
-    entry: QixFsEntry,
+export interface ResolvedRoute<T> {
+    control: T,
     params: RouteParam,
 }
 
@@ -18,15 +16,40 @@ export interface RouteParam {
     [param: string] : string;
 }
 
-interface RouteData {
+interface RouteData<T> {
     matcher: RegExp;
     params: string[];
-    control: ControllerFactory;
+    control: ControllerFactory<T>;
     route: string;
 }
 
-interface ControllerFactory {
-    getControl(): QixFsEntry;
+interface ControllerFactory<T> {
+    getControl(): T;
+}
+
+export interface ClassConstructor<T> {
+    new(...args): T;
+}
+
+/**
+ * helper to resolve controller dependencies
+ */
+function resolveControllerDependencies (target, key, descriptor) {
+    if(descriptor === undefined) {
+        descriptor = Object.getOwnPropertyDescriptor(target, key);
+    }
+
+    const originalMethod = descriptor.value;
+
+    //editing the descriptor/value parameter
+    descriptor.value = function (...args) {
+        const params: any[] = Reflect.getMetadata("design:paramtypes", args[0]) || [];
+        const injections = params.map((dep) => container.resolve(dep));
+        return originalMethod.apply(this, [...args, ...injections]);
+    };
+
+    // return edited descriptor as opposed to overwriting the descriptor
+    return descriptor;
 }
 
 /**
@@ -36,27 +59,23 @@ interface ControllerFactory {
  * works as flyweight, routes allways return same instance from a adapter
  */
 @singleton()
-export class QixRouter {
+export class QixRouter<T> {
 
-    private routes: Map<string, RouteData> = new Map();
+    private routes: Map<string, RouteData<T>> = new Map();
 
-    private controls: WeakMap<any, ControllerFactory> = new WeakMap();
+    private controls: WeakMap<any, ControllerFactory<T>> = new WeakMap();
 
     /**
      * find endpoint by given uri
      */
-    public find(uri: vscode.Uri): QixFsRoute | undefined {
-
-        if (uri.scheme !== "qix") {
-            return;
-        }
+    public find(path: string): ResolvedRoute<T> | undefined {
 
         const routes = this.routes.values();
-        let route: RouteData;
+        let route: RouteData<T>;
         let matches: RegExpMatchArray | null = null;
 
         /** loop all routes until all routes are used or we have a matched route */
-        while((route = routes.next().value) && !(matches = uri.path.match(route.matcher)));
+        while((route = routes.next().value) && !(matches = path.match(route.matcher)));
 
         if (route) {
             /** merge param name and value together into one object */
@@ -66,7 +85,7 @@ export class QixRouter {
             );
 
             return {
-                entry: route.control.getControl(),
+                control: route.control.getControl(),
                 params
             };
         }
@@ -75,7 +94,7 @@ export class QixRouter {
     /**
      * add new route
      */
-    public addRoutes(routes: Route[]) {
+    public addRoutes(routes: Route<T>[]) {
         routes.forEach((route) => this.registerRoute(route));
     }
 
@@ -84,8 +103,7 @@ export class QixRouter {
      *
      * @todo check correct behavior route allready registered (maybe show warning)
      */
-    private registerRoute(route: Route) {
-
+    private registerRoute(route: Route<T>) {
         if (!this.controls.has(route.ctrl)) {
             this.controls.set(route.ctrl, this.createControllerFactory(route.ctrl));
         }
@@ -136,12 +154,13 @@ export class QixRouter {
      * controller factory for lazy initialization,
      * also ensures one adapter exists only 1 time.
      */
-    private createControllerFactory(ctrl: QixFsEntryConstructor): ControllerFactory {
+    @resolveControllerDependencies
+    private createControllerFactory(ctrl: ClassConstructor<T>, ...dependencies): ControllerFactory<T> {
         let instance;
         return {
-            getControl: (): QixFsEntry => {
+            getControl: (): T => {
                 if (!instance) {
-                    instance = new ctrl();
+                    instance = new ctrl(...dependencies);
                 }
                 return instance;
             }

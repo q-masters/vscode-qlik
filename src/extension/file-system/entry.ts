@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
-import { WorkspaceFolderManager } from "../utils";
-import { RouteParam } from "../backup/core/router/router";
-import { EnigmaSession } from "../backup/core/connection/utils/enigma-session";
+import { EnigmaSession } from "@core/connection";
+import { WorkspaceFolderRegistry } from "../workspace";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;
@@ -20,8 +19,12 @@ export abstract class QixFsEntry {
 
     public isTemporary = false;
 
-    protected getConnection(uri: vscode.Uri): Promise<EnigmaSession> {
-        const workspaceFolder = WorkspaceFolderManager.resolveWorkspaceFolder(uri);
+    public constructor(
+        private workspaceFolderRegistry: WorkspaceFolderRegistry
+    ) { }
+
+    protected getConnection(uri: vscode.Uri): EnigmaSession {
+        const workspaceFolder = this.workspaceFolderRegistry.resolveByUri(uri);
         if (workspaceFolder) {
             return workspaceFolder.connection;
         }
