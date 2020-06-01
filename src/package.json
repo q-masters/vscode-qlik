@@ -21,7 +21,8 @@
     "vscode:prepublish": "npm run build",
     "lint:extension": "node bin/eslint-reporter './extension/**/*.ts'",
     "lint:webview": "npm run lint --prefix ./media/webview",
-    "vsce:publish": "./node_modules/.bin/vsce publish"
+    "vsce:publish": "./node_modules/.bin/vsce publish",
+    "vsce:package": "./node_modules/.bin/vsce package"
   },
   "engines": {
     "vscode": "1.45.1"
