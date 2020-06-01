@@ -22,6 +22,11 @@ jobs:
       id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.3
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
     - name: npm install & set Version
       working-directory: src
       run: |
