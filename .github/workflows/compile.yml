@@ -1,17 +1,17 @@
-name: Node.js check compile
+name: compile
 
 on:
   push:
     branches: [ master, development ]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/compile.yml'
 
   pull_request:
     branches: [ master, development ]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/compile.yml'
 
 jobs:
   build:
