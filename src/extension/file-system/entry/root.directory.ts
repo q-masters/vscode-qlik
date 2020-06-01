@@ -9,7 +9,7 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter{
 
     public constructor(
         workspaceFolderRegistry: WorkspaceFolderRegistry,
-        @inject(QixDocumentProvider) private documentProvider: QixDocumentProvider
+        @inject(QixDocumentProvider) private documentProvider: QixDocumentProvider,
     ) {
         super(workspaceFolderRegistry);
     }
@@ -23,7 +23,13 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter{
         };
     }
 
-    public readDirectory() {
-        return [];
+    public async readDirectory(uri: vscode.Uri) {
+
+        const connection = await this.getConnection(uri);
+        const documents  = await this.documentProvider.list(connection);
+
+        return documents.map<[string, vscode.FileType]>((doc) => [
+            `${doc.qDocName}\n${doc.qDocId}`, vscode.FileType.Directory
+        ]);
     }
 }

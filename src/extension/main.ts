@@ -29,7 +29,6 @@ export async function activate(context: vscode.ExtensionContext) {
     /** register routes */
     container.resolve(QixRouter).addRoutes(Routes);
 
-
     const qixFs  = new QixFSProvider();
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
 

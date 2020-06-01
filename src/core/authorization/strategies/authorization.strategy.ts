@@ -1,7 +1,9 @@
 import { ConnectionSetting } from "@core/connection";
 
 export interface AuthorizationStrategyConstructor {
-    new(connection: ConnectionSetting): AuthorizationStrategy;
+    new(
+        connection: ConnectionSetting,
+    ): AuthorizationStrategy;
 }
 
 export interface AuthorizationResult {

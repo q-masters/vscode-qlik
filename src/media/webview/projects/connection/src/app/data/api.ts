@@ -61,12 +61,20 @@ export interface ConnectionSetting {
     allowUntrusted: boolean;
 
     path?: string;
+
+    /**
+     * authorization
+     */
+    authorization: {
+        strategy: AuthorizationStrategy,
+        data: FormAuthorizationData | CertificateAuthorizationData | unknown
+    }
 }
 
 export interface WorkspaceFolderSetting {
 
     /**
-     * 
+     *
      */
     label: string;
 
@@ -79,14 +87,6 @@ export interface WorkspaceFolderSetting {
      * how should files rendered (yaml, json, ...)
      */
     fileRenderer: FileRenderer,
-
-    /**
-     * authorization
-     */
-    authorization: {
-        strategy: AuthorizationStrategy,
-        data: FormAuthorizationData | CertificateAuthorizationData | unknown
-    }
 
     /** */
     uid?: string;

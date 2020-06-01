@@ -40,8 +40,8 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
 
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
-            .subscribe((connection: WorkspaceFolderSetting) => {
-                this.strategyData = connection.authorization.data as FormStrategyData;
+            .subscribe((setting: WorkspaceFolderSetting) => {
+                this.strategyData = setting.connection.authorization.data as FormStrategyData;
                 this.reloadData();
             });
 
@@ -70,15 +70,15 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
      */
     private createPatch(settings: WorkspaceFolderSetting): WorkspaceFolderSetting {
 
-        return Object.assign(settings, {
-            authorization: {
-                strategy: AuthorizationStrategy.FORM,
-                data: {
-                    domain: this.domainCtrl.value,
-                    password: this.passwordCtrl.value,
-                }
+        settings.connection.authorization = {
+            strategy: AuthorizationStrategy.FORM,
+            data: {
+                domain: this.domainCtrl.value,
+                password: this.passwordCtrl.value,
             }
-        });
+        };
+
+        return settings;
     }
 
     /**

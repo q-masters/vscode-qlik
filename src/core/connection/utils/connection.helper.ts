@@ -2,7 +2,7 @@ import { buildUrl } from "enigma.js/sense-utilities";
 import { create } from "enigma.js";
 import schema from "enigma.js/schemas/12.20.0.json";
 import WebSocket from "ws";
-import { ConnectionSetting } from "../api";
+import { ConnectionSetting, ConnectionData } from "../api";
 
 export abstract class ConnectionHelper {
 
@@ -43,18 +43,18 @@ export abstract class ConnectionHelper {
     /**
      * create a new websocket connection with a given connection
      */
-    public static createWebsocket(url: string, connection: ConnectionSetting): WebSocket
+    public static createWebsocket(url: string, data: ConnectionData): WebSocket
     {
         const headers = {
             Cookie: ""
         };
 
-        connection.cookies.forEach(cookie => {
+        data.cookies.forEach(cookie => {
             headers.Cookie = headers.Cookie.concat(`${cookie.name}=${cookie.value.toString()};`);
         });
 
         return new WebSocket(url, {
-            rejectUnauthorized: !connection.allowUntrusted,
+            rejectUnauthorized: !data.allowUntrusted,
             headers
         });
     }
@@ -62,8 +62,10 @@ export abstract class ConnectionHelper {
     /**
      * create a new enigma session
      */
-    public static createSession(connection: ConnectionSetting, id?): enigmaJS.ISession
-    {
+    public static createSession(
+        connection: ConnectionData,
+        id?: string
+    ): enigmaJS.ISession {
         const wsUrl = this.buildWebsocketUrl(connection, id);
         return create({
             schema,

@@ -1,6 +1,13 @@
 import * as vscode from "vscode";
+import { container } from "tsyringe";
+import { AuthStrategy } from "@core/authorization/api";
+import { AuthorizationService } from "@core/authorization/utils/authorization.service";
+import { AuthorizationStrategyConstructor } from "@core/authorization/strategies/authorization.strategy";
 import { EnigmaSession } from "@core/connection";
+import { RouteParam } from "@core/router";
 import { WorkspaceFolderRegistry } from "../workspace";
+import { ExtensionContext } from "@data/tokens";
+import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;
@@ -19,19 +26,54 @@ export abstract class QixFsEntry {
 
     public isTemporary = false;
 
-    public constructor(
-        private workspaceFolderRegistry: WorkspaceFolderRegistry
-    ) { }
+    private authService: AuthorizationService;
 
-    protected getConnection(uri: vscode.Uri): EnigmaSession {
+    private extensionContext: vscode.ExtensionContext;
+
+    public constructor(
+        protected workspaceFolderRegistry: WorkspaceFolderRegistry
+    ) {
+        this.authService      = container.resolve(AuthorizationService);
+        this.extensionContext = container.resolve(ExtensionContext);
+    }
+
+    /**
+     * delete a file or directory
+     */
+    abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
+
+    /**
+     * rename a file / directory
+     */
+    abstract rename(uri: vscode.Uri, name: string, params?: RouteParam): Promise<void> | void;
+
+    /**
+     * get file / directory stats
+     */
+    abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
+
+    protected async getConnection(uri: vscode.Uri): Promise<EnigmaSession> {
         const workspaceFolder = this.workspaceFolderRegistry.resolveByUri(uri);
+
+        /**
+         * if we are not connected to server enable connection
+         */
         if (workspaceFolder) {
+
+            if (!workspaceFolder.isConnected) {
+                await this.establishConnection(workspaceFolder);
+            }
+
             return workspaceFolder.connection;
         }
 
         throw new Error("not found");
     }
 
+    /**
+     * open an existing app
+     * @todo move to enigma session provider ?
+     */
     protected async openApp(workspaceUri: vscode.Uri, id: string): Promise<EngineAPI.IApp | undefined> {
         const connection = await this.getConnection(workspaceUri);
         const session    = await connection.open(id);
@@ -45,11 +87,43 @@ export abstract class QixFsEntry {
         return app.split(/\n/)[1];
     }
 
-    abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
+    /**
+     * if we are not connected to server currently
+     * we have to do this now
+     */
+    private async establishConnection(folder: WorkspaceFolder): Promise<void> {
 
-    abstract rename(uri: vscode.Uri, name: string, params?: RouteParam): Promise<void> | void;
+        const settings = folder.settings.connection;
+        let strategyConstructor;
 
-    abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
+        switch (settings.authorization.strategy) {
+            case AuthStrategy.FORM:
+                strategyConstructor = await (await import("../authorization/form-strategy")).default as AuthorizationStrategyConstructor;
+                break;
+
+            case AuthStrategy.CERTIFICATE:
+                break;
+
+            case AuthStrategy.CUSTOM:
+                break;
+        }
+
+        try {
+            const result = await this.authService.authorize(new strategyConstructor(settings));
+
+            if (result.success) {
+                folder.isConnected = true;
+                folder.connection = new EnigmaSession({
+                    ...settings,
+                    cookies: result.cookies,
+                });
+            }
+
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }
 
 /**

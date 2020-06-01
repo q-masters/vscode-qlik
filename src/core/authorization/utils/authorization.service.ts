@@ -1,12 +1,8 @@
-import { AuthorizationStrategy, AuthorizationStrategyConstructor, AuthorizationResult } from "../strategies/authorization.strategy";
-import { ConnectionSetting } from "@core/connection/api";
+import { AuthorizationStrategy, AuthorizationResult } from "../strategies/authorization.strategy";
+import { singleton } from "tsyringe";
 
+@singleton()
 export class AuthorizationService {
-
-    /**
-     * instance of Authorization Service
-     */
-    private static instance: AuthorizationService = new AuthorizationService();
 
     /**
      * all authorization processes runs into an queue
@@ -18,38 +14,23 @@ export class AuthorizationService {
      */
     private authorizationProcessIsRunning: boolean;
 
-    private constructor() {
-        if (AuthorizationService.instance) {
-            throw new Error("Use AuthorizationService.getInstance instead");
-        }
-
+    public constructor() {
         this.authorizationQueueItems = new Map();
         this.authorizationProcessIsRunning = false;
     }
 
     /**
-     * get instance of authorization service
-     */
-    public static getInstance() {
-        return this.instance;
-    }
-
-    /**
      * run authorization strategy in queue
      */
-    public async authorize(connection: ConnectionSetting): Promise<ConnectionSetting> {
+    public async authorize(strategy: AuthorizationStrategy): Promise<AuthorizationResult> {
 
-        const Strategy = await this.resolveStrategy();
-        const instance = new Strategy(connection);
+        console.dir(strategy);
 
         return new Promise((resolve) => {
-            this.authorizationQueueItems.set(instance, (result: AuthorizationResult) => {
+            this.authorizationQueueItems.set(strategy, (result: AuthorizationResult) => {
                 resolve({
-                    ...connection,
-                    ...{
-                        authorized: result.success,
-                        cookies: result.cookies
-                    }
+                    success: result.success,
+                    cookies: result.cookies
                 });
             });
 
@@ -57,24 +38,6 @@ export class AuthorizationService {
                 this.runAuthorization();
             }
         });
-    }
-
-    /**
-     * resolve correct strategy
-     */
-    private async resolveStrategy(): Promise<AuthorizationStrategyConstructor> {
-        /*
-        let resolvedStrat: unknown;
-        switch (strategy) {
-            case AuthStrategy.CERTIFICATE: {
-                break;
-            }
-            default: {
-            }
-        }
-        */
-        const resolvedStrat = await (await import("../strategies/form-authorization.strategy")).default;
-        return resolvedStrat as AuthorizationStrategyConstructor;
     }
 
     /**

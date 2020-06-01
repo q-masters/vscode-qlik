@@ -13,9 +13,9 @@ export interface FormAuthorizationData extends AuthorizationData {
     password: string;
 }
 
-export interface AuthorizationSetting {
+export interface AuthorizationSetting<T> {
 
     strategy: AuthStrategy;
 
-    data: FormAuthorizationData | unknown;
+    data: T;
 }

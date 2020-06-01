@@ -1,10 +1,7 @@
+import { AuthorizationSetting } from "@core/authorization/api";
+
 /** connection settings */
 export interface ConnectionSetting {
-
-    /**
-     * session cookies
-     */
-    cookies: Array<{[key: string]: string}>;
 
     /**
      * host name
@@ -31,4 +28,13 @@ export interface ConnectionSetting {
      * for self signed certificates
      */
     allowUntrusted: boolean;
+
+    /**
+     * authorization settings
+     */
+    authorization: AuthorizationSetting<any>;
+}
+
+export interface ConnectionData extends ConnectionSetting {
+    cookies: any[];
 }

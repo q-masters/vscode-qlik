@@ -13,12 +13,15 @@ export class WorkspaceFolder {
         this.folderSettings = setting;
     }
 
-    public set isConnectect(connected: boolean) {
+    public set isConnected(connected: boolean) {
         this.connected = connected;
     }
 
     public get isConnected(): boolean {
         return this.connected;
+    }
+
+    public set settings(setting: WorkspaceSetting) {
     }
 
     public get settings(): WorkspaceSetting {

@@ -9,14 +9,14 @@ const config = {
     entry: {
         "extension": [
             './node_modules/reflect-metadata/Reflect.js',
-            './core/public.api',
             './extension/main.ts'
-        ],
+        ]
     },
     output: {
         path: path.resolve(process.cwd(), 'dist'),
         libraryTarget: 'commonjs2',
-        devtoolModuleFilenameTemplate: '../[resource-path]'
+        devtoolModuleFilenameTemplate: '../[resource-path]',
+        chunkFilename: "[name].chunk.js"
     },
     devtool: 'source-map',
     externals: {

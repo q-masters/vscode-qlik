@@ -3,7 +3,6 @@ import { posix } from "path";
 import { container } from "tsyringe";
 import { QixRouter } from "@core/router";
 import { WorkspaceFolderRegistry } from "../workspace/utils/registry";
-import { QixFsDirectory, QixFsFile } from "./entry";
 
 // der brauch ne Map -> URI -> Connection
 

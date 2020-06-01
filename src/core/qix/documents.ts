@@ -7,10 +7,10 @@ export class QixDocumentProvider {
     /**
      * read all qlik documents (apps) from enigma session
      */
-    public async list(connection: EnigmaSession): Promise<any> {
+    public async list(connection: EnigmaSession): Promise<EngineAPI.IDocListEntry[]> {
         try {
-            const session    = await connection.open();
-            const docList: EngineAPI.IDocListEntry[] = await session?.getDocList() as any ?? [];
+            const session = await connection.open();
+            const docList = await session?.getDocList() as unknown as EngineAPI.IDocListEntry[] ?? [];
             return docList;
         } catch (error) {
             console.error(error);

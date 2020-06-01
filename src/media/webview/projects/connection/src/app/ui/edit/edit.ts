@@ -134,7 +134,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         this.authorizationStrategyCtrl.valueChanges
             .pipe(takeUntil(this.destroy$))
             .subscribe((value) => {
-                this.workspaceFolderSetting.authorization.strategy = value;
+                this.workspaceFolderSetting.connection.authorization.strategy = value;
             });
     }
 
@@ -166,7 +166,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         }, {onlySelf: true, emitEvent: false});
 
         /** update authorization strategy */
-        this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.authorization.strategy, {emitEvent: false});
+        this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.connection.authorization.strategy, {emitEvent: false});
 
         /** update object renderer strategy */
         this.objectRenderStrategyCtrl.setValue(this.workspaceFolderSetting.fileRenderer, {emitEvent: false});

@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 import { ConnectionHelper } from "./connection.helper";
-import { ConnectionSetting } from "../api";
+import { ConnectionData } from "../api";
 
 /**
  * Services to create, cache and handle enigma session
@@ -40,7 +40,7 @@ export class EnigmaSession {
      * Creates an instance of EnigmaSession.
      */
     public constructor(
-        private connection: ConnectionSetting
+        private connection: ConnectionData
     ) {
         this.activeStack     = new Array();
         this.connectionQueue = new Map();

@@ -66,19 +66,19 @@ export class ConnectionFormHelper {
      */
     public createEmptyConnection(): WorkspaceFolderSetting {
         return {
-            authorization: {
-                strategy: AuthorizationStrategy.FORM,
-                data: {
-                    domain: null,
-                    password: null
-                }
-            },
             connection: {
                 allowUntrusted: false,
                 host: "localhost",
                 secure: true,
                 path: null,
-                port: null
+                port: null,
+                authorization: {
+                    strategy: AuthorizationStrategy.FORM,
+                    data: {
+                        domain: null,
+                        password: null
+                    }
+                },
             },
             fileRenderer: FileRenderer.YAML,
             label: "New Connection"

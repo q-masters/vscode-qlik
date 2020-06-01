@@ -2,6 +2,7 @@ import request from "request";
 import { Response } from "request";
 import { AuthorizationStrategy, AuthorizationResult } from "./authorization.strategy";
 import { ConnectionHelper } from "@core/connection";
+import { AuthorizationSetting } from "../api";
 
 interface Credentials {
     domain: string;
@@ -11,15 +12,17 @@ interface Credentials {
 /**
  * login to qlik with form strategy
  */
-export class FormAuthorizationStrategy extends AuthorizationStrategy {
+abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
 
-    public async run(domain: string, password: string): Promise<AuthorizationResult>
+    public async run(): Promise<AuthorizationResult>
     {
         const response: AuthorizationResult = {
             success: false,
             cookies: [],
             error: ""
         };
+
+        const {domain, password} = await this.resolveCredentials(this.connection.authorization);
 
         try {
             const formUri     = await this.initializeLoginProcess();
@@ -36,6 +39,8 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
         return response;
     }
+
+    protected abstract resolveCredentials(settings: AuthorizationSetting<any>): Promise<{domain: string; password: string;}>;
 
     /**
      * initialize login process by call server directly
@@ -127,32 +132,3 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
 }
 
 export default FormAuthorizationStrategy;
-
-
-/**
- * show input fields
- *
-private async resolveLoginCredentials() {
-    const authData = this.connection.authorization.data as FormAuthorizationData;
-
-    const stepper  = new Stepper(this.title);
-    stepper.addStep(this.createStep(authData.domain, "domain\\username"));
-    stepper.addStep(this.createStep(authData.password, "password", true));
-
-    const [domain, password] = await stepper.run<string>();
-
-    if (!domain || !password) {
-        throw new Error("could not resolve credentials");
-    }
-
-    return { domain, password };
-}
-
-private createStep(value: string | undefined, placeholder = "", password = false): IStep {
-    /*
-    if (!value || value.trim() === "") {
-        return new InputStep(placeholder, this.connection.host, password);
-    }
-    return new ResolvedStep(value);
-}
-*/
