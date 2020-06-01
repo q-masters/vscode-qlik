@@ -30,6 +30,7 @@ jobs:
         npm version ${{ steps.gitversion.outputs.semVer }}
 
     - name: Package Publish
+      working-directory: src
       run: |
         npm run vsce:package
         npm run vsce:publish -p ${{ secrets.PUBLISH_TOKEN }}
