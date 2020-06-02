@@ -15,19 +15,19 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
-      "@data/*": ["extension/core/data/*"],
+      "@data/*": ["projects/extension/data/*"],
       "@vsqlik/enigma" : ["../backup/enigma"],
-      "@vsqlik/stepper": ["core/stepper"],
-      "@vsqlik/settings/*": ["extension/settings/*"],
-      "@shared/*": ["shared/*"],
-      "@vsqlik/workspace/*": ["extension/workspace/*"],
-      "@vsqlik/core/*": ["extension/core/*"],
-      "@core/*": ["core/*"],
+      "@vsqlik/stepper": ["projects/shared/stepper"],
+      "@vsqlik/settings/*": ["projects/extension/settings/*"],
+      "@shared/*": ["projects/shared/*"],
+      "@vsqlik/workspace/*": ["projects/extension/workspace/*"],
+      "@vsqlik/core/*": ["projects/extension/libs/*"],
+      "@core/*": ["projects/shared/*"],
     }
   },
   "exclude": [
     "node_modules",
-    "media/webview",
+    "projects/media/webview",
     "../backup"
   ]
 }
