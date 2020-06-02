@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 import { QixDocumentProvider } from "projects/shared/qix/documents";
-import { QixFsDirectoryAdapter } from "./entry";
+import { QixFsDirectoryAdapter } from "../data/entry";
 import { WorkspaceFolderRegistry } from "projects/extension/workspace/utils";
 
 @injectable()

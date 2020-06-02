@@ -10,7 +10,6 @@ export class VsQlikFormAuthorizationStrategy extends FormAuthorizationStrategy {
     protected async resolveCredentials(
         settings: AuthorizationSetting<FormAuthorizationData>
     ): Promise<{ domain: string; password: string; }> {
-        console.log("komm ich auch hier an ?");
         const stepper  = new Stepper("Login");
         stepper.addStep(this.createStep(settings.data.domain, "domain\\username"));
         stepper.addStep(this.createStep(settings.data.password, "password", true));
