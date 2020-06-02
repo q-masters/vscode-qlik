@@ -2,14 +2,14 @@ name: Code quality
 
 on:
   push:
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/lint.yml'
 
   pull_request:
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/lint.yml'
 
 jobs:
   lint:

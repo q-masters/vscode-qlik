@@ -21,9 +21,10 @@
     "vscode:prepublish": "npm run build",
     "lint:extension": "node bin/eslint-reporter './projects/extension/**/*.ts'",
     "lint:webview": "npm run lint --prefix ./projects/media/webview",
-    "vsce:publish": "./node_modules/.bin/vsce publish",
     "test": "mocha --reporter spec -r ts-node/register  -r tsconfig-paths/register ./test/**/*.spec.ts",
-    "test:watch": "npm test -- --watch --watch-files test --watch-files extension --watch-files core"
+    "test:watch": "npm test -- --watch --watch-files test --watch-files extension --watch-files core",
+    "vsce:publish": "./node_modules/.bin/vsce publish",
+    "vsce:package": "./node_modules/.bin/vsce package"
   },
   "engines": {
     "vscode": "1.45.1"

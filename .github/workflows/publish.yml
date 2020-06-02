@@ -1,0 +1,53 @@
+name: Publish
+
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  publish:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.3
+      with:
+         versionSpec: '5.3.x'
+
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Use GitVersion
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: npm install & set Version
+      working-directory: src
+      run: |
+        npm install
+        npm config set git-tag-version false
+        npm version ${{ steps.gitversion.outputs.semVer }}
+
+    - name: Package Publish
+      working-directory: src
+      run: |
+        ./node_modules/.bin/vsce package
+        ./node_modules/.bin/vsce publish -p ${{ secrets.PUBLISH_TOKEN }}
+      continue-on-error: true
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: '${{ github.event.release.upload_url }}' 
+        asset_path: ./src/vscode-qlik-${{ steps.gitversion.outputs.semVer }}.vsix
+        asset_name: vscode-qlik-${{ steps.gitversion.outputs.semVer }}.vsix
+        asset_content_type: application/zip
