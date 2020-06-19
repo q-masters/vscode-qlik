@@ -1,15 +1,15 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 import { QixFsDirectoryAdapter } from "../data/entry";
-import { WorkspaceFolderRegistry } from "projects/extension/workspace/utils";
+import { FileSystemHelper } from "../utils/file-system.helper";
 
 @injectable()
 export class ScriptDirectory extends QixFsDirectoryAdapter{
 
     public constructor(
-        @inject(WorkspaceFolderRegistry) workspaceFolderRegistry: WorkspaceFolderRegistry
+        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
     ) {
-        super(workspaceFolderRegistry);
+        super();
     }
 
     public stat(): vscode.FileStat | Thenable<vscode.FileStat> {
@@ -23,5 +23,12 @@ export class ScriptDirectory extends QixFsDirectoryAdapter{
 
     public async readDirectory() {
         return [["main.qvs", vscode.FileType.File]];
+    }
+
+    public async delete(uri: vscode.Uri, name: string, params: any): Promise<void> {
+        if (!this.fileSystemHelper.isTemporaryFileEntry(uri)) {
+            return super.delete(uri, name, params);
+        }
+        this.fileSystemHelper.unregisterTemporaryFile(uri);
     }
 }

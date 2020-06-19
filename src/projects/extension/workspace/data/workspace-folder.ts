@@ -1,6 +1,8 @@
 import { WorkspaceSetting } from "projects/extension/settings/api";
 import { EnigmaSession } from "projects/shared/connection";
 
+export declare type ApplicationStorage = Map<string, string>;
+
 export class WorkspaceFolder {
 
     private folderSettings: WorkspaceSetting;
@@ -26,13 +28,5 @@ export class WorkspaceFolder {
 
     public get settings(): WorkspaceSetting {
         return this.folderSettings;
-    }
-
-    public get connection(): EnigmaSession {
-        return this.enigmaSession;
-    }
-
-    public set connection(session: EnigmaSession) {
-        this.enigmaSession = session;
     }
 }

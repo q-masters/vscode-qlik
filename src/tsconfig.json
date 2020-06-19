@@ -18,11 +18,15 @@
       "@data/*": ["projects/extension/data/*"],
       "@vsqlik/enigma" : ["../backup/enigma"],
       "@vsqlik/stepper": ["projects/shared/stepper"],
-      "@vsqlik/settings/*": ["projects/extension/settings/*"],
+
+      "@core/*": ["projects/shared/*"],
       "@shared/*": ["projects/shared/*"],
+
       "@vsqlik/workspace/*": ["projects/extension/workspace/*"],
       "@vsqlik/core/*": ["projects/extension/libs/*"],
-      "@core/*": ["projects/shared/*"],
+      "@vsqlik/settings/*": ["projects/extension/settings/*"],
+      "@vsqlik/utils/*": ["projects/extension/utils/*"],
+      "@vsqlik/fs/*": ["projects/extension/file-system/*"],
     }
   },
   "exclude": [

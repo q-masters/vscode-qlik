@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { posix } from "path";
 import { container } from "tsyringe";
 import { QixRouter } from "projects/shared/router";
-import { WorkspaceFolderRegistry } from "../workspace/utils/registry";
+import { setTimeout } from "timers";
 
 // der brauch ne Map -> URI -> Connection
 
@@ -24,8 +24,6 @@ export class QixFSProvider implements vscode.FileSystemProvider {
 
     private router: QixRouter<any>;
 
-    private workspaceRegistry: WorkspaceFolderRegistry;
-
     /**
      * construct new Qix file system
      */
@@ -33,9 +31,8 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         this.emitter           = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
         this.onDidChangeFile   = this.emitter.event;
         this.router            = container.resolve<QixRouter<any>>(QixRouter);
-        this.workspaceRegistry = container.resolve(WorkspaceFolderRegistry);
 
-        // this.qixRouter.addInterceptor(ParamInterceptor);
+        this.registerCommands();
     }
 
     watch(): vscode.Disposable {
@@ -46,13 +43,9 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * return file or directory stats
      */
     stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
-
-        // const workspace = this.workspaceRegistry.resolveByUri(uri);
-
         /** find entry */
         const route = this.router.find(uri.path);
         if(route?.control) {
-            // const stats = route.control.stat(uri, route.params);
             return route.control.stat(uri, route.params);
         }
         throw vscode.FileSystemError.FileNotFound();
@@ -101,8 +94,14 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      */
     async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
         const route = this.router.find(uri.path);
+
         if (route?.control.type === vscode.FileType.File) {
-            return (route.control as any).writeFile(uri, content, route.params);
+            await (route.control as any).writeFile(uri, content, route.params);
+            this.emitter.fire([
+                { type: vscode.FileChangeType.Created, uri },
+                { type: vscode.FileChangeType.Changed, uri }
+            ]);
+            return;
         }
         throw vscode.FileSystemError.FileNotFound();
     }
@@ -117,17 +116,36 @@ export class QixFSProvider implements vscode.FileSystemProvider {
 
         const route = this.router.find(parentUri.path);
         if (route?.control.type === vscode.FileType.Directory) {
-            return await (route.control as any).delete(uri, name, route.params);
-        }
+            await (route.control as any).delete(uri, name, route.params);
 
+            const dirname = uri.with({ path: posix.dirname(uri.path) });
+            setTimeout(() => {
+                this.emitter.fire([
+                    { type: vscode.FileChangeType.Changed, uri: dirname },
+                    { uri, type: vscode.FileChangeType.Deleted }
+                ]);
+            }, 10);
+
+            return;
+        }
         throw vscode.FileSystemError.FileNotADirectory();
     }
 
+    /**
+     *
+     */
     rename(oldUri: vscode.Uri, newUri: vscode.Uri): void | Thenable<void> {
         const route = this.router.find(oldUri.path);
-        if (route?.control.type === vscode.FileType.File) {
-            return (route.control as any).rename(oldUri, posix.basename(newUri.path), route.params);
+        if (route) {
+            return (route.control as any).rename(oldUri, newUri, route.params);
         }
         throw vscode.FileSystemError.FileNotFound();
+    }
+
+    /**
+     * register internal commands
+     */
+    private registerCommands() {
+        vscode.commands.registerCommand("vsqlik.qixfs.delete", (uri: vscode.Uri) => this.delete(uri));
     }
 }

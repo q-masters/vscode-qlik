@@ -23,9 +23,6 @@ export class AuthorizationService {
      * run authorization strategy in queue
      */
     public async authorize(strategy: AuthorizationStrategy): Promise<AuthorizationResult> {
-
-        console.dir(strategy);
-
         return new Promise((resolve) => {
             this.authorizationQueueItems.set(strategy, (result: AuthorizationResult) => {
                 resolve({

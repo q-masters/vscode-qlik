@@ -90,21 +90,6 @@ export class EnigmaSession {
         }
     }
 
-    public async isApp(appid: string): Promise<boolean> {
-        const global = await this.open();
-
-        if (global) {
-            try {
-                const doc = await global.openDoc(appid);
-                doc.session.close();
-                return true;
-            } catch (errorr) {
-                return false;
-            }
-        }
-        return false;
-    }
-
     /**
      * activate session if not allready in active stack
      */
@@ -140,7 +125,9 @@ export class EnigmaSession {
         const session = await this.openSession(id);
 
         if (session) {
-            session.on("closed", () => this.removeSessionFromCache(id));
+            if (id !== EnigmaSession.GLOBAL_SESSION_KEY) {
+                session.on("closed", () => this.removeSessionFromCache(id));
+            }
             this.sessionCache.set(id, session);
             this.activeStack.push(id);
             this.connectionQueue.delete(id);

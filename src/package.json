@@ -11,7 +11,7 @@
     "watch": "npm run build -- -watch -p ./",
     "prebuild": "npm run clear && npm run copyhtml",
     "build": "npm run webpack",
-    "webpack": "webpack --config ./bin/webpack.conf.js --mode production",
+    "webpack": "webpack --config ./bin/webpack.conf.js --mode development",
     "postinstall": "npm i --prefix ./projects/media/webview",
     "postbuild": "npm run webview:build",
     "webview:build": "npm run build --prefix ./projects/media/webview -- --prod",
@@ -27,7 +27,7 @@
     "vsce:package": "./node_modules/.bin/vsce package"
   },
   "engines": {
-    "vscode": "1.45.1"
+    "vscode": "^1.45.1"
   },
   "activationEvents": [
     "onFileSystem:qix",
@@ -39,7 +39,7 @@
       {
         "command": "VsQlik.Connection.Create",
         "title": "Connect to Qlik Server",
-        "category": "VSQlik"
+        "category": "VsQlik"
       },
       {
         "command": "VsQlik.Connection.Settings",
@@ -47,14 +47,6 @@
         "category": "VsQlik"
       }
     ],
-    "menus": {
-      "explorer/context": [
-        {
-          "command": "VsQlik.Connection.Create",
-          "group": "navigation"
-        }
-      ]
-    },
     "configuration": [
       {
         "title": "Visual Studio Qlik",
@@ -129,6 +121,7 @@
   },
   "dependencies": {
     "enigma.js": "2.7.1",
+    "lodash": "^4.17.15",
     "object-hash": "2.0.3",
     "reflect-metadata": "^0.1.13",
     "request": "2.88.2",

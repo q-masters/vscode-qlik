@@ -53,10 +53,11 @@ export abstract class ConnectionHelper {
             headers.Cookie = headers.Cookie.concat(`${cookie.name}=${cookie.value.toString()};`);
         });
 
-        return new WebSocket(url, {
+        const ws = new WebSocket(url, {
             rejectUnauthorized: !data.allowUntrusted,
             headers
         });
+        return ws;
     }
 
     /**
@@ -70,7 +71,7 @@ export abstract class ConnectionHelper {
         return create({
             schema,
             url: wsUrl,
-            createSocket: (url) => this.createWebsocket(url, connection)
+            createSocket: (url) => this.createWebsocket(url, connection),
         });
     }
 }

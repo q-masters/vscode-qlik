@@ -20,7 +20,8 @@ export class SettingsRepository {
 
     public constructor(
         @inject(SettingsWorkspaceFolder) private settingsKey: string
-    ) { }
+    ) {
+    }
 
     /**
      * create new setting, automatically adds an id

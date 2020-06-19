@@ -3,6 +3,7 @@ import { ConnectionSetting } from "projects/shared/connection";
 export interface AuthorizationStrategyConstructor {
     new(
         connection: ConnectionSetting,
+        loginUrl: string
     ): AuthorizationStrategy;
 }
 

@@ -1,17 +1,19 @@
 import * as vscode from "vscode";
-import { QixFsDirectoryAdapter } from "../data/entry";
-import { RouteParam } from "@shared/router/router";
-import { ApplicationService } from "@shared/qix/application";
-import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils/registry";
 import { inject } from "tsyringe";
+import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
+import { CacheRegistry } from "@shared/utils/cache-registry";
+import { QixFsDirectoryAdapter } from "../data/entry";
+import { FileSystemHelper } from "../utils/file-system.helper";
+import { ApplicationCache } from "../data/cache";
 
 export class ApplicationDirectory extends QixFsDirectoryAdapter {
 
     public constructor(
-        @inject(ApplicationService) private appService: ApplicationService,
-        workspaceFolderRegistry: WorkspaceFolderRegistry
+        @inject(QixApplicationProvider) private appService: QixApplicationProvider,
+        @inject(CacheRegistry) private fileCache: CacheRegistry,
+        @inject(FileSystemHelper) private fsHelper: FileSystemHelper,
     ) {
-        super(workspaceFolderRegistry);
+        super();
     }
 
     /**
@@ -28,30 +30,38 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
     /**
      * get current stats of application
      */
-    async stat(uri: vscode.Uri, params: RouteParam | undefined): Promise<vscode.FileStat> {
+    async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
 
-        const app = params?.app.split(/\n/)[1];
+        const exists = this.fileCache.exists(ApplicationCache, uri.toString());
 
-        if (!app) {
+        if (!exists) {
             throw vscode.FileSystemError.FileNotFound();
         }
 
-        const connection = await this.getConnection(uri);
-        const isApp      = await this.appService.exists(connection, app);
-
-        if (isApp) {
-            return {
-                ctime: Date.now(),
-                mtime: Date.now(),
-                size: 10,
-                type: vscode.FileType.Directory
-            };
-        }
-
-        throw vscode.FileSystemError.FileNotFound();
+        return {
+            ctime: Date.now(),
+            mtime: Date.now(),
+            size: 10,
+            type: vscode.FileType.Directory
+        };
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
+    async rename(uri: vscode.Uri, newUri: vscode.Uri): Promise<void> {
+
+        /*
+        const workspace = this.fsHelper.resolveWorkspace(uri);
+        const app_id    = this.fsHelper.resolveAppId(uri);
+
+        try {
+            if (connection && app_id) {
+                await this.appService.renameApp(connection, app_id, posix.basename(newUri.path));
+                this.fileCache.add(ApplicationCache, newUri.toString(), app_id);
+                this.fileCache.delete(ApplicationCache, uri.toString());
+            }
+        } catch (error) {
+            console.error(error);
+        }
+        */
     }
 }

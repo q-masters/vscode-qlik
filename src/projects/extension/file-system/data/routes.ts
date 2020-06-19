@@ -4,6 +4,8 @@ import { QixFsRootDirectory } from "../entry/root.directory";
 import { ApplicationDirectory } from "../entry/application.directory";
 import { ScriptDirectory } from "../entry/script.directory";
 import { ScriptFile } from "../entry/script.file";
+import { VariableDirectory } from "../entry/variable.directory";
+import { VariableFile } from "../entry/variable.file";
 
 export const Routes: Route<QixFsEntry>[] = [{
     path: "",
@@ -15,6 +17,12 @@ export const Routes: Route<QixFsEntry>[] = [{
     path: ":app/script",
     ctrl: ScriptDirectory
 }, {
-    path: ":app/script/main.qvs",
+    path: ":app/script/:file",
     ctrl: ScriptFile
+}, {
+    path: ":app/variables",
+    ctrl: VariableDirectory
+}, {
+    path: ":app/variables/:name",
+    ctrl: VariableFile
 }];

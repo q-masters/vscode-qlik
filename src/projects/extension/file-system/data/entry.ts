@@ -1,13 +1,9 @@
 import * as vscode from "vscode";
 import { container } from "tsyringe";
-import { AuthStrategy } from "projects/shared/authorization/api";
-import { AuthorizationService } from "projects/shared/authorization/utils/authorization.service";
-import { AuthorizationStrategyConstructor } from "projects/shared/authorization/strategies/authorization.strategy";
 import { EnigmaSession } from "projects/shared/connection";
 import { RouteParam } from "projects/shared/router";
-import { WorkspaceFolderRegistry } from "../../workspace";
-import { ExtensionContext } from "projects/extension/data/tokens";
-import { WorkspaceFolder } from "projects/extension/workspace/data/workspace-folder";
+import { AuthorizationHelper } from "projects/extension/authorization/authorization.helper";
+import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;
@@ -26,15 +22,13 @@ export abstract class QixFsEntry {
 
     public isTemporary = false;
 
-    private authService: AuthorizationService;
+    private authService: AuthorizationHelper;
 
-    private extensionContext: vscode.ExtensionContext;
+    private workspaceFolderRegistry: WorkspaceFolderRegistry;
 
-    public constructor(
-        protected workspaceFolderRegistry: WorkspaceFolderRegistry
-    ) {
-        this.authService      = container.resolve(AuthorizationService);
-        this.extensionContext = container.resolve(ExtensionContext);
+    public constructor() {
+        this.authService             = container.resolve(AuthorizationHelper);
+        this.workspaceFolderRegistry = container.resolve(WorkspaceFolderRegistry);
     }
 
     /**
@@ -45,39 +39,32 @@ export abstract class QixFsEntry {
     /**
      * rename a file / directory
      */
-    abstract rename(uri: vscode.Uri, name: string, params?: RouteParam): Promise<void> | void;
+    abstract rename(uri: vscode.Uri, newUri: vscode.Uri, params?: RouteParam): Promise<void> | void;
 
     /**
      * get file / directory stats
      */
     abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
 
-    protected async getConnection(uri: vscode.Uri): Promise<EnigmaSession> {
+    protected async getConnection(uri: vscode.Uri): Promise<EnigmaSession | undefined> {
         const workspaceFolder = this.workspaceFolderRegistry.resolveByUri(uri);
-
-        /**
-         * if we are not connected to server enable connection
-         */
         if (workspaceFolder) {
-
-            if (!workspaceFolder.isConnected) {
-                await this.establishConnection(workspaceFolder);
-            }
-
-            return workspaceFolder.connection;
+            return await this.authService.authenticate(workspaceFolder);
         }
-
-        throw new Error("not found");
     }
 
     /**
      * open an existing app
      * @todo move to enigma session provider ?
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected async openApp(workspaceUri: vscode.Uri, id: string): Promise<EngineAPI.IApp | undefined> {
+        /*
         const connection = await this.getConnection(workspaceUri);
         const session    = await connection.open(id);
         return session?.openDoc(id);
+        */
+        return void 0;
     }
 
     /**
@@ -85,44 +72,6 @@ export abstract class QixFsEntry {
      */
     protected extractAppId(app: string): string {
         return app.split(/\n/)[1];
-    }
-
-    /**
-     * if we are not connected to server currently
-     * we have to do this now
-     */
-    private async establishConnection(folder: WorkspaceFolder): Promise<void> {
-
-        const settings = folder.settings.connection;
-        let strategyConstructor;
-
-        switch (settings.authorization.strategy) {
-            case AuthStrategy.FORM:
-                strategyConstructor = await (await import("../../authorization/form-strategy")).default as AuthorizationStrategyConstructor;
-                break;
-
-            case AuthStrategy.CERTIFICATE:
-                break;
-
-            case AuthStrategy.CUSTOM:
-                break;
-        }
-
-        try {
-            const result = await this.authService.authorize(new strategyConstructor(settings));
-
-            if (result.success) {
-                folder.isConnected = true;
-                folder.connection = new EnigmaSession({
-                    ...settings,
-                    cookies: result.cookies,
-                });
-            }
-
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
     }
 }
 
@@ -178,7 +127,7 @@ export class QixFsFileAdapter extends QixFsFile {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
+    rename(uri: vscode.Uri, name: vscode.Uri, params?: RouteParam | undefined): void | Promise<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
@@ -211,7 +160,7 @@ export class QixFsDirectoryAdapter extends QixFsDirectory {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    rename(uri: vscode.Uri, name: string, params?: RouteParam | undefined): void | Promise<void> {
+    rename(uri: vscode.Uri, newUri: vscode.Uri, params?: RouteParam | undefined): void | Promise<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
