@@ -52,7 +52,10 @@ export class AuthorizationHelper {
 
         if (result.isLoggedIn) {
             /** update cache */
-            this.updateCache(workspaceFolder.settings.label, {cookies: result?.cookies ?? []});
+            this.updateCache(
+                this.createKey(workspaceFolder.settings.connection),
+                {cookies: result?.cookies ?? []}
+            );
 
             /** create / save connection */
             const connection = new EnigmaSession({...workspaceFolder.settings.connection, cookies: result?.cookies ?? []});
@@ -68,22 +71,44 @@ export class AuthorizationHelper {
      */
     private async resolveAuthenticationState(settings: WorkspaceSetting): Promise<AuthorizationResult>
     {
-        const data = this.resolveCache(settings.label);
+        const data = this.resolveCache(this.createKey(settings.connection));
         const cookies = data?.cookies ?? [];
 
         return new Promise((resolve) => {
             const session = ConnectionHelper.createSession({...settings.connection, cookies});
             session.on("traffic:received", (response) => {
                 if (response.method === "OnAuthenticationInformation") {
+                    /**
+                     * remove all listeners so we dont have a memory leak
+                     * method exists but not in typings so cast this one to any
+                     */
+                    (session as any).removeAllListeners();
                     session.close();
 
-                    response.params.mustAuthenticate
-                        ? resolve({isLoggedIn: false, loginUrl: response.params.loginUri})
-                        : resolve({isLoggedIn: true, cookies });
+                    if (response.params.mustAuthenticate) {
+                        this.deleteFromCache(this.createKey(settings.connection));
+                        resolve({isLoggedIn: false, loginUrl: response.params.loginUri});
+                    } else {
+                        resolve({isLoggedIn: true, cookies });
+                    }
                 }
             });
             session.open();
         });
+    }
+
+    /**
+     * create key for the cache this would be a combination
+     * from host name, path and port since a connection could
+     * be placed under multiple names and is not really unique
+     */
+    private createKey(settings: ConnectionSetting): string
+    {
+        return "".concat(
+            settings.host,
+            settings.path ?? "",
+            settings.port?.toString() ?? ""
+        );
     }
 
     /**
@@ -102,8 +127,19 @@ export class AuthorizationHelper {
     {
         const data = this.resolveCache();
         data[key] = data[key] ? patch : {...data[key] ?? {}, ...patch};
-
         writeFileSync(this.storage, JSON.stringify(data) + EOL, {encoding: "utf-8", flag: "w"});
+    }
+
+    /**
+     * delete from cache
+     */
+    private deleteFromCache(key: string) {
+        const data = this.resolveCache();
+
+        if (data[key]) {
+            delete data[key];
+            writeFileSync(this.storage, JSON.stringify(data) + EOL, {encoding: "utf-8", flag: "w"});
+        }
     }
 
     /**
