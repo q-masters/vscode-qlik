@@ -1,16 +1,19 @@
 import * as vscode from "vscode";
 import { posix } from "path";
-import { singleton, injectable, inject } from "tsyringe";
+import { singleton, inject } from "tsyringe";
 import { transform, isEqual, isObject } from 'lodash';
+import YAML from "yaml";
+
+import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
+import { ApplicationCache } from "../data/cache";
+
+import { FileRenderer } from "@vsqlik/settings/api";
 import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils/registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
-import { CacheRegistry, CacheToken } from "@core/utils/cache-registry";
-import { ApplicationCache } from "../data/cache";
 
 const TEMPORARY_FILES = new CacheToken("temporary files");
 
 @singleton()
-@injectable()
 export class FileSystemHelper {
 
     public constructor(
@@ -86,5 +89,41 @@ export class FileSystemHelper {
                 result[key] = isObject(value) && isObject(target[key]) ? this.getJsonDiff(value, target[key]) : value;
             }
         });
+    }
+
+    /**
+     * create file uri
+     *
+     * @param {vscode.Uri} uri the uri to the directory
+     * @param {string} name of the file
+     */
+    public createFileUri(uri: vscode.Uri, name: string): vscode.Uri {
+        const setting   = this.resolveWorkspace(uri)?.settings;
+        const prefix    = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
+        return uri.with({path: posix.resolve(uri.path, `${name}.${prefix}`)});
+    }
+
+    /**
+     * render file content in specific format like YAML or JSON
+     */
+    public renderFile(uri: vscode.Uri, source: Object): Uint8Array {
+        const setting = this.resolveWorkspace(uri)?.settings;
+        const content = setting?.fileRenderer === FileRenderer.YAML
+            ? YAML.stringify(source, {indent: 2})
+            : JSON.stringify(source, null, 4);
+
+        return Buffer.from(content);
+    }
+
+    /**
+     * convert file content back to json format
+     */
+    public fileToJson(uri: vscode.Uri, source: Uint8Array): Object {
+        const setting = this.resolveWorkspace(uri)?.settings;
+        const content = setting?.fileRenderer === FileRenderer.YAML
+            ? YAML.parse(source.toString())
+            : JSON.parse(source.toString());
+
+        return content;
     }
 }

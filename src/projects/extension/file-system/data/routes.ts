@@ -6,6 +6,8 @@ import { ScriptDirectory } from "../entry/script.directory";
 import { ScriptFile } from "../entry/script.file";
 import { VariableDirectory } from "../entry/variable.directory";
 import { VariableFile } from "../entry/variable.file";
+import { SheetDirectory } from "../entry/sheet-directory";
+import { SheetFile } from "../entry/sheet-file";
 
 export const Routes: Route<QixFsEntry>[] = [{
     path: "",
@@ -25,4 +27,10 @@ export const Routes: Route<QixFsEntry>[] = [{
 }, {
     path: ":app/variables/:name",
     ctrl: VariableFile
+}, {
+    path: ":app/sheets",
+    ctrl: SheetDirectory
+}, {
+    path: ":app/sheets/:sheet",
+    ctrl: SheetFile
 }];

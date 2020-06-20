@@ -34,6 +34,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
         const connection = await this.getConnection(uri);
 
         if (connection && app) {
+
             const workspace = this.fileSystemHelper.resolveWorkspace(uri);
             const variables = await this.variableProvider.list(connection, app);
             const setting   = workspace?.settings;

@@ -37,34 +37,22 @@ export class VariableFile extends QixFsFileAdapter {
     /**
      * read variable
      */
-    public async readFile(uri: vscode.Uri, params: RouteParam): Promise<Uint8Array> {
+    public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
 
-        const workspace = this.fileSystemHelper.resolveWorkspace(uri);
         const app_id     = this.fileSystemHelper.resolveAppId(uri);
-
-        const settings   = workspace?.settings;
         const connection = await this.getConnection(uri);
 
-        if (!connection || !app_id) {
-            return Buffer.from("Error");
-        }
-
-        const variable = await this.variableProvider.readVariable(connection, app_id, this.sanitizeName(params.name));
-
-        if (variable) {
-            const properties = await variable.getProperties();
+        if (connection && app_id) {
+            const varName = this.fileSystemHelper.resolveFileName(uri);
+            const variable = await this.variableProvider.readVariable(connection, app_id, varName);
+            const properties = await variable?.getProperties();
             const data  = {
                 qDefinition: properties?.qDefinition ?? "",
                 qComment: properties?.qComment ?? "",
                 qNumberPresentation: properties?.qNumberPresentation,
                 qIncludeInBookmark: properties?.qIncludeInBookmark ?? false
             };
-
-            return Buffer.from(
-                settings?.fileRenderer === FileRenderer.YAML
-                    ? YAML.stringify(data, {indent: 4})
-                    : JSON.stringify(data, null, 4)
-            );
+            return this.fileSystemHelper.renderFile(uri, data);
         }
 
         return Buffer.from("Error");
@@ -73,7 +61,6 @@ export class VariableFile extends QixFsFileAdapter {
     /**
      * rename an existing variable
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async rename(uri: vscode.Uri, newUri: vscode.Uri): Promise<void> {
 
         const connection = await this.getConnection(uri);
@@ -84,9 +71,10 @@ export class VariableFile extends QixFsFileAdapter {
 
         if (app_id && connection) {
             const patch = {qName: newName};
+            const variable_id = this.fileCache.resolve(VariableCache, uri.toString()) as string;
+
             await this.variableProvider.updateVariable(connection, app_id, oldName, patch as any);
 
-            const variable_id = this.fileCache.resolve(VariableCache, uri.toString()) as string;
             this.fileCache.delete(VariableCache, uri.toString());
             this.fileCache.add(VariableCache, newUri.toString(), variable_id);
         }
@@ -123,7 +111,7 @@ export class VariableFile extends QixFsFileAdapter {
 
         /** ist das eine neue variable oder existiert sie bereits ? */
         this.fileCache.exists(VariableCache, uri.toString())
-            ? await this.updateVariable(uri, content, params)
+            ? await this.updateVariable(uri, content)
             : await this.createVariable(uri, content, params);
     }
 
@@ -163,9 +151,10 @@ export class VariableFile extends QixFsFileAdapter {
 
     /**
      * updates an existing variable, gets the diff of old value and new value
-     * to create a patch on the variable
+     * to create a patch on the variabl
      */
-    private async updateVariable(uri: vscode.Uri, content: Uint8Array, params: RouteParam) {
+    private async updateVariable(uri: vscode.Uri, content: Uint8Array) {
+
         const workspace = this.fileSystemHelper.resolveWorkspace(uri);
         const app_id    = this.fileSystemHelper.resolveAppId(uri);
         const name      = this.fileSystemHelper.resolveFileName(uri);
@@ -177,7 +166,7 @@ export class VariableFile extends QixFsFileAdapter {
             throw new Error("could not write variable, not connected or app not exists");
         }
 
-        const source   = (await this.readFile(uri, params)).toString();
+        const source   = (await this.readFile(uri)).toString();
         const target   = content.toString();
 
         const oldValue = settings?.fileRenderer === FileRenderer.YAML ? YAML.parse(source) : JSON.parse(source);
