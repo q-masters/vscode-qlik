@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { singleton, inject } from "tsyringe";
 import { WorkspaceSetting } from "./api";
-import { SettingsWorkspaceFolder } from "projects/extension/data/tokens";
+import { VsQlikServerSettings } from "projects/extension/data/tokens";
 
 export interface Setting {
     uid: string;
@@ -19,7 +19,7 @@ export class SettingsRepository {
     private isArrayStorage = true;
 
     public constructor(
-        @inject(SettingsWorkspaceFolder) private settingsKey: string
+        @inject(VsQlikServerSettings) private settingsKey: string
     ) {}
 
     /**
