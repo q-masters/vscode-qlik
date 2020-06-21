@@ -8,6 +8,7 @@ import { FileRenderer } from "@vsqlik/settings/api";
 import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils/registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
+import { posix } from "path";
 
 const TEMPORARY_FILES = new CacheToken("temporary files");
 
@@ -157,20 +158,22 @@ export class FileSystemHelper {
      */
     public renameDirectory(source: vscode.Uri, target: vscode.Uri) {
         const workspaceFolder = this.resolveWorkspace(source);
+        const sourceUri       = source.toString();
 
         if (workspaceFolder) {
 
             const entries = this.cacheRegistry.getKeys(workspaceFolder) ?? [];
+
             /** resolve relative path between both */
             for (const filePath of entries) {
 
-                if (!filePath.startsWith(source.toString())) {
+                if (!filePath.startsWith(sourceUri)) {
                     continue;
                 }
 
-                const relativePath = path.relative(source.path, target.path);
-                const newEntryUri  = target.with({path: `${target.path}/${relativePath}`});
-                const oldEntryUri  = source.with({path: `${source.path}/${relativePath}`});
+                const relativePath = filePath.substr(sourceUri.length).replace(/^\//, '');
+                const newEntryUri  = target.with({path: posix.resolve(target.path, relativePath)});
+                const oldEntryUri  = source.with({path: posix.resolve(source.path, relativePath)});
                 const entryData    = this.cacheRegistry.resolve(workspaceFolder, oldEntryUri.toString());
 
                 this.cacheRegistry.delete(workspaceFolder, oldEntryUri.toString());
