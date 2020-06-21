@@ -8,23 +8,30 @@
     "rootDir": "./",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "typeRoots": ["node_modules/@types", "./types"],
+    "typeRoots": [
+      "node_modules/@types",
+      "./types"
+    ],
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "paths": {
-      "@data/*": ["./extension/data/*"],
-      "@utils" : ["./extension/utils"],
-      "@lib/enigma" : ["extension/libs/enigma"],
-      "@lib/qixfs": ["extension/libs/qixfs"],
-      "@lib/qixfs/entry/*": ["extension/libs/qixfs/src/entry/*"],
-      "@lib/settings" : ["extension/libs/settings"],
-      "@lib/connection" : ["extension/libs/connection"],
-      "@lib/connection/*" : ["extension/libs/connection/utils/*"],
-      "@lib/stepper": ["extension/libs/stepper"],
-      "@shared/*": ["shared/*"]
+      "@data/*": ["projects/extension/data/*"],
+      "@vsqlik/enigma" : ["../backup/enigma"],
+      "@vsqlik/stepper": ["projects/shared/stepper"],
+
+      "@core/*": ["projects/shared/*"],
+      "@shared/*": ["projects/shared/*"],
+
+      "@vsqlik/workspace/*": ["projects/extension/workspace/*"],
+      "@vsqlik/core/*": ["projects/extension/libs/*"],
+      "@vsqlik/settings/*": ["projects/extension/settings/*"],
+      "@vsqlik/utils/*": ["projects/extension/utils/*"],
+      "@vsqlik/fs/*": ["projects/extension/file-system/*"],
     }
   },
   "exclude": [
     "node_modules",
-    "media/webview"
+    "projects/media/webview",
+    "../backup"
   ]
 }

@@ -1,0 +1,6 @@
+<ul class="tab-list">
+
+  <li class="tab" *ngFor="let tab of tabs" (click)="switchTo(tab.name)" [ngClass]="{'active': isCurrent(tab.name) }" >
+    <span>{{tab.name}}</span>
+  </li>
+</ul>
