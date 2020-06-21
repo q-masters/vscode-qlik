@@ -51,7 +51,12 @@
       {
         "title": "Visual Studio Qlik",
         "properties": {
-          "VsQlikSettings.WorkspaceFolders": {
+          "VsQlik.Developer": {
+            "title": "Settings for develop vsqlik extension",
+            "description": "vscode developer settings",
+            "type": "object"
+          },
+          "VsQlik.Servers": {
             "title": "A list of file locations to load SSH FS configurations from",
             "description": "Location of JSON files to load configs from",
             "type": "array",

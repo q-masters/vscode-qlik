@@ -1,13 +1,11 @@
 import { singleton, inject } from "tsyringe";
-import { existsSync, writeFileSync, statSync, readFileSync, mkdirSync } from "fs";
-import * as path from "path";
-import { EOL } from "os";
 import { ExtensionContext } from "vscode";
 import { AuthorizationService, AuthStrategy, AuthorizationStrategyConstructor } from "@shared/authorization";
 import { ConnectionSetting, EnigmaSession, ConnectionHelper } from "@shared/connection";
+import { FileStorage, MemoryStorage, Storage } from "@shared/storage";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
-import { ExtensionContext as ExtensionContextToken } from "@data/tokens";
+import { ExtensionContext as ExtensionContextToken, VsQlikDevSettings } from "@data/tokens";
 
 interface AuthorizationResult {
     isLoggedIn: boolean;
@@ -20,11 +18,17 @@ export class AuthorizationHelper {
 
     private connections: WeakMap<WorkspaceFolder, EnigmaSession>;
 
+    private storage: Storage;
+
     public constructor(
         @inject(AuthorizationService) private authService: AuthorizationService,
-        @inject(ExtensionContextToken) private extensionContext: ExtensionContext
+        @inject(ExtensionContextToken) private extensionContext: ExtensionContext,
+        @inject(VsQlikDevSettings) devSettings: any
     ) {
         this.connections = new WeakMap();
+        this.storage =  devSettings.cacheSession
+            ? new FileStorage(this.extensionContext.globalStoragePath, "auth.json")
+            : new MemoryStorage();
     }
 
     /**
@@ -52,7 +56,7 @@ export class AuthorizationHelper {
 
         if (result.isLoggedIn) {
             /** update cache */
-            this.updateCache(
+            this.storage.write(
                 this.createKey(workspaceFolder.settings.connection),
                 {cookies: result?.cookies ?? []}
             );
@@ -71,7 +75,7 @@ export class AuthorizationHelper {
      */
     private async resolveAuthenticationState(settings: WorkspaceSetting): Promise<AuthorizationResult>
     {
-        const data = this.resolveCache(this.createKey(settings.connection));
+        const data = this.storage.read(this.createKey(settings.connection));
         const cookies = data?.cookies ?? [];
 
         return new Promise((resolve) => {
@@ -86,7 +90,7 @@ export class AuthorizationHelper {
                     session.close();
 
                     if (response.params.mustAuthenticate) {
-                        this.deleteFromCache(this.createKey(settings.connection));
+                        this.storage.delete(this.createKey(settings.connection));
                         resolve({isLoggedIn: false, loginUrl: response.params.loginUri});
                     } else {
                         resolve({isLoggedIn: true, cookies });
@@ -112,56 +116,6 @@ export class AuthorizationHelper {
     }
 
     /**
-     * get cached data
-     */
-    private resolveCache(key?: string): any
-    {
-        const data = JSON.parse(readFileSync(this.storage).toString());
-        return key ? data[key] : data;
-    }
-
-    /**
-     * update cached data
-     */
-    private updateCache(key: string, patch: any)
-    {
-        const data = this.resolveCache();
-        data[key] = data[key] ? patch : {...data[key] ?? {}, ...patch};
-        writeFileSync(this.storage, JSON.stringify(data) + EOL, {encoding: "utf-8", flag: "w"});
-    }
-
-    /**
-     * delete from cache
-     */
-    private deleteFromCache(key: string) {
-        const data = this.resolveCache();
-
-        if (data[key]) {
-            delete data[key];
-            writeFileSync(this.storage, JSON.stringify(data) + EOL, {encoding: "utf-8", flag: "w"});
-        }
-    }
-
-    /**
-     * get local storage file and create required directory and file if not exists
-     */
-    private get storage(): string
-    {
-        const storagePath = this.extensionContext.globalStoragePath;
-        const file = path.resolve(storagePath, 'auth.json');
-
-        if (!existsSync(storagePath)) {
-            mkdirSync(storagePath);
-        }
-
-        if(!existsSync(file) || !statSync(file).isFile) {
-            writeFileSync(file, JSON.stringify({}) + EOL, {encoding: "utf-8",  flag: "w"});
-        }
-
-        return file;
-    }
-
-    /**
      * authorize vs given authorization strategy
      */
     private async authorize(settings: ConnectionSetting, loginUrl: string): Promise<AuthorizationResult>
@@ -182,7 +136,6 @@ export class AuthorizationHelper {
     private async resolveAuthorizationStrategy(strategy: AuthStrategy): Promise<AuthorizationStrategyConstructor|undefined>
     {
         let strategyConstructor;
-
         switch (strategy) {
             case AuthStrategy.FORM:
                 strategyConstructor = await (await import("./form-strategy")).default as AuthorizationStrategyConstructor;
@@ -194,7 +147,6 @@ export class AuthorizationHelper {
             case AuthStrategy.CUSTOM:
                 break;
         }
-
         return strategyConstructor;
     }
 }

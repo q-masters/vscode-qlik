@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import * as vscode from "vscode";
 import { container } from "tsyringe";
-import { ExtensionContext, SettingsWorkspaceFolder } from "projects/extension/data/tokens";
+import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings } from "projects/extension/data/tokens";
 import { QixRouter } from "@shared/router";
 
 import { OpenSettingsCommand } from "@vsqlik/settings/open-settings.command";
@@ -16,7 +16,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
     /** register global environment variables */
     container.register(ExtensionContext, {useValue: context});
-    container.register(SettingsWorkspaceFolder, {useValue: "VsQlikSettings.WorkspaceFolders"});
+    container.register(VsQlikServerSettings, {useValue: "VsQlik.Servers"});
+    container.register(VsQlikDevSettings, {
+        useFactory: () => vscode.workspace.getConfiguration().get('VsQlik.Developer')
+    });
 
     /** register commands */
     vscode.commands.registerCommand('VsQlik.Connection.Create'  , CreateWorkspaceFolderCommand);
