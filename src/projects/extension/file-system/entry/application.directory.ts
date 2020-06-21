@@ -1,17 +1,18 @@
 import * as vscode from "vscode";
 import { inject } from "tsyringe";
+import { posix } from "path";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
 import { CacheRegistry } from "@shared/utils/cache-registry";
-import { QixFsDirectoryAdapter } from "../data/entry";
+import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { FileSystemHelper } from "../utils/file-system.helper";
-import { ApplicationCache } from "../data/cache";
+import { QixFsDirectoryAdapter } from "./qixfs-entry";
 
 export class ApplicationDirectory extends QixFsDirectoryAdapter {
 
     public constructor(
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
-        @inject(CacheRegistry) private fileCache: CacheRegistry,
         @inject(FileSystemHelper) private fsHelper: FileSystemHelper,
+        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<WorkspaceFolder>
     ) {
         super();
     }
@@ -31,8 +32,19 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
      * get current stats of application
      */
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
-
-        const exists = this.fileCache.exists(ApplicationCache, uri.toString());
+        /**
+         * check application exists, we take this value from cache
+         * so we dont need to call the qix engine for that since this
+         * would be called very often (rename 3x, open 1x, ...)
+         *
+         * for example rename a application will trigger this 3 times:
+         *
+         * 1. 1st call folder we want to rename exists
+         * 2. 2nd call new folder name dont exists
+         * 3. do the rename
+         * 4. 3rd call rename was successfully and exists now
+         */
+        const exists = this.fsHelper.exists(uri);
 
         if (!exists) {
             throw vscode.FileSystemError.FileNotFound();
@@ -46,22 +58,23 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
         };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    /**
+     * rename appliction
+     */
     async rename(uri: vscode.Uri, newUri: vscode.Uri): Promise<void> {
 
-        /*
-        const workspace = this.fsHelper.resolveWorkspace(uri);
-        const app_id    = this.fsHelper.resolveAppId(uri);
-
         try {
-            if (connection && app_id) {
+            const connection = await this.getConnection(uri);
+            const app_id     = this.fsHelper.resolveAppId(uri);
+            const workspace  = this.fsHelper.resolveWorkspace(uri);
+
+            if (connection && app_id && workspace) {
                 await this.appService.renameApp(connection, app_id, posix.basename(newUri.path));
-                this.fileCache.add(ApplicationCache, newUri.toString(), app_id);
-                this.fileCache.delete(ApplicationCache, uri.toString());
+                this.fsHelper.renameDirectory(uri, newUri);
             }
+
         } catch (error) {
             console.error(error);
         }
-        */
     }
 }

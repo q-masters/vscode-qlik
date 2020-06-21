@@ -82,7 +82,7 @@ export class QixApplicationProvider {
 
         /** get global and delete app */
         const session = await connection.open(id);
-        const app     = await session?.openDoc(id, void 0, void 0, void 0, true);
+        const app     = await session?.openDoc(id);
 
         const properties = await app?.getAppProperties();
         const newProperties = {...properties, qTitle: name} as EngineAPI.INxAppProperties;

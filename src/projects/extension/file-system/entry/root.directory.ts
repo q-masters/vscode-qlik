@@ -1,13 +1,11 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
 import { CacheRegistry } from "@shared/utils/cache-registry";
+import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 
-import { QixFsDirectoryAdapter } from "../data/entry";
-import { ApplicationCache } from "../data/cache";
+import { QixFsDirectoryAdapter } from "./qixfs-entry";
 import { FileSystemHelper } from "../utils/file-system.helper";
-import path from "path";
 
 declare type CreateAppResult = {
     qSuccess: boolean;
@@ -20,7 +18,7 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
     public constructor(
         @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
         @inject(QixApplicationProvider) private applicationProvider: QixApplicationProvider,
-        @inject(CacheRegistry) private cacheRegistry: CacheRegistry,
+        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<WorkspaceFolder>,
     ) {
         super();
     }
@@ -51,8 +49,9 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
     public async readDirectory(uri: vscode.Uri) {
 
         const connection = await this.getConnection(uri);
+        const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
 
-        if (!connection) {
+        if (!connection || !workspace) {
             return [];
         }
 
@@ -75,16 +74,10 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
 
             for (let j = 0, appLn = entries.length; j < appLn; j++) {
                 const appName = entries.length > 1 ? `${name}\n${entries[j].qDocId}` : name;
-                const appPath = path.resolve(uri.path, appName);
-
-                /** write apps to cache */
-                this.cacheRegistry.add(
-                    ApplicationCache,
-                    uri.with({ path: appPath }).toString(),
-                    entries[j].qDocId
-                );
-
                 result.push([appName, vscode.FileType.Directory]);
+
+                const appUri  = this.fileSystemHelper.createDirectoryUri(uri, appName);
+                this.cacheRegistry.add(workspace, appUri.toString(), entries[j].qDocId);
             }
         }
 
@@ -97,13 +90,14 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async createDirectory(uri: vscode.Uri, name: string): Promise<void> {
         const connection = await this.getConnection(uri);
+        const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
 
-        if (connection) {
+        if (connection && workspace) {
             const result     = await this.applicationProvider.createApp(connection, name) as CreateAppResult;
             if (!result.qSuccess) {
                 throw new Error(`could not create app ${name}`);
             }
-            this.cacheRegistry.add(ApplicationCache, uri.toString(), result.qAppId);
+            this.cacheRegistry.add(workspace, uri.toString(), result.qAppId);
         }
     }
 
@@ -112,17 +106,16 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
      */
     public async delete(uri: vscode.Uri): Promise<void> {
         const connection = await this.getConnection(uri);
+        const app_id     = this.fileSystemHelper.resolveAppId(uri);
 
         if (connection) {
-            const app_id = this.cacheRegistry.resolve<string>(ApplicationCache, uri.toString());
-
             if (!app_id) {
                 throw vscode.FileSystemError.FileNotFound();
             }
 
             await connection.close(app_id);
             await this.applicationProvider.deleteApp(connection, app_id);
-            this.cacheRegistry.delete(ApplicationCache, uri.toString());
+            this.fileSystemHelper.deleteDirectory(uri);
         }
     }
 }

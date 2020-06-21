@@ -4,13 +4,6 @@ import { container } from "tsyringe";
 import { QixRouter } from "projects/shared/router";
 import { setTimeout } from "timers";
 
-// der brauch ne Map -> URI -> Connection
-
-/** should use enum for this ? */
-export namespace QixFsCommands {
-    export const DELETE_FILE_COMMAND = `vscodeQlik.qixfs.deleteFileCommand`;
-}
-
 /**
  * Qix File System
  *
@@ -132,13 +125,24 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     }
 
     /**
+     * rename or move a file, this is bascicly the same for vscode
      *
+     * if source directory === target directory we only renamed a file or directory
+     * otherwise we have to do a move operation
      */
     rename(oldUri: vscode.Uri, newUri: vscode.Uri): void | Thenable<void> {
+
         const route = this.router.find(oldUri.path);
         if (route) {
-            return (route.control as any).rename(oldUri, newUri, route.params);
+
+            const source = posix.parse(oldUri.toString()).dir;
+            const target = posix.parse(newUri.toString()).dir;
+
+            return source !== target
+                ? (route.control as any).move(oldUri, newUri, route.params)
+                : (route.control as any).rename(oldUri, newUri, route.params);
         }
+
         throw vscode.FileSystemError.FileNotFound();
     }
 

@@ -52,27 +52,6 @@ export abstract class QixFsEntry {
             return await this.authService.authenticate(workspaceFolder);
         }
     }
-
-    /**
-     * open an existing app
-     * @todo move to enigma session provider ?
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected async openApp(workspaceUri: vscode.Uri, id: string): Promise<EngineAPI.IApp | undefined> {
-        /*
-        const connection = await this.getConnection(workspaceUri);
-        const session    = await connection.open(id);
-        return session?.openDoc(id);
-        */
-        return void 0;
-    }
-
-    /**
-     * extract app id from file path
-     */
-    protected extractAppId(app: string): string {
-        return app.split(/\n/)[1];
-    }
 }
 
 /**
@@ -117,7 +96,7 @@ export class QixFsFileAdapter extends QixFsFile {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    writeFile(uri: vscode.Uri, content: Uint8Array, params: RouteParam): void | Thenable<void> {
+    writeFile(uri: vscode.Uri, content: Uint8Array, params?: RouteParam): void | Thenable<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 

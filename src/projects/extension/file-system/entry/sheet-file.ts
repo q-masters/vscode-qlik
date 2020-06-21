@@ -1,19 +1,17 @@
 import * as vscode from "vscode";
 import { inject } from "tsyringe";
-
 import { QixSheetProvider } from "@shared/qix/utils/sheet.provider";
 import { CacheRegistry } from "@shared/utils/cache-registry";
-
-import { QixFsFileAdapter } from "../data/entry";
+import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { FileSystemHelper } from "../utils/file-system.helper";
-import { SheetCache } from "../data/cache";
+import { QixFsFileAdapter } from "./qixfs-entry";
 
 export class SheetFile extends QixFsFileAdapter {
 
     public constructor(
         @inject(QixSheetProvider) private sheetProvider: QixSheetProvider,
         @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
-        @inject(CacheRegistry) private fileCache: CacheRegistry
+        @inject(CacheRegistry) private fileCache: CacheRegistry<WorkspaceFolder>
     ) {
         super();
     }
@@ -33,7 +31,8 @@ export class SheetFile extends QixFsFileAdapter {
     public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
         const connection = await this.getConnection(uri);
         const app_id     = this.fileSystemHelper.resolveAppId(uri);
-        const sheet_id   = this.fileCache.resolve<string>(SheetCache, uri.toString());
+        const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
+        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString()) : void 0;
 
         if (sheet_id && app_id) {
             const data = await this.sheetProvider.getPropertyTree(connection, app_id, sheet_id);
@@ -50,7 +49,8 @@ export class SheetFile extends QixFsFileAdapter {
 
         const connection = await this.getConnection(uri);
         const app_id     = this.fileSystemHelper.resolveAppId(uri);
-        const sheet_id   = this.fileCache.resolve<string>(SheetCache, uri.toString());
+        const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
+        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString()) : void 0;
 
         if (sheet_id && app_id) {
             const data = this.fileSystemHelper.fileToJson(uri, content) as EngineAPI.IGenericObjectEntry;

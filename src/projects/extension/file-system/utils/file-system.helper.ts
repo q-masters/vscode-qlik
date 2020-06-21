@@ -1,15 +1,13 @@
 import * as vscode from "vscode";
-import { posix } from "path";
+import * as path from "path";
 import { singleton, inject } from "tsyringe";
 import { transform, isEqual, isObject } from 'lodash';
 import YAML from "yaml";
 
-import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
-import { ApplicationCache } from "../data/cache";
-
 import { FileRenderer } from "@vsqlik/settings/api";
 import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils/registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
+import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
 
 const TEMPORARY_FILES = new CacheToken("temporary files");
 
@@ -18,11 +16,14 @@ export class FileSystemHelper {
 
     public constructor(
         @inject(WorkspaceFolderRegistry) private workspaceRegistry: WorkspaceFolderRegistry,
-        @inject(CacheRegistry) private fileCache: CacheRegistry
+        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<CacheToken|WorkspaceFolder>,
     ) {
-        this.fileCache.registerCache(TEMPORARY_FILES);
+        this.cacheRegistry.registerCache(TEMPORARY_FILES);
     }
 
+    /**
+     * get current workspace folder by given uri
+     */
     public resolveWorkspace(uri: vscode.Uri): WorkspaceFolder | undefined {
         return this.workspaceRegistry.resolveByUri(uri);
     }
@@ -32,13 +33,15 @@ export class FileSystemHelper {
      */
     public resolveAppId(uri: vscode.Uri): string | undefined {
 
-        const appPath = posix.parse(uri.path).dir.match(/^\/[^/]+/);
-        if (!appPath) {
+        const appPath   = /^(\/[^/]+)(\/.*)?$/.test(uri.path);
+        const workspace = this.resolveWorkspace(uri);
+
+        if (!appPath || !workspace) {
             throw vscode.FileSystemError.FileNotFound();
         }
 
-        const appUri = uri.with({path: appPath[0]});
-        return this.fileCache.resolve<string>(ApplicationCache, appUri.toString());
+        const appUri = uri.with({path: RegExp.$1});
+        return this.cacheRegistry.resolve<string>(workspace, appUri.toString());
     }
 
     /**
@@ -48,14 +51,14 @@ export class FileSystemHelper {
      * main copy.qvs as temporary file.
      */
     public registerTempoaryFileEntry(uri: vscode.Uri, content?: Uint8Array) {
-        this.fileCache.add(TEMPORARY_FILES, uri.toString(), content);
+        this.cacheRegistry.add(TEMPORARY_FILES, uri.toString(), content);
     }
 
     /**
      * check given uri is a temporary file
      */
     public isTemporaryFileEntry(uri: vscode.Uri): boolean {
-        return this.fileCache.exists(TEMPORARY_FILES, uri.toString());
+        return this.cacheRegistry.exists(TEMPORARY_FILES, uri.toString());
     }
 
     /**
@@ -69,24 +72,28 @@ export class FileSystemHelper {
      * register a temporary file in CacheRegistry
      */
     public unregisterTemporaryFile(uri: vscode.Uri) {
-        return this.fileCache.delete(TEMPORARY_FILES, uri.toString());
+        return this.cacheRegistry.delete(TEMPORARY_FILES, uri.toString());
     }
 
     /**
      * resolve file name by given uri
+     *
+     * @param uri file system uri
+     * @param ext include ext for example 'index.html' default is true
      */
-    public resolveFileName(uri: vscode.Uri): string {
-        return posix.parse(uri.toString()).name;
+    public resolveFileName(uri: vscode.Uri, ext = true): string {
+        const parsed = path.posix.parse(uri.toString());
+        return ext ? parsed.base : parsed.name;
     }
 
     /**
      * get diff of 2 json objects
      * @see https://gist.github.com/Yimiprod/7ee176597fef230d1451
      */
-    public getJsonDiff(source, target) {
+    public createPatch(source, target) {
         return transform(source, (result, value, key) => {
             if (!isEqual(value, target[key])) {
-                result[key] = isObject(value) && isObject(target[key]) ? this.getJsonDiff(value, target[key]) : value;
+                result[key] = isObject(value) && isObject(target[key]) ? this.createPatch(value, target[key]) : value;
             }
         });
     }
@@ -100,7 +107,14 @@ export class FileSystemHelper {
     public createFileUri(uri: vscode.Uri, name: string): vscode.Uri {
         const setting   = this.resolveWorkspace(uri)?.settings;
         const prefix    = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
-        return uri.with({path: posix.resolve(uri.path, `${name}.${prefix}`)});
+        return uri.with({path: path.posix.resolve(uri.path, `${name}.${prefix}`)});
+    }
+
+    /**
+     * create a directory uri
+     */
+    public createDirectoryUri(uri: vscode.Uri, name: string): vscode.Uri {
+        return uri.with({path: path.posix.resolve(uri.path, `${name}`)});
     }
 
     /**
@@ -125,5 +139,60 @@ export class FileSystemHelper {
             : JSON.parse(source.toString());
 
         return content;
+    }
+
+    /**
+     * check file or directory exists
+     */
+    public exists(uri: vscode.Uri): boolean {
+        const workspaceFolder = this.resolveWorkspace(uri);
+        if (workspaceFolder) {
+            return this.cacheRegistry.exists(workspaceFolder, uri.toString());
+        }
+        return false;
+    }
+
+    /**
+     * directory has been renamed, so we need to update the workspace cache
+     */
+    public renameDirectory(source: vscode.Uri, target: vscode.Uri) {
+        const workspaceFolder = this.resolveWorkspace(source);
+
+        if (workspaceFolder) {
+
+            const entries = this.cacheRegistry.getKeys(workspaceFolder) ?? [];
+            /** resolve relative path between both */
+            for (const filePath of entries) {
+
+                if (!filePath.startsWith(source.toString())) {
+                    continue;
+                }
+
+                const relativePath = path.relative(source.path, target.path);
+                const newEntryUri  = target.with({path: `${target.path}/${relativePath}`});
+                const oldEntryUri  = source.with({path: `${source.path}/${relativePath}`});
+                const entryData    = this.cacheRegistry.resolve(workspaceFolder, oldEntryUri.toString());
+
+                this.cacheRegistry.delete(workspaceFolder, oldEntryUri.toString());
+                this.cacheRegistry.add(workspaceFolder   , newEntryUri.toString(), entryData);
+            }
+        }
+    }
+
+    /**
+     * delete a directory
+     */
+    public deleteDirectory(source: vscode.Uri) {
+        const workspaceFolder = this.resolveWorkspace(source);
+
+        if (workspaceFolder) {
+            const entries = this.cacheRegistry.getKeys(workspaceFolder) ?? [];
+            for (const filePath of entries) {
+                if (!filePath.startsWith(source.toString())) {
+                    continue;
+                }
+                this.cacheRegistry.delete(workspaceFolder, filePath);
+            }
+        }
     }
 }

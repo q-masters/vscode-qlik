@@ -3,18 +3,17 @@ import { singleton } from "tsyringe";
 export class CacheToken {
     constructor(private name: string) {}
 }
-
 declare type CacheMap = Map<string, any>;
 
 @singleton()
-export class CacheRegistry {
+export class CacheRegistry<T extends Object> {
 
-    private registry: WeakMap<CacheToken, CacheMap> = new WeakMap();
+    private registry: WeakMap<T, CacheMap> = new WeakMap();
 
     /**
      * register new cache if not exists
      */
-    public registerCache(token: CacheToken): void {
+    public registerCache(token: T): void {
         if (!this.registry.has(token)) {
             this.registry.set(token, new Map());
         }
@@ -23,7 +22,7 @@ export class CacheRegistry {
     /**
      * destroy a cache
      */
-    public destroyCache(token: CacheToken): void {
+    public destroyCache(token: T): void {
         if (!this.registry.has(token)) {
             this.registry.delete(token);
         }
@@ -32,14 +31,18 @@ export class CacheRegistry {
     /**
      * check value exists in cache
      */
-    public exists(token: CacheToken, key: string): boolean {
+    public exists(token: T, key: string): boolean {
         return !! this.registry.get(token)?.has(key);
     }
 
     /**
      * add value to cache
      */
-    public add(token: CacheToken, key: string, value: any): void {
+    public add(token: T, key: string, value: any): void {
+
+        if (!token) {
+            return;
+        }
 
         if (!this.registry.has(token)) {
             this.registerCache(token);
@@ -49,15 +52,20 @@ export class CacheRegistry {
         cache?.set(key, value);
     }
 
-    public resolve<T extends any>(token: CacheToken, key: string): T | undefined {
+    public resolve<R extends any>(token: T, key: string): R | undefined {
         return this.registry.get(token)?.get(key);
     }
 
     /**
      * delete from specifc cache
      */
-    public delete(token: CacheToken, key: string): void {
+    public delete(token: T, key: string): void {
         const cache = this.registry.get(token);
         cache?.delete(key);
+    }
+
+    public getKeys(token: T): IterableIterator<string> | undefined {
+        const cache = this.registry.get(token);
+        return cache?.keys();
     }
 }

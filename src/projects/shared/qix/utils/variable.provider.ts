@@ -21,33 +21,39 @@ export class QixVariableProvider {
         return [];
     }
 
-    public async readVariable(connection, app_id: string, name: string): Promise<EngineAPI.IGenericVariable | undefined> {
+    public async readVariable(connection, app_id: string, var_id: string): Promise<EngineAPI.IGenericVariable | undefined> {
         const session = await connection.open(app_id);
         const app     = await session?.openDoc(app_id);
 
-        return await app?.getVariableByName(name);
+        return await app?.getVariableById(var_id);
     }
 
     /**
      * create a new variable
      */
-    public async createVariable(connection: EnigmaSession, app_id: string, properties: EngineAPI.IGenericVariableProperties): Promise<void>
+    public async createVariable(
+        connection: EnigmaSession,
+        app_id: string,
+        properties: EngineAPI.IGenericVariableProperties
+    ): Promise<EngineAPI.INxInfo | undefined>
     {
         const session = await connection.open(app_id);
         const app     = await session?.openDoc(app_id);
 
-        await app?.createVariableEx(properties);
+        const result = await app?.createVariableEx(properties);
         await app?.doSave();
+
+        return result;
     }
 
     /**
      * update an existing variable
      */
-    public async updateVariable(connection: EnigmaSession, app_id: string, name: string, patch: EngineAPI.IGenericVariableProperties): Promise<void>
+    public async updateVariable(connection: EnigmaSession, app_id: string, var_id: string, patch: EngineAPI.IGenericVariableProperties): Promise<void>
     {
         const session  = await connection.open(app_id);
         const app      = await session?.openDoc(app_id);
-        const variable = await app?.getVariableByName(name);
+        const variable = await app?.getVariableById(var_id);
         const patches = Object.keys(patch).map<EngineAPI.INxPatch>((property) => {
             return {
                 qOp   : "Replace",
@@ -59,6 +65,12 @@ export class QixVariableProvider {
         await app?.doSave();
     }
 
-    public deleteVariable() {
+    public async deleteVariable(connection: EnigmaSession, app_id: string, var_id: string): Promise<boolean> {
+        const session  = await connection.open(app_id);
+        const app      = await session?.openDoc(app_id);
+        const success  = await app?.destroyVariableById(var_id);
+        await app?.doSave();
+
+        return !!success;
     }
 }
