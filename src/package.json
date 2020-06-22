@@ -5,59 +5,58 @@
   "main": "./dist/extension.js",
   "publisher": "q-masters",
   "scripts": {
-    "copyhtml": "copyfiles extension/**/*.html ./out",
+    "copyhtml": "copyfiles ./projects/extension/**/*.html ./out",
     "clear": "rimraf ./out",
     "compile": "npm run build -- --skipLibCheck",
     "watch": "npm run build -- -watch -p ./",
     "prebuild": "npm run clear && npm run copyhtml",
     "build": "npm run webpack",
     "webpack": "webpack --config ./bin/webpack.conf.js --mode development",
-    "postinstall": "npm i --prefix ./media/webview",
+    "postinstall": "npm i --prefix ./projects/media/webview",
     "postbuild": "npm run webview:build",
-    "webview:build": "npm run build --prefix ./media/webview -- --prod",
-    "webview:dev": "npm start --prefix ./media/webview -- --configuration browser",
+    "webview:build": "npm run build --prefix ./projects/media/webview -- --prod",
+    "webview:dev": "npm start --prefix ./projects/media/webview -- --configuration browser",
     "changelog:compile": "tsc -p ./ci",
     "changelog:generate": "node ./dist/ci/changelog",
     "vscode:prepublish": "npm run build",
-    "lint:extension": "node bin/eslint-reporter './extension/**/*.ts'",
-    "lint:webview": "npm run lint --prefix ./media/webview",
+    "lint:extension": "node bin/eslint-reporter './projects/extension/**/*.ts'",
+    "lint:webview": "npm run lint --prefix ./projects/media/webview",
+    "test": "mocha --reporter spec -r ts-node/register  -r tsconfig-paths/register ./test/**/*.spec.ts",
+    "test:watch": "npm test -- --watch --watch-files test --watch-files extension --watch-files core",
     "vsce:publish": "./node_modules/.bin/vsce publish",
     "vsce:package": "./node_modules/.bin/vsce package"
   },
   "engines": {
-    "vscode": "1.45.1"
+    "vscode": "^1.45.1"
   },
   "activationEvents": [
     "onFileSystem:qix",
-    "onCommand:VSQlik.Connection.Settings",
-    "onCommand:VSQlik.Connection.Create"
+    "onCommand:VsQlik.Connection.Settings",
+    "onCommand:VsQlik.Connection.Create"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "VSQlik.Connection.Create",
+        "command": "VsQlik.Connection.Create",
         "title": "Connect to Qlik Server",
-        "category": "VSQlik"
+        "category": "VsQlik"
       },
       {
-        "command": "VSQlik.Connection.Settings",
+        "command": "VsQlik.Connection.Settings",
         "title": "Show Connection Settings",
-        "category": "VSQlik"
+        "category": "VsQlik"
       }
     ],
-    "menus": {
-      "explorer/context": [
-        {
-          "command": "VSQlik.Connection.Create",
-          "group": "navigation"
-        }
-      ]
-    },
     "configuration": [
       {
         "title": "Visual Studio Qlik",
         "properties": {
-          "vsQlik.Connection": {
+          "VsQlik.Developer": {
+            "title": "Settings for develop vsqlik extension",
+            "description": "vscode developer settings",
+            "type": "object"
+          },
+          "VsQlik.Servers": {
             "title": "A list of file locations to load SSH FS configurations from",
             "description": "Location of JSON files to load configs from",
             "type": "array",
@@ -65,13 +64,21 @@
             "default": [
               {
                 "label": "Localhost",
-                "settings": {
+                "connection": {
                   "host": "127.0.0.1",
-                  "path": "",
-                  "port": 80,
-                  "secure": false,
-                  "allowUntrusted": false
-                }
+                  "path": null,
+                  "port": null,
+                  "secure": true,
+                  "allowUntrusted": false,
+                  "authorization": {
+                    "strategy": 1,
+                    "data": {
+                      "domain": "",
+                      "password": ""
+                    }
+                  }
+                },
+                "renderer": 1
               }
             ]
           }
@@ -90,31 +97,41 @@
   },
   "homepage": "https://github.com/PLH-Coding/vscodeQ#readme",
   "devDependencies": {
+    "@types/chai": "4.2.11",
     "@types/enigma.js": "2.2.1",
-    "@types/node": "14.0.4",
+    "@types/node": "14.0.13",
     "@types/qlik-engineapi": "12.67.9",
-    "@types/vscode": "1.45.1",
-    "@types/ws": "7.2.4",
-    "@typescript-eslint/eslint-plugin": "3.0.0-alpha.27",
-    "@typescript-eslint/parser": "^3.0.0-alpha.27",
-    "chalk": "4.0.0",
-    "copyfiles": "2.2.0",
-    "eslint": "7.0.0",
+    "@types/sinon": "^9.0.4",
+    "chai": "4.2.0",
+    "@types/vscode": "1.46.0",
+    "@types/ws": "7.2.5",
+    "@typescript-eslint/eslint-plugin": "3.3.0",
+    "@typescript-eslint/parser": "^3.3.0",
+    "chalk": "4.1.0",
+    "copyfiles": "2.3.0",
+    "eslint": "7.3.0",
     "html-loader": "1.1.0",
     "minimist": "1.2.5",
-    "ts-loader": "7.0.4",
+    "mocha": "7.2.0",
+    "sinon": "^9.0.2",
+    "ts-loader": "7.0.5",
+    "ts-node": "^8.10.2",
+    "tsconfig-paths": "^3.9.0",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "6.1.2",
-    "typescript": "3.9.3",
-    "vsce": "1.75.0",
+    "typescript": "3.9.5",
+    "vsce": "1.77.0",
     "webpack": "4.43.0",
-    "webpack-cli": "3.3.11"
+    "webpack-cli": "3.3.12"
   },
   "dependencies": {
-    "object-hash": "2.0.3",
     "enigma.js": "2.7.1",
+    "lodash": "^4.17.15",
+    "object-hash": "2.0.3",
+    "reflect-metadata": "^0.1.13",
     "request": "2.88.2",
     "rimraf": "3.0.2",
+    "tsyringe": "^4.3.0",
     "ws": "7.3.0",
     "yaml": "1.10.0"
   }
