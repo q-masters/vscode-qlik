@@ -41,7 +41,7 @@ export class VariableFile extends QixFsFileAdapter {
 
         if (connection && app_id && workspace) {
 
-            const var_id = this.fileCache.resolve<string>(workspace, uri.toString());
+            const var_id = this.fileCache.resolve<string>(workspace, uri.toString(true));
 
             if (!var_id) {
                 return Buffer.from("Error");
@@ -72,7 +72,7 @@ export class VariableFile extends QixFsFileAdapter {
         const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
 
         if (app_id && connection && workspace) {
-            const var_id = this.fileCache.resolve<string>(workspace, uri.toString());
+            const var_id = this.fileCache.resolve<string>(workspace, uri.toString(true));
 
             if (!var_id) {
                 return;
@@ -84,8 +84,8 @@ export class VariableFile extends QixFsFileAdapter {
             // well this is now wrong for a move we need to delete and add
             await this.variableProvider.updateVariable(connection, app_id, var_id, patch as any);
 
-            this.fileCache.delete(workspace, uri.toString());
-            this.fileCache.add(workspace, newUri.toString(), var_id);
+            this.fileCache.delete(workspace, uri.toString(true));
+            this.fileCache.add(workspace, newUri.toString(true), var_id);
         }
     }
 
@@ -105,14 +105,14 @@ export class VariableFile extends QixFsFileAdapter {
             throw vscode.FileSystemError.Unavailable();
         }
 
-        const var_id = this.fileCache.resolve<string>(workspace, from.toString());
+        const var_id = this.fileCache.resolve<string>(workspace, from.toString(true));
 
         if (!var_id) {
             throw vscode.FileSystemError.Unavailable();
         }
 
         this.variableProvider.deleteVariable(connection, app_id, var_id);
-        this.fileCache.delete(workspace, from.toString());
+        this.fileCache.delete(workspace, from.toString(true));
     }
 
     /**
@@ -121,7 +121,7 @@ export class VariableFile extends QixFsFileAdapter {
     public async stat(uri: vscode.Uri): Promise<vscode.FileStat | void> {
         const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
 
-        if(!workspace || !this.fileCache.exists(workspace, uri.toString())){
+        if(!workspace || !this.fileCache.exists(workspace, uri.toString(true))){
             throw vscode.FileSystemError.FileNotFound();
         }
 
@@ -147,7 +147,7 @@ export class VariableFile extends QixFsFileAdapter {
         }
 
         /** ist das eine neue variable oder existiert sie bereits ? */
-        this.fileCache.exists(workspace, uri.toString())
+        this.fileCache.exists(workspace, uri.toString(true))
             ? await this.updateVariable(uri, content)
             : await this.createVariable(uri, content);
     }
@@ -179,7 +179,7 @@ export class VariableFile extends QixFsFileAdapter {
 
         /** after variable has been created add to cache */
         if (workspace) {
-            this.fileCache.add(workspace, uri.toString(), response.id);
+            this.fileCache.add(workspace, uri.toString(true), response.id);
         }
     }
 
@@ -198,7 +198,7 @@ export class VariableFile extends QixFsFileAdapter {
             throw new Error("could not write variable, not connected or app not exists");
         }
 
-        const var_id = this.fileCache.resolve<string>(workspace, uri.toString());
+        const var_id = this.fileCache.resolve<string>(workspace, uri.toString(true));
 
         if (!var_id) {
             throw new Error("could not write variable");

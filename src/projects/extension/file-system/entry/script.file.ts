@@ -7,6 +7,8 @@ import { posix } from "path";
 
 export class ScriptFile extends QixFsFileAdapter {
 
+    private scriptDeleteTimer: NodeJS.Timeout;
+
     public constructor(
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
         @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
@@ -24,9 +26,12 @@ export class ScriptFile extends QixFsFileAdapter {
         }
 
         if (isTemporary) {
-            setTimeout(() => {
+            if (this.scriptDeleteTimer) {
+                clearTimeout(this.scriptDeleteTimer);
+            }
+            this.scriptDeleteTimer = setTimeout(() => {
                 this.fileSystemHelper.deleteTempoaryFileEntry(uri);
-            }, 200);
+            }, 100);
         }
 
         return {
@@ -89,7 +94,7 @@ export class ScriptFile extends QixFsFileAdapter {
     }
 
     private isCopy(uri: vscode.Uri): boolean {
-        const parsedUri = posix.parse(uri.toString());
+        const parsedUri = posix.parse(uri.toString(true));
         return `${parsedUri.name}${parsedUri.ext}` !== "main.qvs";
     }
 }

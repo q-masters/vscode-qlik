@@ -9,6 +9,7 @@ const config = {
     entry: {
         "extension": './projects/extension/main.ts'
     },
+    mode: "development",
     output: {
         path: path.resolve(process.cwd(), 'dist'),
         libraryTarget: 'commonjs2',

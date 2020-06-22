@@ -49,17 +49,15 @@ export class AuthorizationHelper {
         }
 
         const settings = workspaceFolder.settings;
-        const state = await this.resolveAuthenticationState(settings);
+        const key      = this.createKey(settings);
+        const state    = await this.resolveAuthenticationState(settings, key);
         const result = !state.isLoggedIn
             ? await this.authorize(settings.connection, state.loginUrl as string)
             : state;
 
         if (result.isLoggedIn) {
             /** update cache */
-            this.storage.write(
-                this.createKey(workspaceFolder.settings.connection),
-                {cookies: result?.cookies ?? []}
-            );
+            this.storage.write(key, {cookies: result?.cookies ?? []});
 
             /** create / save connection */
             const connection = new EnigmaSession({...workspaceFolder.settings.connection, cookies: result?.cookies ?? []});
@@ -73,9 +71,9 @@ export class AuthorizationHelper {
      * check we have an active session running on qlik server, if we have send back our current cookies
      * if not return the loginUrl which will be passed to authorization strategy
      */
-    private async resolveAuthenticationState(settings: WorkspaceSetting): Promise<AuthorizationResult>
+    private async resolveAuthenticationState(settings: WorkspaceSetting, key: string): Promise<AuthorizationResult>
     {
-        const data = this.storage.read(this.createKey(settings.connection));
+        const data = this.storage.read(key);
         const cookies = data?.cookies ?? [];
 
         return new Promise((resolve) => {
@@ -90,7 +88,7 @@ export class AuthorizationHelper {
                     session.close();
 
                     if (response.params.mustAuthenticate) {
-                        this.storage.delete(this.createKey(settings.connection));
+                        this.storage.delete(key);
                         resolve({isLoggedIn: false, loginUrl: response.params.loginUri});
                     } else {
                         resolve({isLoggedIn: true, cookies });
@@ -106,12 +104,13 @@ export class AuthorizationHelper {
      * from host name, path and port since a connection could
      * be placed under multiple names and is not really unique
      */
-    private createKey(settings: ConnectionSetting): string
+    private createKey(settings: WorkspaceSetting): string
     {
         return "".concat(
-            settings.host,
-            settings.path ?? "",
-            settings.port?.toString() ?? ""
+            settings.connection.host,
+            settings.connection.path ?? "",
+            settings.connection.port?.toString() ?? "",
+            settings.label
         );
     }
 

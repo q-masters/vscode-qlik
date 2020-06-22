@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { SettingsRepository } from "projects/extension/settings/settings.repository";
 
 import { WorkspaceFolder } from "../data/workspace-folder";
+import { WorkspaceFolderScheme } from "../api/api";
 
 @singleton()
 export class WorkspaceFolderRegistry {
@@ -18,7 +19,7 @@ export class WorkspaceFolderRegistry {
     /**
      * register a workspace folder
      */
-    public register(folders: readonly vscode.WorkspaceFolder[]) {
+    public register(folders: readonly WorkspaceFolderScheme[]) {
 
         for(let i = 0, ln = folders.length; i < ln; i++) {
             const folder  = folders[i];
@@ -29,7 +30,10 @@ export class WorkspaceFolderRegistry {
             }
 
             const workspaceFolder = new WorkspaceFolder(setting);
-            this.workspaceFolders.set(folder.name, workspaceFolder);
+
+            if (!this.workspaceFolders.has(folder.name)) {
+                this.workspaceFolders.set(folder.name, workspaceFolder);
+            }
         }
     }
 

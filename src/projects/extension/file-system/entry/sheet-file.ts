@@ -32,7 +32,7 @@ export class SheetFile extends QixFsFileAdapter {
         const connection = await this.getConnection(uri);
         const app_id     = this.fileSystemHelper.resolveAppId(uri);
         const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
-        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString()) : void 0;
+        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString(true)) : void 0;
 
         if (sheet_id && app_id) {
             const data = await this.sheetProvider.getPropertyTree(connection, app_id, sheet_id);
@@ -50,7 +50,7 @@ export class SheetFile extends QixFsFileAdapter {
         const connection = await this.getConnection(uri);
         const app_id     = this.fileSystemHelper.resolveAppId(uri);
         const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
-        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString()) : void 0;
+        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString(true)) : void 0;
 
         if (sheet_id && app_id) {
             const data = this.fileSystemHelper.fileToJson(uri, content) as EngineAPI.IGenericObjectEntry;
