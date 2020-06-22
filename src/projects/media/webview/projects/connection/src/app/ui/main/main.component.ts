@@ -11,7 +11,7 @@ enum ViewMode {
 }
 
 @Component({
-    selector: "vsqlik-wfs--root",
+    selector: "vsqlik-settings--root",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"]
 })

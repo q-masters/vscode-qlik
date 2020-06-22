@@ -11,7 +11,7 @@ export interface FormStrategyData {
 }
 
 @Component({
-    selector: "vsqlik-wfs--form-strategy ",
+    selector: "vsqlik-settings--form-strategy ",
     templateUrl: "./form.html",
     styleUrls: ["./form.scss"]
 })

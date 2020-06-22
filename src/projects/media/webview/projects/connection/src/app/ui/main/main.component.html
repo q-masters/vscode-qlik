@@ -25,11 +25,11 @@
             </tr>
         </thead>
         <tbody>
-            <vsqlik-wfs--table-row *ngFor="let setting of settings" 
+            <vsqlik-settings--table-row *ngFor="let setting of settings"
                 [setting]="setting"
                 (edit)="editSetting($event)"
                 (delete)="deleteSetting($event)">
-            </vsqlik-wfs--table-row>
+            </vsqlik-settings--table-row>
         </tbody>
     </table>
 </ng-template>
@@ -38,8 +38,8 @@
     Section Template: Edit / Create Connection
 -->
 <ng-template #edit>
-    <vsqlik-wfs--edit (cancel)="cancelEdit()" (save)="onSave($event)">
-    </vsqlik-wfs--edit>
+    <vsqlik-settings--edit (cancel)="cancelEdit()" (save)="onSave($event)">
+    </vsqlik-settings--edit>
 </ng-template>
 
 <header class="header">

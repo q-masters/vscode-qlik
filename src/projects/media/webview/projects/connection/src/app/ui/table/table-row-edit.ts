@@ -8,7 +8,7 @@ export interface TableRowSaveEvent {
 }
 
 @Component({
-    selector: "vsqlik-WorkspaceFolderSetting--table-row-edit",
+    selector: "vsqlik-settings--table-row-edit",
     templateUrl: "table-row-edit.html"
 })
 export class TableRowEditComponent implements OnInit {
