@@ -88,14 +88,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PLH-Coding/vscodeQ.git"
+    "url": "git+https://github.com/q-masters/vsqlik.git"
   },
   "author": "phl-coding",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/PLH-Coding/vscodeQ/issues"
+    "url": "https://github.com/q-masters/vsqlik/issues"
   },
-  "homepage": "https://github.com/PLH-Coding/vscodeQ#readme",
+  "homepage": "https://github.com/q-masters/vsqlik",
   "devDependencies": {
     "@types/chai": "4.2.11",
     "@types/enigma.js": "2.2.1",
