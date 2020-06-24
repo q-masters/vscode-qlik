@@ -1,8 +1,8 @@
 import { Component, Input, Output, EventEmitter } from "@angular/core";
-import { WorkspaceFolderSetting } from '../../data';
+import { WorkspaceFolderSetting } from "../../data";
 
 @Component({
-    selector: "vsqlik-wfs--table-row",
+    selector: "vsqlik-settings--table-row",
     templateUrl: "table-row.html",
 })
 export class TableRowComponent {

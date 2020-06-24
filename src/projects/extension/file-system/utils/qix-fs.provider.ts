@@ -135,8 +135,8 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         const route = this.router.find(oldUri.path);
         if (route) {
 
-            const source = posix.parse(oldUri.toString()).dir;
-            const target = posix.parse(newUri.toString()).dir;
+            const source = posix.parse(oldUri.toString(true)).dir;
+            const target = posix.parse(newUri.toString(true)).dir;
 
             return source !== target
                 ? (route.control as any).move(oldUri, newUri, route.params)

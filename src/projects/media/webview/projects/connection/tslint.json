@@ -4,13 +4,13 @@
     "directive-selector": [
       true,
       "attribute",
-      "vsqlikConnection",
+      "vsqlikSettings",
       "camelCase"
     ],
     "component-selector": [
       true,
       "element",
-      "vsqlik-connection",
+      "vsqlik-settings",
       "kebab-case"
     ]
   }

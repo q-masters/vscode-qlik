@@ -33,7 +33,6 @@ export class FileSystemHelper {
      * resolves the app id by a given uri
      */
     public resolveAppId(uri: vscode.Uri): string | undefined {
-
         const appPath   = /^(\/[^/]+)(\/.*)?$/.test(uri.path);
         const workspace = this.resolveWorkspace(uri);
 
@@ -42,7 +41,7 @@ export class FileSystemHelper {
         }
 
         const appUri = uri.with({path: RegExp.$1});
-        return this.cacheRegistry.resolve<string>(workspace, appUri.toString());
+        return this.cacheRegistry.resolve<string>(workspace, appUri.toString(true));
     }
 
     /**
@@ -52,14 +51,14 @@ export class FileSystemHelper {
      * main copy.qvs as temporary file.
      */
     public registerTempoaryFileEntry(uri: vscode.Uri, content?: Uint8Array) {
-        this.cacheRegistry.add(TEMPORARY_FILES, uri.toString(), content);
+        this.cacheRegistry.add(TEMPORARY_FILES, uri.toString(true), content);
     }
 
     /**
      * check given uri is a temporary file
      */
     public isTemporaryFileEntry(uri: vscode.Uri): boolean {
-        return this.cacheRegistry.exists(TEMPORARY_FILES, uri.toString());
+        return this.cacheRegistry.exists(TEMPORARY_FILES, uri.toString(true));
     }
 
     /**
@@ -73,7 +72,7 @@ export class FileSystemHelper {
      * register a temporary file in CacheRegistry
      */
     public unregisterTemporaryFile(uri: vscode.Uri) {
-        return this.cacheRegistry.delete(TEMPORARY_FILES, uri.toString());
+        return this.cacheRegistry.delete(TEMPORARY_FILES, uri.toString(true));
     }
 
     /**
@@ -83,7 +82,7 @@ export class FileSystemHelper {
      * @param ext include ext for example 'index.html' default is true
      */
     public resolveFileName(uri: vscode.Uri, ext = true): string {
-        const parsed = path.posix.parse(uri.toString());
+        const parsed = path.posix.parse(uri.path);
         return ext ? parsed.base : parsed.name;
     }
 
@@ -148,7 +147,7 @@ export class FileSystemHelper {
     public exists(uri: vscode.Uri): boolean {
         const workspaceFolder = this.resolveWorkspace(uri);
         if (workspaceFolder) {
-            return this.cacheRegistry.exists(workspaceFolder, uri.toString());
+            return this.cacheRegistry.exists(workspaceFolder, uri.toString(true));
         }
         return false;
     }
@@ -158,7 +157,7 @@ export class FileSystemHelper {
      */
     public renameDirectory(source: vscode.Uri, target: vscode.Uri) {
         const workspaceFolder = this.resolveWorkspace(source);
-        const sourceUri       = source.toString();
+        const sourceUri       = source.toString(true);
 
         if (workspaceFolder) {
 
@@ -174,10 +173,10 @@ export class FileSystemHelper {
                 const relativePath = filePath.substr(sourceUri.length).replace(/^\//, '');
                 const newEntryUri  = target.with({path: posix.resolve(target.path, relativePath)});
                 const oldEntryUri  = source.with({path: posix.resolve(source.path, relativePath)});
-                const entryData    = this.cacheRegistry.resolve(workspaceFolder, oldEntryUri.toString());
+                const entryData    = this.cacheRegistry.resolve(workspaceFolder, oldEntryUri.toString(true));
 
-                this.cacheRegistry.delete(workspaceFolder, oldEntryUri.toString());
-                this.cacheRegistry.add(workspaceFolder   , newEntryUri.toString(), entryData);
+                this.cacheRegistry.delete(workspaceFolder, oldEntryUri.toString(true));
+                this.cacheRegistry.add(workspaceFolder   , newEntryUri.toString(true), entryData);
             }
         }
     }

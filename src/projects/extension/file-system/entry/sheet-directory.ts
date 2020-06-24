@@ -36,7 +36,7 @@ export class SheetDirectory extends QixFsDirectoryAdapter {
                 const fileName = posix.parse(fileUri.path).base;
                 sheets.push([fileName, vscode.FileType.File]);
 
-                this.fileCache.add(workspace, fileUri.toString(), sheet.qInfo.qId);
+                this.fileCache.add(workspace, fileUri.toString(true), sheet.qInfo.qId);
             });
         }
 

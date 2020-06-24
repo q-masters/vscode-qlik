@@ -6,7 +6,7 @@ import { AuthorizationStrategy, WorkspaceFolderSetting, FileRenderer } from "../
 import { ConnectionFormHelper } from "../../utils";
 
 @Component({
-    selector: "vsqlik-wfs--edit",
+    selector: "vsqlik-settings--edit",
     templateUrl: "./edit.html",
     styleUrls: ["./edit.scss"]
 })

@@ -3,6 +3,7 @@ import { container } from "tsyringe";
 import { SettingsRepository } from "projects/extension/settings/settings.repository";
 import { WorkspaceSetting } from "projects/extension/settings/api";
 import { WorkspaceFolderQuickPickItem, WorkspaceFolderScheme } from "../api/api";
+import { WorkspaceFolderRegistry } from "../utils";
 
 /**
  * create a new workspace folder for given connection
@@ -30,6 +31,7 @@ export async function CreateWorkspaceFolderCommand() {
 
         if (!vscode.workspace.getWorkspaceFolder(workspaceUri)) {
             vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders?.length || 0 , 0, newWorkspaceFolder);
+            container.resolve(WorkspaceFolderRegistry).register([newWorkspaceFolder]);
         } else {
             vscode.window.showInformationMessage(`Workspacefolder ${path} allready exists.`);
         }

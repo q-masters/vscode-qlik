@@ -46,7 +46,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
                 const fileUri  = this.fileSystemHelper.createFileUri(uri, variable.qName);
                 const fileName = this.fileSystemHelper.resolveFileName(fileUri);
 
-                this.fileCache.add(workspace, fileUri.toString(), variable.qInfo.qId);
+                this.fileCache.add(workspace, fileUri.toString(true), variable.qInfo.qId);
                 return [fileName, vscode.FileType.File];
             });
             return result;
@@ -65,7 +65,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
         const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
 
         if (connection && app_id && workspace) {
-            const var_id = this.fileCache.resolve<string>(workspace, uri.toString());
+            const var_id = this.fileCache.resolve<string>(workspace, uri.toString(true));
 
             if (!var_id) {
                 throw vscode.FileSystemError.Unavailable(uri);
@@ -74,7 +74,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
             const success = await this.variableProvider.deleteVariable(connection, app_id, var_id);
 
             if (success) {
-                this.fileCache.delete(workspace, uri.toString());
+                this.fileCache.delete(workspace, uri.toString(true));
             }
         }
     }

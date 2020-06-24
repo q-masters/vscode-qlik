@@ -77,7 +77,7 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
                 result.push([appName, vscode.FileType.Directory]);
 
                 const appUri  = this.fileSystemHelper.createDirectoryUri(uri, appName);
-                this.cacheRegistry.add(workspace, appUri.toString(), entries[j].qDocId);
+                this.cacheRegistry.add(workspace, appUri.toString(true), entries[j].qDocId);
             }
         }
 
@@ -97,7 +97,7 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
             if (!result.qSuccess) {
                 throw new Error(`could not create app ${name}`);
             }
-            this.cacheRegistry.add(workspace, uri.toString(), result.qAppId);
+            this.cacheRegistry.add(workspace, uri.toString(true), result.qAppId);
         }
     }
 
