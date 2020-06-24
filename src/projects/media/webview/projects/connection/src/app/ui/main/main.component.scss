@@ -39,6 +39,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             padding: .2rem .5rem;
+            align-items: center;
         }
 
         td {
@@ -47,11 +48,17 @@
 
         .action-col {
             display: flex;
-            flex: 0 0 5rem;
+            flex: 0 0 120px;
             overflow: hidden;
+            justify-content: flex-end;
 
             .btn {
                 margin: 0 .25rem 0 0;
+                padding: .5rem;
+            }
+
+            .btn:last-child {
+              margin: 0;
             }
         }
     }
@@ -63,7 +70,7 @@
     }
 
     vsqlik-wfs--table-row-edit ::ng-deep {
-        
+
         td:not(.action-col) {
             padding: 0;
         }
