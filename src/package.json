@@ -15,6 +15,7 @@
     "postinstall": "npm i --prefix ./projects/media/webview",
     "postbuild": "npm run webview:build",
     "webview:build": "npm run build --prefix ./projects/media/webview -- --prod",
+    "postwebview:build": "node ./bin/webapp-finalize.js",
     "webview:dev": "npm start --prefix ./projects/media/webview -- --configuration browser",
     "changelog:compile": "tsc -p ./ci",
     "changelog:generate": "node ./dist/ci/changelog",

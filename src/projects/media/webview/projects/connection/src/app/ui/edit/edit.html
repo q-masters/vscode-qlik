@@ -1,5 +1,9 @@
-<div [formGroup]="connectionForm" class="form">
+<div class="btn-bar">
+    <button class="btn" type="button" (click)="doSave()">save</button>
+    <button class="btn" type="button" (click)="doCancel()">cancel</button>
+</div>
 
+<div [formGroup]="connectionForm" class="form">
     <!-- label -->
     <h3>Default Settings</h3>
 
@@ -97,10 +101,4 @@
         <vsqlik-settings--form-strategy *ngSwitchDefault>
         </vsqlik-settings--form-strategy>
     </div>
-
-</div>
-
-<div class="footer btn-bar">
-    <button class="btn" type="button" (click)="doSave()">save</button>
-    <button class="btn" type="button" (click)="doCancel()">cancel</button>
 </div>
