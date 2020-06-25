@@ -25,7 +25,6 @@ export class WorkspaceFolderRegistry {
             const folder  = folders[i];
 
             if (this.workspaceFolders.has(folder.name)) {
-                console.log(folder.name);
                 continue;
             }
 

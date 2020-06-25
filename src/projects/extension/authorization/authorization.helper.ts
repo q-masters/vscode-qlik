@@ -43,8 +43,6 @@ export class AuthorizationHelper {
             return this.connections.get(workspaceFolder);
         }
 
-        console.log(workspaceFolder.settings.label);
-
         const authorizationProcess = this.startAuthorization(workspaceFolder);
         this.connections.set(workspaceFolder, authorizationProcess);
         return authorizationProcess;

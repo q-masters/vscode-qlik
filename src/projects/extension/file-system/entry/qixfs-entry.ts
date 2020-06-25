@@ -51,8 +51,6 @@ export abstract class QixFsEntry {
         if (workspaceFolder) {
             return await this.authService.authenticate(workspaceFolder);
         }
-
-        console.log("could not resolve workspace folder", uri);
     }
 }
 
