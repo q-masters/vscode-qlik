@@ -1,7 +1,8 @@
 export enum AuthStrategy {
     CERTIFICATE,
     FORM,
-    CUSTOM
+    CUSTOM,
+    NONE
 }
 
 export interface AuthorizationData {

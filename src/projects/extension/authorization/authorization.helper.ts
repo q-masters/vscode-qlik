@@ -50,6 +50,7 @@ export class AuthorizationHelper {
 
         const settings = workspaceFolder.settings;
         const key      = this.createKey(settings);
+
         const state    = await this.resolveAuthenticationState(settings, key);
         const result = !state.isLoggedIn
             ? await this.authorize(settings.connection, state.loginUrl as string)
@@ -79,7 +80,7 @@ export class AuthorizationHelper {
         return new Promise((resolve) => {
             const session = ConnectionHelper.createSession({...settings.connection, cookies});
             session.on("traffic:received", (response) => {
-                if (response.method === "OnAuthenticationInformation") {
+                if (response.method === "OnAuthenticationInformation" || response.method === "OnConnected") {
                     /**
                      * remove all listeners so we dont have a memory leak
                      * method exists but not in typings so cast this one to any
@@ -138,6 +139,10 @@ export class AuthorizationHelper {
         switch (strategy) {
             case AuthStrategy.FORM:
                 strategyConstructor = await (await import("./form-strategy")).default as AuthorizationStrategyConstructor;
+                break;
+
+            case AuthStrategy.NONE:
+                strategyConstructor = await (await import("./no-authorization-strategy")).default as AuthorizationStrategyConstructor;
                 break;
 
             case AuthStrategy.CERTIFICATE:
