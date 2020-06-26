@@ -23,8 +23,12 @@ export class WorkspaceFolderRegistry {
 
         for(let i = 0, ln = folders.length; i < ln; i++) {
             const folder  = folders[i];
-            const setting = this.settingsRepository.find(folder.name);
 
+            if (this.workspaceFolders.has(folder.name)) {
+                continue;
+            }
+
+            const setting = this.settingsRepository.find(folder.name);
             if (!setting || folder.uri.scheme !== "qix") {
                 continue;
             }

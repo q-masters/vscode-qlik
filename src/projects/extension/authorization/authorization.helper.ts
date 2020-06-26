@@ -16,9 +16,12 @@ interface AuthorizationResult {
 @singleton()
 export class AuthorizationHelper {
 
-    private connections: WeakMap<WorkspaceFolder, EnigmaSession>;
-
     private storage: Storage;
+
+    /**
+     * cache for active connections maybe we could allways return a promise for that
+     */
+    private connections: WeakMap<WorkspaceFolder, Promise<EnigmaSession|undefined>>;
 
     public constructor(
         @inject(AuthorizationService) private authService: AuthorizationService,
@@ -32,22 +35,24 @@ export class AuthorizationHelper {
     }
 
     /**
-     * returns true we have allready a running connection
-     */
-    public isConnected(workspace: WorkspaceFolder): boolean
-    {
-        return this.connections.has(workspace);
-    }
-
-    /**
      * try to authenticate on qlik
      */
     public async authenticate(workspaceFolder: WorkspaceFolder): Promise<EnigmaSession|undefined>
     {
-        if (this.connections.has(workspaceFolder)) {
+        if ( this.isConnected(workspaceFolder)) {
             return this.connections.get(workspaceFolder);
         }
 
+        const authorizationProcess = this.startAuthorization(workspaceFolder);
+        this.connections.set(workspaceFolder, authorizationProcess);
+        return authorizationProcess;
+    }
+
+    /**
+     * start authorization process
+     */
+    private async startAuthorization(workspaceFolder: WorkspaceFolder): Promise<EnigmaSession|undefined>
+    {
         const settings = workspaceFolder.settings;
         const key      = this.createKey(settings);
         const state    = await this.resolveAuthenticationState(settings, key);
@@ -58,13 +63,17 @@ export class AuthorizationHelper {
         if (result.isLoggedIn) {
             /** update cache */
             this.storage.write(key, {cookies: result?.cookies ?? []});
-
             /** create / save connection */
-            const connection = new EnigmaSession({...workspaceFolder.settings.connection, cookies: result?.cookies ?? []});
-            this.connections.set(workspaceFolder, connection);
-
-            return connection;
+            return new EnigmaSession({...workspaceFolder.settings.connection, cookies: result?.cookies ?? []});
         }
+    }
+
+    /**
+     * check authorization is currently running
+     */
+    private isConnected(workspaceFolder: WorkspaceFolder): boolean
+    {
+        return !!this.connections.has(workspaceFolder);
     }
 
     /**
