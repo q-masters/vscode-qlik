@@ -4,7 +4,13 @@ update_configs:
     directory: "/src"
     update_schedule: "live"
     target_branch: "development"
+    automerged_updates:
+      - match:
+          dependency_name: "@types/*"
   - package_manager: "javascript"
     directory: "/src/projects/media/webview"
     update_schedule: "live"
     target_branch: "development"
+    automerged_updates:
+      - match:
+          dependency_name: "@types/*"

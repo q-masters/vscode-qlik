@@ -22,6 +22,8 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      */
     public authorizationStrategy = AuthorizationStrategy;
 
+    public currentAuthorizationStrategy: AuthorizationStrategy = AuthorizationStrategy.FORM;
+
     /**
      * form control for authorization strategy
      */
@@ -97,6 +99,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         this.connectionFormHelper.save()
             .pipe(takeUntil(this.destroy$))
             .subscribe((connection) => {
+                console.dir(connection);
                 this.save.emit(connection)
             });
     }
@@ -127,13 +130,16 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      * initialize authorization strategy form
      */
     private initAuthorizationStrategyCtrl() {
-        this.authorizationStrategyCtrl = this.formbuilder.control(AuthorizationStrategy.FORM);
+
+        this.currentAuthorizationStrategy = this.workspaceFolderSetting?.connection.authorization.strategy || AuthorizationStrategy.FORM;
+        this.authorizationStrategyCtrl = this.formbuilder.control(this.currentAuthorizationStrategy);
 
         /** register on value changes to update strategy */
         this.authorizationStrategyCtrl.valueChanges
             .pipe(takeUntil(this.destroy$))
-            .subscribe((value) => {
-                this.workspaceFolderSetting.connection.authorization.strategy = value;
+            .subscribe((value: string) => {
+                this.currentAuthorizationStrategy = parseInt(value, 10);
+                this.workspaceFolderSetting.connection.authorization.strategy = this.currentAuthorizationStrategy;
             });
     }
 
@@ -178,6 +184,9 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         return Object.assign({}, connection, {
             label: this.connectionForm.controls.nameCtrl.value,
             connection: {
+                authorization: {
+                    strategy: this.currentAuthorizationStrategy
+                },
                 host: this.connectionForm.controls.hostCtrl.value,
                 port: this.connectionForm.controls.portCtrl.value,
                 path: this.connectionForm.controls.pathCtrl.value,

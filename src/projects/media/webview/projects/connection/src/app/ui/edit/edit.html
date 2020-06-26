@@ -84,21 +84,9 @@
         </div>
     </div>
 
-
-    <div [ngSwitch]="authorizationStrategyCtrl.value">
-
-        <p *ngSwitchCase="authorizationStrategy.CUSTOM">
-            custom strategy
-        </p>
-
-        <p *ngSwitchCase="authorizationStrategy.CERTIFICATE">
-            CERTIFICATE
-        </p>
-
-        <!--
-            Form Authorization
-        -->
-        <vsqlik-settings--form-strategy *ngSwitchDefault>
-        </vsqlik-settings--form-strategy>
-    </div>
+    <!--
+        Form Authorization
+    -->
+    <vsqlik-settings--form-strategy *ngIf="currentAuthorizationStrategy === authorizationStrategy.FORM">
+    </vsqlik-settings--form-strategy>
 </div>

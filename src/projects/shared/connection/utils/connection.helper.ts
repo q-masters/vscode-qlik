@@ -57,6 +57,7 @@ export abstract class ConnectionHelper {
             rejectUnauthorized: !data.allowUntrusted,
             headers
         });
+
         return ws;
     }
 
