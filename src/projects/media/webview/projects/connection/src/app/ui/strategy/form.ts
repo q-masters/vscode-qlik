@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormBuilder, FormControl } from "@angular/forms";
 import { ConnectionFormHelper, BeforeSaveHook } from "../../utils/connection-form.helper";
-import { WorkspaceFolderSetting, AuthorizationStrategy } from "../../data/api";
+import { WorkspaceFolderSetting } from "../../data/api";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 
@@ -69,15 +69,15 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
      * create patch for authorization settings
      */
     private createPatch(settings: WorkspaceFolderSetting): WorkspaceFolderSetting {
-
-        settings.connection.authorization = {
-            strategy: AuthorizationStrategy.FORM,
-            data: {
-                domain: this.domainCtrl.value,
-                password: this.passwordCtrl.value,
+        settings.connection.authorization = Object.assign({},
+            settings.connection.authorization,
+            {
+                data: {
+                    domain: this.domainCtrl.value,
+                    password: this.passwordCtrl.value,
+                }
             }
-        };
-
+        );
         return settings;
     }
 
