@@ -34,4 +34,4 @@ Watch the video .... TBD
 
 ## Contribute / Debug
 
-Here you will find 
+[Here](docs/contribute.md) you will find more howto compile the extension yourself.
