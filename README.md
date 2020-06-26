@@ -11,7 +11,11 @@ and to Qlik Core / Docker without authentification.
 
 ## Install
 
-https://marketplace.visualstudio.com/items?itemName=q-masters.vscode-qlik
+Search for "vscode-qlik" in VSCode Extension Marketplace or go to
+the Marketplace https://marketplace.visualstudio.com/items?itemName=q-masters.vscode-qlik and press Install.
+
+
+
 
 
 ## Usage
