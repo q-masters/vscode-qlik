@@ -15,9 +15,6 @@ Search for "vscode-qlik" in VSCode Extension Marketplace or go to
 the Marketplace https://marketplace.visualstudio.com/items?itemName=q-masters.vscode-qlik and press Install.
 
 
-
-
-
 ## Usage
 
 Watch the video .... TBD
@@ -37,4 +34,4 @@ Watch the video .... TBD
 
 ## Contribute / Debug
 
-If you like to c
+Here you will find 
