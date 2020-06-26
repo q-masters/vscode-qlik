@@ -20,28 +20,27 @@ git clone https://github.com/PLH-Coding/vsqlik.git
 cd vsqlik/src && npm i
 ```
 
+## VSIX
+
+sometimes it is helpfull to share the extension from development state (next release), this could be done with running, and then share the vsix file which can imported into visual studio code.
+
+```
+npm run vsce:package
+```
 
 ## Webview
 
-before we can start the extension we need to have the compiled webview for connections, this could be done on 2 ways. This will create an angular application (connections, or more to come) as webview for vscode.
-
-1. Way 
+Vscode Qlik uses angular 9 for the webview, to start extension for development you have to build this app one time.
 
 ```bash
-# install angular cli globally
-npm i @angular/cli
-
-cd ~/vsqlik/src/media/webview
-ng build connection
-```
-
-2. Way
-
-```bash
-cd ~/vsqlik/src
 npm run webview:build
 ```
 
+If you want made changes on the webview itself run following command, this will run a local dev server on port 4200.
+
+```bash
+npm run webview:dev
+```
 
 ## If you use Docker an Example to get it running
 
@@ -57,10 +56,14 @@ sudo chmod 0777 -R qlik-docker
 
 ### Run Qlik Core
 
+latest qlik engine version could be found here:
+
+https://hub.docker.com/r/qlikcore/engine/tags
+
 ```bash
 # start container (download if not allready exists) and map to: 127.0.0.1:9076
 # if we create apps / or have apps we will find them in our directory ~/qlik-docker
-docker run --volume ~/qlik-docker:/home/engine/Qlik/Sense -p 127.0.0.1:9076:9076 qlikcore/engine:12.556.0 -S AcceptEULA=yes -S BuildAppCacheAtStartup=1 
+docker run --volume ~/qlik-docker:/home/engine/Qlik/Sense -p 127.0.0.1:9076:9076 qlikcore/engine:[QLIK_ENGINE_DOCKER_VERSION] -S AcceptEULA=yes -S BuildAppCacheAtStartup=1 
 ```
 
 ## Run extension
