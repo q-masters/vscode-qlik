@@ -8,9 +8,11 @@ import { FileRenderer } from "@vsqlik/settings/api";
 import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils/registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
-import { posix } from "path";
+import { EntryType, Entry, ApplicationEntry } from "../data";
 
 const TEMPORARY_FILES = new CacheToken("temporary files");
+
+export declare type DirectoryList = [string, vscode.FileType.Directory][];
 
 @singleton()
 export class FileSystemHelper {
@@ -27,21 +29,6 @@ export class FileSystemHelper {
      */
     public resolveWorkspace(uri: vscode.Uri): WorkspaceFolder | undefined {
         return this.workspaceRegistry.resolveByUri(uri);
-    }
-
-    /**
-     * resolves the app id by a given uri
-     */
-    public resolveAppId(uri: vscode.Uri): string | undefined {
-        const appPath   = /^(\/[^/]+)(\/.*)?$/.test(uri.path);
-        const workspace = this.resolveWorkspace(uri);
-
-        if (!appPath || !workspace) {
-            throw vscode.FileSystemError.FileNotFound();
-        }
-
-        const appUri = uri.with({path: RegExp.$1});
-        return this.cacheRegistry.resolve<string>(workspace, appUri.toString(true));
     }
 
     /**
@@ -152,6 +139,38 @@ export class FileSystemHelper {
         return false;
     }
 
+
+    /**
+     * resolves the app id by a given uri
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public resolveAppId(uri: vscode.Uri): string | undefined {
+        const app = this.resolveApp(uri);
+        return app?.id;
+    }
+
+    /**
+     * resolves app data by given uri
+     */
+    public resolveApp(uri): ApplicationEntry | undefined {
+        return this.resolveEntry(uri, EntryType.APPLICATION);
+    }
+
+    public resolveEntry<T extends Entry>(uri, type: EntryType): T | undefined {
+        const workspace = this.resolveWorkspace(uri);
+
+        if (workspace) {
+            let entryPath = uri.path;
+            do {
+                const entry = this.cacheRegistry.resolve<Entry>(workspace, uri.with({path: entryPath}).toString(true));
+                if (entry && entry.type === type) {
+                    return entry as T;
+                }
+                entryPath = path.posix.dirname(entryPath);
+            } while(entryPath !== "/");
+        }
+    }
+
     /**
      * directory has been renamed, so we need to update the workspace cache
      */
@@ -171,8 +190,8 @@ export class FileSystemHelper {
                 }
 
                 const relativePath = filePath.substr(sourceUri.length).replace(/^\//, '');
-                const newEntryUri  = target.with({path: posix.resolve(target.path, relativePath)});
-                const oldEntryUri  = source.with({path: posix.resolve(source.path, relativePath)});
+                const newEntryUri  = target.with({path: path.posix.resolve(target.path, relativePath)});
+                const oldEntryUri  = source.with({path: path.posix.resolve(source.path, relativePath)});
                 const entryData    = this.cacheRegistry.resolve(workspaceFolder, oldEntryUri.toString(true));
 
                 this.cacheRegistry.delete(workspaceFolder, oldEntryUri.toString(true));
@@ -197,4 +216,14 @@ export class FileSystemHelper {
             }
         }
     }
+
+    /*
+    public addDirectory(workspace: WorkspaceFolder, uri: vscode.Uri, data) {
+        /*
+        this.cacheRegistry.add<ApplicationEntry>(workspace, uri.toString(true), {
+            type: EntryType.APPLICATION,
+            data: entries[j] as DoclistEntry
+        });
+    }
+        */
 }

@@ -4,6 +4,7 @@ import { EnigmaSession } from "projects/shared/connection";
 import { RouteParam } from "projects/shared/router";
 import { AuthorizationHelper } from "projects/extension/authorization/authorization.helper";
 import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils";
+import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;
@@ -34,7 +35,7 @@ export abstract class QixFsEntry {
     /**
      * delete a file or directory
      */
-    abstract delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void>;
+    abstract delete(uri: vscode.Uri, params: RouteParam): void | Thenable<void>;
 
     /**
      * rename a file / directory
@@ -51,6 +52,10 @@ export abstract class QixFsEntry {
         if (workspaceFolder) {
             return await this.authService.authenticate(workspaceFolder);
         }
+    }
+
+    protected getWorkspace(uri: vscode.Uri): WorkspaceFolder | undefined {
+        return this.workspaceFolderRegistry.resolveByUri(uri);
     }
 }
 
@@ -101,7 +106,7 @@ export class QixFsFileAdapter extends QixFsFile {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
+    delete(uri: vscode.Uri, params: RouteParam): void | Thenable<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 
@@ -134,7 +139,7 @@ export class QixFsDirectoryAdapter extends QixFsDirectory {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    delete(uri: vscode.Uri, name: string, params: RouteParam): void | Thenable<void> {
+    delete(uri: vscode.Uri, params: RouteParam): void | Thenable<void> {
         throw vscode.FileSystemError.NoPermissions();
     }
 

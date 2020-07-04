@@ -105,11 +105,10 @@ export class QixFSProvider implements vscode.FileSystemProvider {
     public async delete(uri: vscode.Uri): Promise<void> {
 
         const parentUri = uri.with({path: posix.dirname(uri.path)});
-        const name      = posix.basename(uri.path);
 
         const route = this.router.find(parentUri.path);
         if (route?.control.type === vscode.FileType.Directory) {
-            await (route.control as any).delete(uri, name, route.params);
+            await (route.control as any).delete(uri, route.params);
 
             const dirname = uri.with({ path: posix.dirname(uri.path) });
             setTimeout(() => {

@@ -58,6 +58,10 @@ export abstract class ConnectionHelper {
             headers
         });
 
+        ws.on("error", (error) => {
+            console.log(error.toString());
+        });
+
         return ws;
     }
 

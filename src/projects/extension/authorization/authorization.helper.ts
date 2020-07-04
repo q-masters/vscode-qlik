@@ -105,6 +105,7 @@ export class AuthorizationHelper {
                     }
                 }
             });
+
             session.open();
         });
     }

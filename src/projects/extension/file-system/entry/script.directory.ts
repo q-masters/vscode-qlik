@@ -25,9 +25,9 @@ export class ScriptDirectory extends QixFsDirectoryAdapter{
         return [["main.qvs", vscode.FileType.File]];
     }
 
-    public async delete(uri: vscode.Uri, name: string, params: any): Promise<void> {
+    public async delete(uri: vscode.Uri, params: any): Promise<void> {
         if (!this.fileSystemHelper.isTemporaryFileEntry(uri)) {
-            return super.delete(uri, name, params);
+            return super.delete(uri, params);
         }
         this.fileSystemHelper.unregisterTemporaryFile(uri);
     }
