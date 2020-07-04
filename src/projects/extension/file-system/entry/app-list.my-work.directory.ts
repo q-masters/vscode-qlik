@@ -38,8 +38,7 @@ export class QixFsAppListMyWorkDirectory extends QixFsAppListDirectory {
                  * add data to file cache so we find it again
                  */
                 map((entry: EngineAPI.IAppEntry) => {
-                    const appUri = this.filesystemHelper.createDirectoryUri(uri, name);
-                    this.cacheApplicationDirectory(entry, appUri);
+                    this.cacheApplicationDirectory(entry, uri);
                 })
             ).toPromise();
         }
