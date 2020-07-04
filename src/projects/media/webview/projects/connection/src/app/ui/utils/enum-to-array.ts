@@ -10,7 +10,7 @@ export class EnumToOptionPipe implements PipeTransform {
             .map((key: string) => {
                 const label = key.toLowerCase();
                 const value = data[key] as number;
-                return {label, value}
+                return {label, value};
             });
 
         return result;
