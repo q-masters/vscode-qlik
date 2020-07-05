@@ -25,7 +25,7 @@
                         "aot": true,
                         "assets": [
                             "projects/connection/src/favicon.ico",
-                            "projects/connection/src/assets/fonts/*"
+                            "projects/connection/src/assets"
                         ],
                         "styles": [
                             "assets/scss/_form.scss",

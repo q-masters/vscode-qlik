@@ -86,11 +86,13 @@
     ]
   },
   "scripts": {
+    "copyhtml": "copyfiles ./projects/extension/**/*.html ./out",
     "copyreadme": "copyfiles ../README.md .",
     "clear": "rimraf ./out",
     "compile": "npm run build -- --skipLibCheck",
     "watch": "npm run build -- -watch -p ./",
-    "build": "npm run clear && npm run webpack",
+    "prebuild": "npm run clear && npm run copyhtml",
+    "build": "npm run webpack",
     "webpack": "webpack --config ./bin/webpack.conf.js",
     "postinstall": "npm i --prefix ./projects/media/webview",
     "postbuild": "npm run webview:build",
