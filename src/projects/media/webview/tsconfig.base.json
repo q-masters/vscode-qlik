@@ -1,0 +1,34 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "baseUrl": "./",
+        "outDir": "./dist/out-tsc",
+        "sourceMap": true,
+        "declaration": false,
+        "module": "es2020",
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "target": "es2015",
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "downlevelIteration": true,
+        "lib": [
+            "es2018",
+            "dom"
+        ],
+        "paths": {
+            "@vsqlik/core": [
+                "./projects/core"
+            ],
+            "@vsqlik/core/*": [
+                "./projects/core/src/*"
+            ]
+        },
+    },
+    "angularCompilerOptions": {
+        "fullTemplateTypeCheck": true,
+        "strictInjectionParameters": true
+    }
+}

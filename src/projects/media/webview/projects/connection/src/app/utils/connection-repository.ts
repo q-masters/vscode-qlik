@@ -55,7 +55,7 @@ export class ConnectionRepository {
      * update an existing connection
      */
     public update(connection: WorkspaceFolderSetting) {
-        const updateCommand = this.vsCodeConnector.exec({action: Action.Update, data: connection})
+        const updateCommand = this.vsCodeConnector.exec({action: Action.Update, data: connection});
         zip(this.connection$, updateCommand)
             .pipe(take(1))
             .subscribe(([source, updated]) => {

@@ -1,26 +1,19 @@
 import { singleton } from "tsyringe";
 import { EnigmaSession } from "@shared/connection";
+import { Observable, from, of } from "rxjs";
+import { switchMap, take } from "rxjs/operators";
 
 @singleton()
 export class QixApplicationProvider {
 
-    public async exists(connection: EnigmaSession, id: string): Promise<boolean> {
-        const docList = await this.list(connection);
-        return docList.some((entry) => entry.qDocId === id);
-    }
-
     /**
-     * read all qlik documents (apps) from enigma session
+     * read all qlik documents (apps) from enigma session, we currently cache the current connection
      */
-    public async list(connection: EnigmaSession): Promise<EngineAPI.IDocListEntry[]> {
-        try {
-            const session = await connection.open();
-            const docList = await session?.getDocList() as unknown as EngineAPI.IDocListEntry[] ?? [];
-            return docList;
-        } catch (error) {
-            console.error(error);
-            return [];
-        }
+    public list(connection: EnigmaSession): Observable<EngineAPI.IDocListEntry[]> {
+        return from(connection.open()).pipe(
+            switchMap((session) => session ? from(session.getDocList() as any as Promise<EngineAPI.IDocListEntry[]>) : of([])),
+            take(1)
+        );
     }
 
     /**
@@ -49,11 +42,10 @@ export class QixApplicationProvider {
     /**
      * create a new app
      */
-    public async createApp(connection: EnigmaSession, name: string): Promise<unknown> {
-        const session = await connection.open();
-        if (session) {
-            return await session.createApp(name);
-        }
+    public createApp(connection: EnigmaSession, name: string): Observable<unknown> {
+        return from(connection.open()).pipe(
+            switchMap((global: EngineAPI.IGlobal) => global.createApp(name))
+        );
     }
 
     /**
@@ -88,5 +80,14 @@ export class QixApplicationProvider {
         const newProperties = {...properties, qTitle: name} as EngineAPI.INxAppProperties;
 
         await app?.setAppProperties(newProperties);
+    }
+
+    /**
+     * get app data
+     */
+    public getAppData(connection: EnigmaSession, id: string): Observable<EngineAPI.IAppEntry> {
+        return from(connection.open()).pipe(
+            switchMap((global: EngineAPI.IGlobal) => global.getAppEntry(id))
+        );
     }
 }
