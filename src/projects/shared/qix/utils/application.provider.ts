@@ -6,13 +6,6 @@ import { switchMap, take } from "rxjs/operators";
 @singleton()
 export class QixApplicationProvider {
 
-    public async exists(connection: EnigmaSession, id: string): Promise<boolean> {
-        /*
-        const docList = await this.list(connection);
-        return docList.some((entry) => entry.qDocId === id);
-        */
-    }
-
     /**
      * read all qlik documents (apps) from enigma session, we currently cache the current connection
      */
