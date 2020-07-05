@@ -10,3 +10,4 @@ tsconfig.json
 !package.json
 !dist/extension.js
 !dist/webview
+!vscode4qlik.png

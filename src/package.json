@@ -27,7 +27,7 @@
   "icon": "vscode4qlik.png",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/q-masters/vsqlik.git"
+    "url": "https://github.com/q-masters/vsqlik.git"
   },
   "bugs": {
     "url": "https://github.com/q-masters/vsqlik/issues"
@@ -86,7 +86,7 @@
     ]
   },
   "scripts": {
-    "copyreadme": "copyfiles ../README.md .",
+    "copyreadme": "copyfiles ../README.md ./README.md",
     "clear": "rimraf ./out",
     "compile": "npm run build -- --skipLibCheck",
     "watch": "npm run build -- -watch -p ./",
