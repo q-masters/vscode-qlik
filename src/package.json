@@ -1,38 +1,38 @@
 {
   "name": "vscode-qlik",
-  "version": "0.0.2",
-  "description": "vscode extension for qlik",
-  "main": "./dist/extension.js",
+  "version": "0.0.1",
   "publisher": "q-masters",
-  "scripts": {
-    "copyhtml": "copyfiles ./projects/extension/**/*.html ./out",
-    "clear": "rimraf ./out",
-    "compile": "npm run build -- --skipLibCheck",
-    "watch": "npm run build -- -watch -p ./",
-    "prebuild": "npm run clear && npm run copyhtml",
-    "build": "npm run webpack",
-    "webpack": "webpack --config ./bin/webpack.conf.js",
-    "postinstall": "npm i --prefix ./projects/media/webview",
-    "postbuild": "npm run webview:build",
-    "webview:build": "npm run build --prefix ./projects/media/webview -- --prod",
-    "postwebview:build": "node ./bin/webapp-finalize.js",
-    "webview:dev": "npm start --prefix ./projects/media/webview -- --configuration browser",
-    "vscode:prepublish": "npm run build -- --mode=production",
-    "lint:extension": "node bin/eslint-reporter './projects/extension/**/*.ts'",
-    "lint:webview": "npm run lint --prefix ./projects/media/webview",
-    "test": "mocha --reporter spec -r ts-node/register  -r tsconfig-paths/register ./test/**/*.spec.ts",
-    "test:watch": "npm test -- --watch --watch-files test --watch-files extension --watch-files core",
-    "vsce:publish": "./node_modules/.bin/vsce publish",
-    "vsce:package": "./node_modules/.bin/vsce package"
-  },
+  "author": "q-masters",
   "engines": {
     "vscode": "^1.45.1"
   },
+  "license": "MIT",
+  "displayName": "vscode4qlik",
+  "description": "VSCode Extension for better Qlik App Development",
+  "categories": ["Programming Languages", "Debuggers", "Other"],
+  "keywords": ["qlik", "vscode"],
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "preview": false,
+  "main": "./dist/extension.js",
   "activationEvents": [
     "onFileSystem:qix",
     "onCommand:VsQlik.Connection.Settings",
     "onCommand:VsQlik.Connection.Create"
   ],
+  "markdown": "github",
+  "qna": "https://github.com/q-masters/vsqlik/issues",  
+  "icon": "vscode4qlik.png",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/q-masters/vsqlik.git"
+  },
+  "bugs": {
+    "url": "https://github.com/q-masters/vsqlik/issues"
+  },
+  "homepage": "https://github.com/q-masters/vsqlik", 
   "contributes": {
     "commands": [
       {
@@ -85,16 +85,26 @@
       }
     ]
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/q-masters/vsqlik.git"
-  },
-  "author": "phl-coding",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/q-masters/vsqlik/issues"
-  },
-  "homepage": "https://github.com/q-masters/vsqlik",
+  "scripts": {
+    "copyreadme": "copyfiles ../README.md .",
+    "clear": "rimraf ./out",
+    "compile": "npm run build -- --skipLibCheck",
+    "watch": "npm run build -- -watch -p ./",
+    "build": "npm run clear && npm run webpack",
+    "webpack": "webpack --config ./bin/webpack.conf.js",
+    "postinstall": "npm i --prefix ./projects/media/webview",
+    "postbuild": "npm run webview:build",
+    "webview:build": "npm run build --prefix ./projects/media/webview -- --prod",
+    "postwebview:build": "node ./bin/webapp-finalize.js",
+    "webview:dev": "npm start --prefix ./projects/media/webview -- --configuration browser",
+    "vscode:prepublish": "npm run build -- --mode=production && npm run copyreadme",
+    "lint:extension": "node bin/eslint-reporter './projects/extension/**/*.ts'",
+    "lint:webview": "npm run lint --prefix ./projects/media/webview",
+    "test": "mocha --reporter spec -r ts-node/register  -r tsconfig-paths/register ./test/**/*.spec.ts",
+    "test:watch": "npm test -- --watch --watch-files test --watch-files extension --watch-files core",
+    "vsce:publish": "./node_modules/.bin/vsce publish",
+    "vsce:package": "./node_modules/.bin/vsce package"
+  },  
   "devDependencies": {
     "@types/chai": "4.2.11",
     "@types/enigma.js": "2.2.1",
