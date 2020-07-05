@@ -38,17 +38,17 @@ export class CacheRegistry<T extends Object> {
     /**
      * add value to cache
      */
-    public add(token: T, key: string, value: any): void {
+    public add<R extends any>(namespace: T, key: string, value: R): void {
 
-        if (!token) {
+        if (!namespace) {
             return;
         }
 
-        if (!this.registry.has(token)) {
-            this.registerCache(token);
+        if (!this.registry.has(namespace)) {
+            this.registerCache(namespace);
         }
 
-        const cache = this.registry.get(token);
+        const cache = this.registry.get(namespace);
         cache?.set(key, value);
     }
 

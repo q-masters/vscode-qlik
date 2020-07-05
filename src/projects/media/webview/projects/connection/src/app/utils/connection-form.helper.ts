@@ -82,6 +82,6 @@ export class ConnectionFormHelper {
             },
             fileRenderer: FileRenderer.YAML,
             label: "New Connection"
-        }
+        };
     }
 }

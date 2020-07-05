@@ -23,9 +23,6 @@ export class WorkspaceFolder {
         return this.connected;
     }
 
-    public set settings(setting: WorkspaceSetting) {
-    }
-
     public get settings(): WorkspaceSetting {
         return this.folderSettings;
     }

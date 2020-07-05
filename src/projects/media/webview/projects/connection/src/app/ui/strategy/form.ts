@@ -21,7 +21,7 @@ export class FormStrategyComponent implements OnInit, OnDestroy {
 
     public passwordCtrl: FormControl;
 
-    private strategyData: FormStrategyData
+    private strategyData: FormStrategyData;
 
     private destroy$: Subject<boolean>;
 

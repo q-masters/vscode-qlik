@@ -69,7 +69,7 @@ export interface ConnectionSetting {
     authorization: {
         strategy: AuthorizationStrategy,
         data: FormAuthorizationData | CertificateAuthorizationData | unknown
-    }
+    };
 }
 
 export interface WorkspaceFolderSetting {
@@ -87,7 +87,7 @@ export interface WorkspaceFolderSetting {
     /**
      * how should files rendered (yaml, json, ...)
      */
-    fileRenderer: FileRenderer,
+    fileRenderer: FileRenderer;
 
     /** */
     uid?: string;
