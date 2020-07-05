@@ -3,3 +3,7 @@ node_modules
 /** auto generated */
 src/out
 src/dist
+
+.DS_STORE
+*.vsix
+src/README.md
