@@ -80,7 +80,7 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
         let result;
 
         return new Promise((resolve, reject) => {
-            ws.on("close", () => result ? resolve(result) : reject());
+            ws.once("close", () => result ? resolve(result) : reject());
             ws.once("upgrade", (res: IncomingMessage) => {
                 /**
                  * @example respsonse
