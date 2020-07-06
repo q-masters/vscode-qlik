@@ -6,7 +6,6 @@ on:
 
 jobs:
   publish:
-    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
     - name: Install GitVersion
@@ -35,12 +34,16 @@ jobs:
         npm config set git-tag-version false
         npm version ${{ steps.gitversion.outputs.semVer }}
 
-    - name: Package Publish
+    - name: Package
       working-directory: src
       run: |
         ./node_modules/.bin/vsce package
+
+    - name: Publish
+      if: "!github.event.release.prerelease"
+      working-directory: src
+      run: |
         ./node_modules/.bin/vsce publish -p ${{ secrets.PUBLISH_TOKEN }}
-      continue-on-error: true
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
