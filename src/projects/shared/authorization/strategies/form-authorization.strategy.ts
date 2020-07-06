@@ -1,8 +1,9 @@
 import request from "request";
 import { Response } from "request";
 import { AuthorizationStrategy, AuthorizationResult } from "./authorization.strategy";
-import { ConnectionHelper } from "projects/shared/connection";
 import { AuthorizationSetting } from "../api";
+import WebSocket from "ws";
+import { IncomingMessage } from "http";
 
 interface Credentials {
     domain: string;
@@ -25,14 +26,13 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
         const {domain, password} = await this.resolveCredentials(this.connection.authorization);
 
         try {
-            const formUri     = await this.initializeLoginProcess();
-            const redirectUri = await this.submitForm(formUri, domain, password);
+            const redirectUri = await this.submitForm(domain, password);
             const cookies     = await this.finalizeLoginProcess(redirectUri);
 
             response.success = true;
             response.cookies = cookies;
-
         } catch (error) {
+            console.log(error);
             response.error   = error;
             response.success = false;
         }
@@ -43,34 +43,9 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
     protected abstract resolveCredentials(settings: AuthorizationSetting<any>): Promise<{domain: string; password: string;}>;
 
     /**
-     * initialize login process by call server directly
-     * this returns an login form by default if this running
-     * against a qlik server.
-     *
-     * this uri is required since it contains a ticket id
-     */
-    private initializeLoginProcess(): Promise<string>
-    {
-        const options = {
-            uri: ConnectionHelper.buildUrl(this.connection),
-            method: "GET"
-        };
-
-        return new Promise((resolve, reject) => {
-            request(options, (error, response) => {
-                if (error) {
-                    reject(`${error.code}: ${error.hostname}`);
-                    return;
-                }
-                resolve(response.request.uri.href);
-            });
-        });
-    }
-
-    /**
      * submit form data and returns a redirect uri
      */
-    private submitForm(uri: string, username: string, password: string): Promise<string>
+    private submitForm(username: string, password: string): Promise<string>
     {
         const body = `username=${username}&pwd=${password}`;
         const headers = {
@@ -79,7 +54,7 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
         };
 
         return new Promise((resolve, reject) => {
-            const options = { body, headers, method: "POST", uri };
+            const options = { body, headers, method: "POST", uri: this.loginUrl };
             request(options, (error, response: Response) => {
                 if (error) {
                     reject(error);
@@ -90,7 +65,6 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
                     reject(response.statusMessage);
                     return;
                 }
-
                 resolve(response.headers.location);
             });
         });
@@ -102,30 +76,24 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
      */
     private finalizeLoginProcess(uri: string): Promise<any[]>
     {
+        const ws = new WebSocket(uri);
+        let result;
+
         return new Promise((resolve, reject) => {
-            const options = { method: "GET", uri };
-            request(options, (error, response: Response) => {
-
-                if (error) {
-                    reject(error);
-                    return;
-                }
-
+            ws.on("close", () => result ? resolve(result) : reject());
+            ws.once("upgrade", (res: IncomingMessage) => {
                 /**
                  * @example respsonse
                  * set-cookie:Array[1]
                  *   0:"X-Qlik-Session-HTTP=eccfad38-8851-4064-85fd-79c1d0a6bc84; Path=/; HttpOnly"
                  */
-                const cookies: any[] = response.headers['set-cookie']
-                    /** remove Path and HttpOnly from cookie we dont care */
-                    .map((cookie) => cookie.split(";")[0])
-                    /** split every cookie by = and map to key, value pair */
-                    .map((cookieData: string) =>  {
-                        const [name, value] = cookieData.split("=");
-                        return {name, value};
-                    });
+                const cookies = res.headers['set-cookie']?.map((cookieData: string) =>  {
+                    const [name, value] = cookieData.split("=");
+                    return {name, value};
+                });
 
-                resolve(cookies);
+                result = cookies;
+                ws.close();
             });
         });
     }

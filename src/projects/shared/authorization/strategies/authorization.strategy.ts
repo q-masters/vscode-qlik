@@ -20,7 +20,8 @@ export abstract class AuthorizationStrategy {
     private authTitle = "";
 
     constructor(
-        protected connection: ConnectionSetting
+        protected connection: ConnectionSetting,
+        protected loginUrl: string
     ) { }
 
     public set title(title: string) {
