@@ -12,14 +12,16 @@ export abstract class ConnectionHelper {
     public static buildUrl(connection: ConnectionSetting): string {
 
         const isSecure = connection.secure;
-        const host     = connection.host;
-        const port     = Number(connection.port);
         const protocol = isSecure ? 'https://' : 'http://';
 
-        return protocol.concat(
-            host,
-            `:${port && !isNaN(port) ? port : connection.secure ? 443 : 80}`
-        );
+        try {
+            const url = new URL(protocol + connection.host);
+            url.pathname = connection.path ?? "";
+            return url.toString();
+        } catch (error) {
+            console.dir(error);
+            throw error;
+        }
     }
 
     /**
@@ -34,7 +36,8 @@ export abstract class ConnectionHelper {
             host    : connection.host,
             identity: Math.random().toString(32).substr(2),
             secure  : connection.secure,
-            port    : port && !isNaN(port) ? port : connection.secure ? 443 : 80
+            port    : port && !isNaN(port) ? port : connection.secure ? 443 : 80,
+            subpath : connection.path ?? ""
         };
 
         return buildUrl(options);
@@ -42,6 +45,7 @@ export abstract class ConnectionHelper {
 
     /**
      * create a new websocket connection with a given connection
+     * @todo refactor this
      */
     public static createWebsocket(url: string, data: ConnectionData): WebSocket
     {

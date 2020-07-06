@@ -11,3 +11,4 @@ tsconfig.json
 !dist/extension.js
 !dist/webview
 !vscode4qlik.png
+!README.md
