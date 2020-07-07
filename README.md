@@ -2,6 +2,8 @@
 ![compile](https://github.com/q-masters/vsqlik/workflows/compile/badge.svg)
 [![CodeFactor](https://www.codefactor.io/repository/github/q-masters/vsqlik/badge)](https://www.codefactor.io/repository/github/q-masters/vsqlik)
 [![Visual Studio Marketplace](https://vsmarketplacebadge.apphb.com/installs-short/q-masters.vscode-qlik.svg)](https://marketplace.visualstudio.com/items?itemName=q-masters.vscode-qlik)
+[![Visual Studio Marketplace Downloads](https://vsmarketplacebadge.apphb.com/downloads-short/q-masters.vscode-qlik.svg)](https://vsmarketplacebadge.apphb.com/downloads-short/q-masters.vscode-qlik.svg)
+
 
 # Visual Studio Code - Qlik Extension
 
