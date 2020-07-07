@@ -1,18 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
 import { QixMeasureProvider } from "@core/qix/utils/measure.provider";
 import { FileSystemHelper } from "../utils/file-system.helper";
+import { QixDirectory, DirectoryItem } from "./qix.directory";
+import { EnigmaSession } from "@core/connection";
+import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
 @injectable()
-export class MeasureDirectory extends QixFsDirectoryAdapter{
+export class MeasureDirectory extends QixDirectory<any> {
 
     public constructor(
         @inject(QixMeasureProvider) private measureProvider: QixMeasureProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
+        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
     ) {
-        super();
+        super(fileSystemHelper);
     }
 
     /**
@@ -28,64 +31,36 @@ export class MeasureDirectory extends QixFsDirectoryAdapter{
     }
 
     /**
-     * read variable directory
+     * load all measures
      */
-    public async readDirectory(uri: vscode.Uri): Promise<any> {
-        const connection = await this.getConnection(uri);
-        const app_id     = this.fileSystemHelper.resolveAppId(uri);
-
-        if (!connection || !app_id) {
-            throw vscode.FileSystemError.NoPermissions();
-        }
-
-        return this.measureProvider.list(connection, app_id)
-            .pipe(
-                map((data) => this.sanitizeMeasureFileNames(data)),
-                map((data) => this.buildFileList(data, uri))
-            ).toPromise();
+    protected loadData(connection: EnigmaSession, app: string): Observable<DirectoryItem<any>[]> {
+        return this.measureProvider.list(connection, app).pipe(
+            map(
+                (measures: any[]) => measures.map((measure) => this.mapMeasureToDirectoryItem(measure))
+            )
+        );
     }
 
     /**
-     * it is possible to have the a stream with the same name multiple times
-     * ensure if streams with the same name exists we add the id at the end
+     * create directory list
      */
-    protected sanitizeMeasureFileNames(measures: any[]): any[] {
-        const result: any[] = [];
-        const documentCache: Map<string, any> = new Map();
-
-        /** first loop to identify duplicated apps */
-        measures.forEach((measure) => {
-            ! documentCache.has(measure.qMeta.title)
-                ? documentCache.set(measure.qMeta.title, [measure])
-                : documentCache.get(measure.qMeta.title)?.push(measure);
-        });
-
-        const data = Array.from(documentCache.entries());
-
-        /** second loop create names */
-        for (let i = 0, ln = data.length; i < ln; i++) {
-            const [name, entries] = data[i];
-
-            for (let j = 0, appLn = entries.length; j < appLn; j++) {
-                const entry      = entries[j];
-                const streamName = entries.length > 1 ? `${name} (${entry.qInfo.qId.substr(0, 9)})...` : name;
-
-                result.push(Object.assign({}, entry, {qName: streamName}));
-            }
-        }
-        return result;
-    }
-
-    /**
-     * build file list
-     */
-    private buildFileList(measures: any[], uri: vscode.Uri) {
-        return measures.map((measure) => {
-            const fileUri  = this.fileSystemHelper.createFileUri(uri, measure.qMeta.title);
+    protected buildEntryList(data: DirectoryItem<any>[], uri: vscode.Uri): [string, vscode.FileType][] {
+        return data.map((measure) => {
+            const fileUri  = this.fileSystemHelper.createFileUri(uri, measure.name);
             const fileName = this.fileSystemHelper.resolveFileName(fileUri);
 
             return [fileName, vscode.FileType.File];
         });
     }
 
+    /**
+     * map measure data to DirectoryItem
+     */
+    private mapMeasureToDirectoryItem(measure: any): DirectoryItem<any> {
+        return {
+            name: measure.qMeta.title,
+            id: measure.qInfo.qId,
+            data: measure
+        };
+    }
 }
