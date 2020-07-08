@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
+import { QixFsDirectoryAdapter } from "./qix/qixfs-entry";
 import { DirectoryList } from "../utils/file-system.helper";
 import { CacheRegistry } from "@core/utils/cache-registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";

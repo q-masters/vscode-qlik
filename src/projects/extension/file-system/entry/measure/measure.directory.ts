@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 import { QixMeasureProvider } from "@core/qix/utils/measure.provider";
-import { FileSystemHelper } from "../utils/file-system.helper";
-import { QixDirectory, DirectoryItem } from "./qix.directory";
 import { EnigmaSession } from "@core/connection";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
+
+import { EntryType } from "../../data";
+import { FileSystemHelper } from "../../utils/file-system.helper";
+import { QixDirectory, DirectoryItem, DirectoryEntry } from "../qix/qix.directory";
 
 @injectable()
 export class MeasureDirectory extends QixDirectory<any> {
@@ -33,7 +34,12 @@ export class MeasureDirectory extends QixDirectory<any> {
     /**
      * load all measures
      */
-    protected loadData(connection: EnigmaSession, app: string): Observable<DirectoryItem<any>[]> {
+    protected loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<any>[]> {
+        const app = this.fileSystemHelper.resolveAppId(uri);
+        if (!app) {
+            throw new Error(`could not find app for path: ${uri.toString(true)}`);
+        }
+
         return this.measureProvider.list(connection, app).pipe(
             map(
                 (measures: any[]) => measures.map((measure) => this.mapMeasureToDirectoryItem(measure))
@@ -42,15 +48,21 @@ export class MeasureDirectory extends QixDirectory<any> {
     }
 
     /**
-     * create directory list
+     * ressolve data for file system
      */
-    protected buildEntryList(data: DirectoryItem<any>[], uri: vscode.Uri): [string, vscode.FileType][] {
-        return data.map((measure) => {
-            const fileUri  = this.fileSystemHelper.createFileUri(uri, measure.name);
-            const fileName = this.fileSystemHelper.resolveFileName(fileUri);
+    protected generateEntry(measure: DirectoryItem<any>, uri: vscode.Uri): DirectoryEntry {
+        const fileName = this.fileSystemHelper.createFileName(uri, measure.name);
+        const app = this.fileSystemHelper.resolveApp(uri);
 
-            return [fileName, vscode.FileType.File];
-        });
+        return {
+            entry: {
+                id: measure.id,
+                type: EntryType.MEASURE,
+                data: measure.data,
+                readonly: app?.readonly ?? false
+            },
+            item: [fileName, vscode.FileType.File]
+        };
     }
 
     /**

@@ -4,8 +4,8 @@ import { posix } from "path";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
 import { CacheRegistry } from "@shared/utils/cache-registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
-import { FileSystemHelper } from "../utils/file-system.helper";
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
+import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
 
 /** */
 export class ApplicationDirectory extends QixFsDirectoryAdapter {

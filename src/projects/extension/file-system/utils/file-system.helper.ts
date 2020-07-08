@@ -85,22 +85,21 @@ export class FileSystemHelper {
         });
     }
 
-    /**
-     * create file uri
-     *
-     * @param {vscode.Uri} uri the uri to the directory
-     * @param {string} name of the file
-     */
-    public createFileUri(uri: vscode.Uri, name: string): vscode.Uri {
-        const setting   = this.resolveWorkspace(uri)?.settings;
-        const prefix    = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
-        return uri.with({path: path.posix.resolve(uri.path, `${name}.${prefix}`)});
+    public createFileName(uri: vscode.Uri, name: string) {
+        const setting = this.resolveWorkspace(uri)?.settings;
+        const prefix  = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
+        /**
+         * we have to replace some special chars like / since this one is a directory
+         * seperator
+         */
+        return `${name.replace(/\//, '|')}.${prefix}`;
+
     }
 
     /**
-     * create a directory uri
+     * create a entry uri
      */
-    public createDirectoryUri(uri: vscode.Uri, name: string): vscode.Uri {
+    public createEntryUri(uri: vscode.Uri, name: string): vscode.Uri {
         return uri.with({path: path.posix.resolve(uri.path, `${name}`)});
     }
 
@@ -168,6 +167,14 @@ export class FileSystemHelper {
                 }
                 entryPath = path.posix.dirname(entryPath);
             } while(entryPath !== "/");
+        }
+    }
+
+    public cacheEntry<T extends Entry>(uri, data: T): void {
+        const workspace = this.resolveWorkspace(uri);
+
+        if (workspace) {
+            this.cacheRegistry.add(workspace, uri.toString(true), data);
         }
     }
 

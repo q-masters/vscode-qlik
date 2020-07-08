@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
-import { QixFsDirectoryAdapter } from "../data";
-import { inject } from "tsyringe";
-import { FileSystemHelper } from "../utils/file-system.helper";
+import { QixFsDirectoryAdapter, Entry } from "../../data";
+import { FileSystemHelper } from "../../utils/file-system.helper";
 import { map } from "rxjs/operators";
 import { EnigmaSession } from "@core/connection";
 import { Observable } from "rxjs";
@@ -12,20 +11,25 @@ export interface DirectoryItem<T> {
     data: T
 }
 
+export interface DirectoryEntry {
+    entry: Entry,
+    item: [string, vscode.FileType]
+}
+
 export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
 
     /**
      * load data from qix
      */
-    protected abstract loadData(connection: EnigmaSession, app: string): Observable<DirectoryItem<T>[]>;
+    protected abstract loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<T>[]>;
 
     /**
      * build entry list
      */
-    protected abstract buildEntryList(data: DirectoryItem<T>[], uri: vscode.Uri): [string, vscode.FileType][];
+    protected abstract generateEntry(data: DirectoryItem<T>, uri: vscode.Uri): DirectoryEntry;
 
     public constructor(
-        @inject(FileSystemHelper) protected fileSystemHelper: FileSystemHelper
+        protected fileSystemHelper: FileSystemHelper
     ) {
         super();
     }
@@ -35,16 +39,27 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
      */
     public async readDirectory(uri: vscode.Uri): Promise<any> {
         const connection = await this.getConnection(uri);
-        const app_id     = this.fileSystemHelper.resolveAppId(uri);
 
-        if (!connection || !app_id) {
+        if (!connection) {
             throw vscode.FileSystemError.NoPermissions();
         }
 
-        return this.loadData(connection, app_id).pipe(
+        return this.loadData(connection, uri).pipe(
             map((data) => this.sanitizeItemNames(data)),
-            map((data) => this.buildEntryList(data, uri))
+            map((data) => this.buildEntryList(data, uri)),
         ).toPromise();
+    }
+
+    /**
+     * create directory list
+     */
+    protected buildEntryList(data: DirectoryItem<T>[], uri: vscode.Uri): [string, vscode.FileType][] {
+        return data.map((item) => {
+            const entry    = this.generateEntry(item, uri);
+            const entryUri = this.fileSystemHelper.createEntryUri(uri, entry.item[0]);
+            this.fileSystemHelper.cacheEntry(entryUri, entry.entry);
+            return entry.item;
+        });
     }
 
     /**

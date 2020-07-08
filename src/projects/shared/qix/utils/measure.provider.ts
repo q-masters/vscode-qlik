@@ -1,9 +1,9 @@
-import { injectable } from "tsyringe";
+import { singleton } from "tsyringe";
 import { EnigmaSession } from "@shared/connection";
-import { from, EMPTY, Observable } from "rxjs";
+import { from, EMPTY, Observable, EmptyError } from "rxjs";
 import { switchMap, map } from "rxjs/operators";
 
-@injectable()
+@singleton()
 export class QixMeasureProvider {
 
     /**
@@ -37,6 +37,17 @@ export class QixMeasureProvider {
             }),
             /** @todo add better typings, they are not correct */
             map((layout: any) => layout.qMeasureList.qItems)
+        );
+    }
+
+    /**
+     * read measure data
+     */
+    public read(connection: EnigmaSession, app: string, measure: string): Observable<any> {
+        return from(connection.open(app)).pipe(
+            switchMap((global) => global?.openDoc(app) ?? EmptyError),
+            switchMap((app) => app ? app.getMeasure(measure) : EmptyError),
+            switchMap((measure) => measure.getProperties())
         );
     }
 }
