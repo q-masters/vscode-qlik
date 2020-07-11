@@ -1,53 +1,89 @@
 import { singleton } from "tsyringe";
-import { EnigmaSession } from "@shared/connection";
-import { from, EMPTY, Observable, EmptyError } from "rxjs";
-import { switchMap, map } from "rxjs/operators";
+import { QixListProvider, DataNode } from "./qix-list.provider";
+
+export interface MeasureProperties {
+    qInfo: {
+        qId: string,
+        qType: "measure"
+    },
+    qMeasure: {
+        qLabel: string,
+        qDef: string,
+        qGrouping: number,
+        qExpressions: any[],
+        qActiveExpression: number,
+        qLabelExpression: string
+    },
+    qMetaDef: DataNode
+}
+
+export const MeasureSkeleton: MeasureProperties = {
+    qInfo: {
+        qId: "",
+        qType: "measure"
+    },
+    qMeasure: {
+        qLabel: "",
+        qDef: "",
+        qGrouping: 0,
+        qExpressions: [],
+        qActiveExpression: 0,
+        qLabelExpression: ""
+    },
+    qMetaDef: {}
+};
 
 @singleton()
-export class QixMeasureProvider {
+export class QixMeasureProvider extends QixListProvider {
 
     /**
-     * resolve all measure items
-     *
-     * @todo add typings
+     * @inheritdoc
      */
-    public list(connection: EnigmaSession, app_id: string): Observable<any[]> {
+    protected listProperties: EngineAPI.IGenericMeasureListProperties = {
+        qInfo: {
+            qType: 'MeasureList'
+        },
+        qMeasureListDef: {
+            qType: 'measure',
+        }
+    };
 
-        /** configuration for measure list object */
-        const measureListConfig: EngineAPI.IGenericObjectProperties = {
-            qInfo: {
-                qType: 'MeasureList'
-            },
-            qMeasureListDef: {
-                qType: 'measure',
-                qData: {
-                    'title': '/title'
+    public createMeasureProperties(name: string): MeasureProperties {
+        return Object.assign(
+            {},
+            MeasureSkeleton,
+            {
+                qMeasure: {
+                    qLabel: name
+                },
+                qMetaDef: {
+                    title: name
                 }
             }
-        };
-
-        return from(connection.open(app_id)).pipe(
-            switchMap((global) => global?.openDoc(app_id) ?? EMPTY),
-            switchMap((app) => {
-                if (app) {
-                    const inner$ =  from(app.createSessionObject(measureListConfig));
-                    return inner$.pipe(switchMap((obj) => obj.getLayout()));
-                }
-                throw new Error(`could not open document: ${app_id}`);
-            }),
-            /** @todo add better typings, they are not correct */
-            map((layout: any) => layout.qMeasureList.qItems)
         );
     }
 
     /**
-     * read measure data
+     * @inheritdoc
      */
-    public read(connection: EnigmaSession, app: string, measure: string): Observable<any> {
-        return from(connection.open(app)).pipe(
-            switchMap((global) => global?.openDoc(app) ?? EmptyError),
-            switchMap((app) => app ? app.getMeasure(measure) : EmptyError),
-            switchMap((measure) => measure.getProperties())
-        );
+    protected getObject<DataNode>( app: EngineAPI.IApp, id: string): Promise<DataNode> {
+        return app.getMeasure(id) as Promise<unknown> as Promise<DataNode>;
+    }
+
+    /**
+     * @inheritdoc
+     * @todo improve typings
+     */
+    protected extractListItems<T>( layout: any): T[] {
+        return layout.qMeasureList.qItems;
+    }
+
+    /**
+     * @inheritdoc
+     * @todo got a little problem with typings enigmaJS.IGeneratedAPI EngineAPI.IGeneratedAPI exists
+     *       but createMeasure() return value extends from enigmaJS.IGeneratedAPI which is bad
+     */
+    protected createObject(app: EngineAPI.IApp, properties: EngineAPI.IGenericMeasureProperties): Promise<any> {
+        return app.createMeasure(properties);
     }
 }

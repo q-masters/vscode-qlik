@@ -13,6 +13,22 @@ export const variableDef: EngineAPI.IGenericVariableListProperties = {
     }
 };
 
+/**
+ * configuration for measure list object
+ *
+ */
+export const dimensionListProperties: EngineAPI.IGenericDimensionsListProperties = {
+    qInfo: {
+        qType: 'DimensionList'
+    },
+    qDimensionListDef: {
+        qType: 'dimension',
+        qData: {
+            'title': '/title'
+        }
+    }
+};
+
 export interface IVariableListItem {
     qName: string;
     qDefinition: string;

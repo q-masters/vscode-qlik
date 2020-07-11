@@ -39,13 +39,17 @@ export abstract class QixFile extends QixFsFileAdapter {
     /**
      * get stats of variable
      */
-    public async stat(): Promise<vscode.FileStat | void> {
-        return {
-            ctime: Date.now(),
-            mtime: Date.now(),
-            size: 1,
-            type: vscode.FileType.File,
-        };
+    public async stat(uri: vscode.Uri): Promise<vscode.FileStat | void> {
+        if (this.fileSystemHelper.exists(uri)) {
+            return {
+                ctime: Date.now(),
+                mtime: Date.now(),
+                size: 1,
+                type: vscode.FileType.File,
+            };
+        }
+
+        throw vscode.FileSystemError.FileNotFound();
     }
 
     protected abstract read(connection: EnigmaSession, app: string, entry: Entry): Promise<any>;

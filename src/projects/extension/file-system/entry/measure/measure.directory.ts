@@ -40,7 +40,7 @@ export class MeasureDirectory extends QixDirectory<any> {
             throw new Error(`could not find app for path: ${uri.toString(true)}`);
         }
 
-        return this.measureProvider.list(connection, app).pipe(
+        return this.measureProvider.list<any>(connection, app).pipe(
             map(
                 (measures: any[]) => measures.map((measure) => this.mapMeasureToDirectoryItem(measure))
             )

@@ -88,12 +88,8 @@ export class FileSystemHelper {
     public createFileName(uri: vscode.Uri, name: string) {
         const setting = this.resolveWorkspace(uri)?.settings;
         const prefix  = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
-        /**
-         * we have to replace some special chars like / since this one is a directory
-         * seperator
-         */
-        return `${name.replace(/\//, '|')}.${prefix}`;
-
+        /** replace \ and / by unicode characters so they will not replaced by vscode anymore */
+        return `${name.replace(/\u002F/g, '\uFF0F').replace(/[\uFE68\uFF3C]/g, '\u005C')}.${prefix}`;
     }
 
     /**
@@ -132,9 +128,11 @@ export class FileSystemHelper {
      */
     public exists(uri: vscode.Uri): boolean {
         const workspaceFolder = this.resolveWorkspace(uri);
+
         if (workspaceFolder) {
             return this.cacheRegistry.exists(workspaceFolder, uri.toString(true));
         }
+
         return false;
     }
 
@@ -155,18 +153,28 @@ export class FileSystemHelper {
         return this.resolveEntry(uri, EntryType.APPLICATION);
     }
 
-    public resolveEntry<T extends Entry>(uri, type: EntryType): T | undefined {
+    /**
+     * resolve entry data from cache
+     *
+     * @param {vscode.Uri} uri
+     * @param {EntryType} type
+     * @param {boolean} [goUp=true] if true traverse up in tree [default is true]
+     * @returns {Entry}
+     */
+    public resolveEntry<T extends Entry>(uri: vscode.Uri, type: EntryType, goUp = true): T | undefined {
         const workspace = this.resolveWorkspace(uri);
 
         if (workspace) {
             let entryPath = uri.path;
             do {
+
                 const entry = this.cacheRegistry.resolve<Entry>(workspace, uri.with({path: entryPath}).toString(true));
                 if (entry && entry.type === type) {
                     return entry as T;
                 }
+
                 entryPath = path.posix.dirname(entryPath);
-            } while(entryPath !== "/");
+            } while(entryPath !== "/" && goUp);
         }
     }
 
@@ -223,14 +231,4 @@ export class FileSystemHelper {
             }
         }
     }
-
-    /*
-    public addDirectory(workspace: WorkspaceFolder, uri: vscode.Uri, data) {
-        /*
-        this.cacheRegistry.add<ApplicationEntry>(workspace, uri.toString(true), {
-            type: EntryType.APPLICATION,
-            data: entries[j] as DoclistEntry
-        });
-    }
-        */
 }
