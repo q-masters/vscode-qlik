@@ -11,8 +11,8 @@ import { SheetFile } from "../entry/sheet/sheet-file";
 import { QixFsStreamRootDirectory } from "../entry/streams.directory";
 import { AppListMyWorkDirectory } from "../entry/application/app-list.my-work.directory";
 import { AppListStreamDirectory } from "../entry/application/app-list.stream.directory";
-import { MeasureDirectory } from "../entry/measure/measure.directory";
-import { MeasureFile } from "../entry/measure/measure.file";
+import { MeasureDirectory } from "../entry/master-items/measure.directory";
+import { MeasureFile } from "../entry/master-items/measure.file";
 
 export const Routes: Route<QixFsEntry>[] = [
     /** Workspace Folder Root Directory */

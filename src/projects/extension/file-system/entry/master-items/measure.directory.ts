@@ -32,6 +32,28 @@ export class MeasureDirectory extends QixDirectory<any> {
     }
 
     /**
+     * delete an variable
+     */
+    public async delete(uri: vscode.Uri): Promise<void> {
+
+        console.log("is this called now ?");
+
+        const connection = await this.getConnection(uri);
+        const app        = this.fileSystemHelper.resolveApp(uri);
+
+        if (connection && app?.readonly === false) {
+            const entry = this.fileSystemHelper.resolveEntry(uri, EntryType.MEASURE, false);
+
+            if (!entry) {
+                throw vscode.FileSystemError.FileNotFound();
+            }
+
+            await this.measureProvider.destroy(connection, app.id, entry.id);
+            this.fileSystemHelper.deleteEntry(uri);
+        }
+    }
+
+    /**
      * load all measures
      */
     protected loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<any>[]> {

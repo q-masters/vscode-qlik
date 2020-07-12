@@ -187,6 +187,19 @@ export class FileSystemHelper {
     }
 
     /**
+     * delete an entry
+     *
+     * @todo improve entry so we know it is a directory since we have to do more then
+     */
+    public deleteEntry(uri: vscode.Uri): void {
+        const workspace = this.resolveWorkspace(uri);
+
+        if (workspace) {
+            this.cacheRegistry.delete(workspace, uri.toString(true));
+        }
+    }
+
+    /**
      * directory has been renamed, so we need to update the workspace cache
      */
     public renameDirectory(source: vscode.Uri, target: vscode.Uri) {

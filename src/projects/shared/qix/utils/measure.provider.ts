@@ -1,5 +1,7 @@
 import { singleton } from "tsyringe";
 import { QixListProvider, DataNode } from "./qix-list.provider";
+import { EnigmaSession } from "@core/connection";
+import deepmerge from "deepmerge";
 
 export interface MeasureProperties {
     qInfo: {
@@ -49,18 +51,30 @@ export class QixMeasureProvider extends QixListProvider {
     };
 
     public createMeasureProperties(name: string): MeasureProperties {
-        return Object.assign(
-            {},
-            MeasureSkeleton,
-            {
-                qMeasure: {
-                    qLabel: name
-                },
-                qMetaDef: {
-                    title: name
-                }
+        const data = {
+            qMeasure: {
+                qLabel: name
+            },
+            qMetaDef: {
+                title: name
             }
-        );
+        };
+        return deepmerge.all([MeasureSkeleton, data], {clone: true}) as MeasureProperties;
+    }
+
+    /**
+     * rename measure
+     */
+    public async rename(connection: EnigmaSession, app: string, measure: string, newName: string) {
+        const patch   = {
+            qMeasure: {
+                qLabel: newName,
+            },
+            qMetaDef: {
+                title: newName
+            }
+        };
+        return await this.patch(connection, app, measure, patch);
     }
 
     /**
@@ -85,5 +99,12 @@ export class QixMeasureProvider extends QixListProvider {
      */
     protected createObject(app: EngineAPI.IApp, properties: EngineAPI.IGenericMeasureProperties): Promise<any> {
         return app.createMeasure(properties);
+    }
+
+    /**
+     * destroy a measure
+     */
+    protected async delete(app: EngineAPI.IApp, object: string): Promise<boolean> {
+        return app.destroyMeasure(object);
     }
 }
