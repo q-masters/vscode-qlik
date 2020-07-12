@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { QixMeasureProvider } from "@core/qix/utils/measure.provider";
 import { EnigmaSession } from "@core/connection";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
@@ -8,12 +7,13 @@ import { map } from "rxjs/operators";
 import { EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { QixDirectory, DirectoryItem, DirectoryEntry } from "../qix/qix.directory";
+import { QixDimensionProvider } from "@core/qix/utils/dimension.provider";
 
 @injectable()
-export class MeasureDirectory extends QixDirectory<any> {
+export class DimensionDirectory extends QixDirectory<any> {
 
     public constructor(
-        @inject(QixMeasureProvider) private measureProvider: QixMeasureProvider,
+        @inject(QixDimensionProvider) private dimensionProvider: QixDimensionProvider,
         @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
     ) {
         super(fileSystemHelper);
@@ -32,20 +32,21 @@ export class MeasureDirectory extends QixDirectory<any> {
     }
 
     /**
-     * delete an variable
+     * delete a dimension
      */
     public async delete(uri: vscode.Uri): Promise<void> {
+
         const connection = await this.getConnection(uri);
         const app        = this.fileSystemHelper.resolveApp(uri);
 
         if (connection && app?.readonly === false) {
-            const entry = this.fileSystemHelper.resolveEntry(uri, EntryType.MEASURE, false);
+            const entry = this.fileSystemHelper.resolveEntry(uri, EntryType.DIMENSION, false);
 
             if (!entry) {
                 throw vscode.FileSystemError.FileNotFound();
             }
 
-            await this.measureProvider.destroy(connection, app.id, entry.id);
+            await this.dimensionProvider.destroy(connection, app.id, entry.id);
             this.fileSystemHelper.deleteEntry(uri);
         }
     }
@@ -59,9 +60,9 @@ export class MeasureDirectory extends QixDirectory<any> {
             throw new Error(`could not find app for path: ${uri.toString(true)}`);
         }
 
-        return this.measureProvider.list<any>(connection, app).pipe(
+        return this.dimensionProvider.list<any>(connection, app).pipe(
             map(
-                (measures: any[]) => measures.map((measure) => this.mapMeasureToDirectoryItem(measure))
+                (dimensions: any[]) => dimensions.map((measure) => this.mapDimensionToDirectory(measure))
             )
         );
     }
@@ -69,15 +70,15 @@ export class MeasureDirectory extends QixDirectory<any> {
     /**
      * ressolve data for file system
      */
-    protected generateEntry(measure: DirectoryItem<any>, uri: vscode.Uri): DirectoryEntry {
-        const fileName = this.fileSystemHelper.createFileName(uri, measure.name);
+    protected generateEntry(dimension: DirectoryItem<any>, uri: vscode.Uri): DirectoryEntry {
+        const fileName = this.fileSystemHelper.createFileName(uri, dimension.name);
         const app = this.fileSystemHelper.resolveApp(uri);
 
         return {
             entry: {
-                id: measure.id,
-                type: EntryType.MEASURE,
-                data: measure.data,
+                id: dimension.id,
+                type: EntryType.DIMENSION,
+                data: dimension.data,
                 readonly: app?.readonly ?? false
             },
             item: [fileName, vscode.FileType.File]
@@ -87,11 +88,11 @@ export class MeasureDirectory extends QixDirectory<any> {
     /**
      * map measure data to DirectoryItem
      */
-    private mapMeasureToDirectoryItem(measure: any): DirectoryItem<any> {
+    private mapDimensionToDirectory(dimension: any): DirectoryItem<any> {
         return {
-            name: measure.qMeta.title,
-            id: measure.qInfo.qId,
-            data: measure
+            name: dimension.qMeta.title,
+            id: dimension.qInfo.qId,
+            data: dimension
         };
     }
 }

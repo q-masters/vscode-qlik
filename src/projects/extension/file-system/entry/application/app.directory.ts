@@ -20,7 +20,7 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
      */
     public readDirectory(): [string, vscode.FileType][] {
         return [
-            ['measures', vscode.FileType.Directory],
+            ['master-items', vscode.FileType.Directory],
             ['script', vscode.FileType.Directory],
             ['sheets', vscode.FileType.Directory],
             ['variables', vscode.FileType.Directory],

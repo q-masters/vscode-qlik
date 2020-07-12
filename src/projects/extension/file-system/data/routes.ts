@@ -13,6 +13,9 @@ import { AppListMyWorkDirectory } from "../entry/application/app-list.my-work.di
 import { AppListStreamDirectory } from "../entry/application/app-list.stream.directory";
 import { MeasureDirectory } from "../entry/master-items/measure.directory";
 import { MeasureFile } from "../entry/master-items/measure.file";
+import { QixFsMasterItemsDirectory } from "../entry/master-items/master-items.directory";
+import { DimensionDirectory } from "../entry/master-items/dimensions.directory";
+import { DimensionFile } from "../entry/master-items/dimension.file";
 
 export const Routes: Route<QixFsEntry>[] = [
     /** Workspace Folder Root Directory */
@@ -35,11 +38,20 @@ export const Routes: Route<QixFsEntry>[] = [
         path: "my work/:app/script/:file",
         ctrl: ScriptFile
     }, {
-        path: "my work/:app/measures",
+        path: "my work/:app/master-items",
+        ctrl: QixFsMasterItemsDirectory
+    }, {
+        path: "my work/:app/master-items/measures",
         ctrl: MeasureDirectory
     }, {
-        path: "my work/:app/measures/:measure",
+        path: "my work/:app/master-items/measures/:measure",
         ctrl: MeasureFile
+    }, {
+        path: "my work/:app/master-items/dimensions",
+        ctrl: DimensionDirectory
+    }, {
+        path: "my work/:app/master-items/dimensions/:dimension",
+        ctrl: DimensionFile
     }, {
         path: "my work/:app/variables",
         ctrl: VariableDirectory
@@ -64,6 +76,21 @@ export const Routes: Route<QixFsEntry>[] = [
     }, {
         path: "streams/:stream/:app",
         ctrl: ApplicationDirectory
+    }, {
+        path: "streams/:stream/:app/master-items",
+        ctrl: QixFsMasterItemsDirectory
+    }, {
+        path: "streams/:stream/:app/master-items/dimensions",
+        ctrl: DimensionDirectory
+    }, {
+        path: "streams/:stream/:app/master-items/dimensions/:dimension",
+        ctrl: DimensionFile
+    }, {
+        path: "streams/:stream/:app/master-items/measures",
+        ctrl: MeasureDirectory
+    }, {
+        path: "streams/:stream/:app/master-items/measures/:measure",
+        ctrl: MeasureFile
     }, {
         path: "streams/:stream/:app/script",
         ctrl: ScriptDirectory

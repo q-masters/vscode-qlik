@@ -1,20 +1,20 @@
 import * as vscode from "vscode";
 import { inject, injectable } from "tsyringe";
 import { EnigmaSession } from "@core/connection";
-import { QixMeasureProvider } from "@core/qix/utils/measure.provider";
 
 import { Entry, EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { QixFile } from "../qix/qix.file";
 import path from "path";
+import { QixDimensionProvider } from "@core/qix/utils/dimension.provider";
 
 @injectable()
-export class MeasureFile extends QixFile {
+export class DimensionFile extends QixFile {
 
-    protected entryType = EntryType.MEASURE;
+    protected entryType = EntryType.DIMENSION;
 
     public constructor(
-        @inject(QixMeasureProvider) private provider: QixMeasureProvider,
+        @inject(QixDimensionProvider) private provider: QixDimensionProvider,
         @inject(FileSystemHelper) private filesystemHelper: FileSystemHelper,
     ) {
         super(filesystemHelper);
@@ -35,8 +35,8 @@ export class MeasureFile extends QixFile {
 
         if (app && app.readonly === false) {
             this.filesystemHelper.exists(uri)
-                ? await this.updateMeasure(uri, content)
-                : await this.createMeasure(uri, content);
+                ? await this.updateDimension(uri, content)
+                : await this.createDimension(uri, content);
 
             return;
         }
@@ -47,10 +47,10 @@ export class MeasureFile extends QixFile {
     /**
      * update existing measure
      */
-    private async updateMeasure(uri: vscode.Uri, data: Uint8Array) {
+    private async updateDimension(uri: vscode.Uri, data: Uint8Array) {
         const connection = await this.getConnection(uri) as EnigmaSession;
         const app        = this.filesystemHelper.resolveApp(uri);
-        const measure    = this.filesystemHelper.resolveEntry(uri, EntryType.MEASURE, false);
+        const measure    = this.filesystemHelper.resolveEntry(uri, EntryType.DIMENSION, false);
         const content    = this.filesystemHelper.fileToJson(uri, data);
 
         if (app && measure) {
@@ -61,31 +61,30 @@ export class MeasureFile extends QixFile {
     /**
      * create measure
      */
-    private async createMeasure(uri: vscode.Uri, content: Uint8Array) {
+    private async createDimension(uri: vscode.Uri, content: Uint8Array) {
 
         const connection = await this.getConnection(uri) as EnigmaSession;
-        const name       = this.filesystemHelper.resolveFileName(uri, false);
         const app        = this.filesystemHelper.resolveApp(uri);
+        const name       = this.filesystemHelper.resolveFileName(uri, false);
 
         if (app) {
-
             let properties;
 
             try {
                 properties = this.filesystemHelper.contentToJson<EngineAPI.IGenericDimensionProperties>(content);
             } catch (error) {
-                properties = this.provider.createMeasureProperties(name);
+                properties = this.provider.createDimensionProperties(name);
             }
 
-            const measure = await this.provider.create<any>(connection, app.id, properties);
-            const data    = await measure.getLayout();
+            const dimension = await this.provider.create<any>(connection, app.id, properties);
+            const data      = await dimension.getLayout();
 
             this.filesystemHelper.cacheEntry(
                 uri,
                 {
-                    id: measure.id,
+                    id: dimension.id,
                     readonly: false,
-                    type: EntryType.MEASURE,
+                    type: EntryType.DIMENSION,
                     data: data
                 }
             );
@@ -100,18 +99,18 @@ export class MeasureFile extends QixFile {
 
         const connection = await this.getConnection(uri);
         const app        = this.filesystemHelper.resolveEntry(uri, EntryType.APPLICATION);
-        const measure    = this.filesystemHelper.resolveEntry(uri, EntryType.MEASURE, false);
+        const dimension  = this.filesystemHelper.resolveEntry(uri, EntryType.DIMENSION, false);
 
-        if (app?.readonly === false && measure && connection) {
+        if (app?.readonly === false && dimension && connection) {
 
             const newName = path.posix.parse(newUri.path).name;
-            const result  = await this.provider.rename(connection, app.id, measure.id, newName);
+            const result  = await this.provider.rename(connection, app.id, dimension.id, newName);
 
             this.filesystemHelper.deleteEntry(uri);
             this.filesystemHelper.cacheEntry(newUri, {
-                id: measure.id,
+                id: dimension.id,
                 readonly: false,
-                type: EntryType.MEASURE,
+                type: EntryType.DIMENSION,
                 data: result
             });
         }
@@ -125,11 +124,11 @@ export class MeasureFile extends QixFile {
         const target = this.filesystemHelper.resolveEntry(to, EntryType.APPLICATION);
 
         if (target?.readonly !== false) {
-            throw vscode.FileSystemError.NoPermissions(`could not move measure ${(target as any).id} is readonly.`);
+            throw vscode.FileSystemError.NoPermissions(`could not move dimension ${(target as any).id} is readonly.`);
         }
 
         if (source?.readonly !== false) {
-            throw vscode.FileSystemError.NoPermissions(`could not remove measure from source, since ${(source as any).id} is readonly, retry copy.`);
+            throw vscode.FileSystemError.NoPermissions(`could not remove dimension from source, since ${(source as any).id} is readonly, retry copy.`);
         }
 
         /** write old content to new file */
@@ -137,7 +136,7 @@ export class MeasureFile extends QixFile {
 
         /** finally delete old entry */
         const connection = await this.getConnection(from) as EnigmaSession;
-        const entry      = this.filesystemHelper.resolveEntry(from, EntryType.MEASURE, false) as Entry;
+        const entry      = this.filesystemHelper.resolveEntry(from, EntryType.DIMENSION, false) as Entry;
 
         await this.provider.destroy(connection, source.id, entry.id);
         this.filesystemHelper.deleteEntry(from);

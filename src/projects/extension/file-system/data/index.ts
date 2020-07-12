@@ -4,6 +4,7 @@ export * from "./routes";
 export enum EntryType {
     APPLICATION,
     MEASURE,
+    DIMENSION,
     STREAM,
     SHEET,
     VARIABLE,

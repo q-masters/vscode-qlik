@@ -124,6 +124,14 @@ export class FileSystemHelper {
     }
 
     /**
+     * convert buffer to json (could be yaml or json)
+     */
+    public contentToJson<T>(source: Uint8Array): T {
+        const content = source.toString();
+        return YAML.parse(content) || JSON.parse(content) || '';
+    }
+
+    /**
      * check file or directory exists
      */
     public exists(uri: vscode.Uri): boolean {
