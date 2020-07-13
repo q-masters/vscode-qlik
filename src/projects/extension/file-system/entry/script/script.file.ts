@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
-import { QixFsFileAdapter } from "./qixfs-entry";
-import { FileSystemHelper } from "../utils/file-system.helper";
+import { QixFsFileAdapter } from "../qix/qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
 import { posix } from "path";
 
 export class ScriptFile extends QixFsFileAdapter {

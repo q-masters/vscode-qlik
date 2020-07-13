@@ -85,22 +85,17 @@ export class FileSystemHelper {
         });
     }
 
-    /**
-     * create file uri
-     *
-     * @param {vscode.Uri} uri the uri to the directory
-     * @param {string} name of the file
-     */
-    public createFileUri(uri: vscode.Uri, name: string): vscode.Uri {
-        const setting   = this.resolveWorkspace(uri)?.settings;
-        const prefix    = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
-        return uri.with({path: path.posix.resolve(uri.path, `${name}.${prefix}`)});
+    public createFileName(uri: vscode.Uri, name: string) {
+        const setting = this.resolveWorkspace(uri)?.settings;
+        const prefix  = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
+        /** replace \ and / by unicode characters so they will not replaced by vscode anymore */
+        return `${name.replace(/\u002F/g, '\uFF0F').replace(/[\uFE68\uFF3C]/g, '\u005C')}.${prefix}`;
     }
 
     /**
-     * create a directory uri
+     * create a entry uri
      */
-    public createDirectoryUri(uri: vscode.Uri, name: string): vscode.Uri {
+    public createEntryUri(uri: vscode.Uri, name: string): vscode.Uri {
         return uri.with({path: path.posix.resolve(uri.path, `${name}`)});
     }
 
@@ -129,13 +124,23 @@ export class FileSystemHelper {
     }
 
     /**
+     * convert buffer to json (could be yaml or json)
+     */
+    public contentToJson<T>(source: Uint8Array): T {
+        const content = source.toString();
+        return YAML.parse(content) || JSON.parse(content) || '';
+    }
+
+    /**
      * check file or directory exists
      */
     public exists(uri: vscode.Uri): boolean {
         const workspaceFolder = this.resolveWorkspace(uri);
+
         if (workspaceFolder) {
             return this.cacheRegistry.exists(workspaceFolder, uri.toString(true));
         }
+
         return false;
     }
 
@@ -156,18 +161,49 @@ export class FileSystemHelper {
         return this.resolveEntry(uri, EntryType.APPLICATION);
     }
 
-    public resolveEntry<T extends Entry>(uri, type: EntryType): T | undefined {
+    /**
+     * resolve entry data from cache
+     *
+     * @param {vscode.Uri} uri
+     * @param {EntryType} type
+     * @param {boolean} [goUp=true] if true traverse up in tree [default is true]
+     * @returns {Entry}
+     */
+    public resolveEntry<T extends Entry>(uri: vscode.Uri, type: EntryType, goUp = true): T | undefined {
         const workspace = this.resolveWorkspace(uri);
 
         if (workspace) {
             let entryPath = uri.path;
             do {
+
                 const entry = this.cacheRegistry.resolve<Entry>(workspace, uri.with({path: entryPath}).toString(true));
                 if (entry && entry.type === type) {
                     return entry as T;
                 }
+
                 entryPath = path.posix.dirname(entryPath);
-            } while(entryPath !== "/");
+            } while(entryPath !== "/" && goUp);
+        }
+    }
+
+    public cacheEntry<T extends Entry>(uri, data: T): void {
+        const workspace = this.resolveWorkspace(uri);
+
+        if (workspace) {
+            this.cacheRegistry.add(workspace, uri.toString(true), data);
+        }
+    }
+
+    /**
+     * delete an entry
+     *
+     * @todo improve entry so we know it is a directory since we have to do more then
+     */
+    public deleteEntry(uri: vscode.Uri): void {
+        const workspace = this.resolveWorkspace(uri);
+
+        if (workspace) {
+            this.cacheRegistry.delete(workspace, uri.toString(true));
         }
     }
 
@@ -216,14 +252,4 @@ export class FileSystemHelper {
             }
         }
     }
-
-    /*
-    public addDirectory(workspace: WorkspaceFolder, uri: vscode.Uri, data) {
-        /*
-        this.cacheRegistry.add<ApplicationEntry>(workspace, uri.toString(true), {
-            type: EntryType.APPLICATION,
-            data: entries[j] as DoclistEntry
-        });
-    }
-        */
 }

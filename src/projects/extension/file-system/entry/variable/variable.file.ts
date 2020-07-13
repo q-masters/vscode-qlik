@@ -5,8 +5,8 @@ import { CacheRegistry } from "@shared/utils/cache-registry";
 import { QixVariableProvider } from "@shared/qix/utils/variable.provider";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { FileRenderer } from "@vsqlik/settings/api";
-import { QixFsFileAdapter } from "../data";
-import { FileSystemHelper } from "../utils/file-system.helper";
+import { QixFsFileAdapter } from "../../data";
+import { FileSystemHelper } from "../../utils/file-system.helper";
 
 @injectable()
 export class VariableFile extends QixFsFileAdapter {
@@ -34,7 +34,6 @@ export class VariableFile extends QixFsFileAdapter {
      * read variable
      */
     public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
-
         const app_id     = this.fileSystemHelper.resolveAppId(uri);
         const connection = await this.getConnection(uri);
         const workspace  = this.fileSystemHelper.resolveWorkspace(uri);

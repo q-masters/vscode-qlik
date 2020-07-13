@@ -3,8 +3,8 @@ import { inject } from "tsyringe";
 import { QixSheetProvider } from "@shared/qix/utils/sheet.provider";
 import { CacheRegistry } from "@shared/utils/cache-registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
-import { FileSystemHelper } from "../utils/file-system.helper";
-import { QixFsFileAdapter } from "./qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
+import { QixFsFileAdapter } from "../qix/qixfs-entry";
 
 export class SheetFile extends QixFsFileAdapter {
 

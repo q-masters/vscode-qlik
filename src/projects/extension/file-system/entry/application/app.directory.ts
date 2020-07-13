@@ -2,10 +2,8 @@ import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { posix } from "path";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
-import { CacheRegistry } from "@shared/utils/cache-registry";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
-import { FileSystemHelper } from "../utils/file-system.helper";
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
+import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
 
 /** */
 export class ApplicationDirectory extends QixFsDirectoryAdapter {
@@ -13,7 +11,6 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
     public constructor(
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
         @inject(FileSystemHelper) private fsHelper: FileSystemHelper,
-        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<WorkspaceFolder>
     ) {
         super();
     }
@@ -23,9 +20,10 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
      */
     public readDirectory(): [string, vscode.FileType][] {
         return [
+            ['master-items', vscode.FileType.Directory],
             ['script', vscode.FileType.Directory],
+            ['sheets', vscode.FileType.Directory],
             ['variables', vscode.FileType.Directory],
-            ['sheets', vscode.FileType.Directory]
         ];
     }
 

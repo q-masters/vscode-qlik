@@ -4,8 +4,8 @@ import { QixVariableProvider } from "@shared/qix/utils/variable.provider";
 import { CacheRegistry } from "@shared/utils/cache-registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
-import { FileSystemHelper } from "../utils/file-system.helper";
+import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
 
 @injectable()
 export class VariableDirectory extends QixFsDirectoryAdapter{
@@ -43,8 +43,8 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
             const variables = await this.variableProvider.list(connection, app);
             const result = variables.map<[string, vscode.FileType.File]>((variable) => {
 
-                const fileUri  = this.fileSystemHelper.createFileUri(uri, variable.qName);
-                const fileName = this.fileSystemHelper.resolveFileName(fileUri);
+                const fileName = this.fileSystemHelper.createFileName(uri, variable.qName);
+                const fileUri  = this.fileSystemHelper.createEntryUri(uri, fileName);
 
                 this.fileCache.add(workspace, fileUri.toString(true), variable.qInfo.qId);
                 return [fileName, vscode.FileType.File];

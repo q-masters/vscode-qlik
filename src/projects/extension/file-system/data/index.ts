@@ -1,11 +1,14 @@
-export * from "../entry/qixfs-entry";
+export * from "../entry/qix/qixfs-entry";
 export * from "./routes";
 
 export enum EntryType {
     APPLICATION,
+    MEASURE,
+    DIMENSION,
     STREAM,
     SHEET,
-    VARIABLE
+    VARIABLE,
+    UNKNOWN
 }
 
 export interface Entry {

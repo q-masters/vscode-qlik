@@ -1,10 +1,9 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { posix } from "path";
 import { QixSheetProvider } from "@shared/qix/utils/sheet.provider";
 import { CacheRegistry } from "@shared/utils/cache-registry";
-import { FileSystemHelper } from "../utils/file-system.helper";
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
+import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 
 @injectable()
@@ -31,8 +30,9 @@ export class SheetDirectory extends QixFsDirectoryAdapter {
         if (app_id && connection && workspace) {
             const sheetList = await this.sheetProvider.getSheets(connection, app_id);
             sheetList.forEach((sheet) => {
-                const fileUri  = this.fileSystemHelper.createFileUri(uri, sheet.qData.title);
-                const fileName = posix.parse(fileUri.path).base;
+                const fileName = this.fileSystemHelper.createFileName(uri, sheet.qData.title);
+                const fileUri  = this.fileSystemHelper.createEntryUri(uri, sheet.qData.title);
+
                 sheets.push([fileName, vscode.FileType.File]);
 
                 this.fileCache.add(workspace, fileUri.toString(true), sheet.qInfo.qId);

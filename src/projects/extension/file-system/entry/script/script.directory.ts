@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
-import { FileSystemHelper } from "../utils/file-system.helper";
+import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
 
 @injectable()
 export class ScriptDirectory extends QixFsDirectoryAdapter{

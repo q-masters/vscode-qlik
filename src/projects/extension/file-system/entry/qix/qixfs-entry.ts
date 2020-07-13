@@ -93,7 +93,7 @@ export abstract class QixFsDirectory extends QixFsEntry {
  * all. By default all Opertations are forbidden you have to implement a concrete file class
  * and override these methods.
  */
-export class QixFsFileAdapter extends QixFsFile {
+export abstract class QixFsFileAdapter extends QixFsFile {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     readFile(uri: vscode.Uri, params: RouteParam): Uint8Array | Thenable<Uint8Array> {
@@ -126,7 +126,7 @@ export class QixFsFileAdapter extends QixFsFile {
  * all. By default all Opertations are forbidden you have to implement a concrete directory class
  * and override these methods.
  */
-export class QixFsDirectoryAdapter extends QixFsDirectory {
+export abstract class QixFsDirectoryAdapter extends QixFsDirectory {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     readDirectory(uri: vscode.Uri, params: RouteParam): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]> {

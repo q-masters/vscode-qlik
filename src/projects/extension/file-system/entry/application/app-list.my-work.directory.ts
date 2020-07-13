@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import { injectable } from "tsyringe";
 import { map, switchMap } from "rxjs/operators";
-import { QixFsAppListDirectory } from "./app-list.directory";
+import { AppListDirectory } from "./app-list.directory";
 import { DoclistEntry } from "@core/qix/api/api";
+import { EntryType } from "@vsqlik/fs/data";
 
 declare type CreateAppResult = {
     qSuccess: boolean;
@@ -14,7 +15,7 @@ declare type CreateAppResult = {
  * crud operations for qix applications
  */
 @injectable()
-export class QixFsAppListMyWorkDirectory extends QixFsAppListDirectory {
+export class AppListMyWorkDirectory extends AppListDirectory {
 
     /**
      * create a new app
@@ -38,7 +39,7 @@ export class QixFsAppListMyWorkDirectory extends QixFsAppListDirectory {
                  * add data to file cache so we find it again
                  */
                 map((entry: EngineAPI.IAppEntry) => {
-                    this.cacheApplicationDirectory(entry, uri);
+                    this.fileSystemHelper.cacheEntry(uri, { id: entry.qID, readonly: false, type: EntryType.APPLICATION });
                 })
             ).toPromise();
         }
