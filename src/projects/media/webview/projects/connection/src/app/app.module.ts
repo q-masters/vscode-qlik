@@ -6,6 +6,7 @@ import { VsQlikCoreModule } from "@vsqlik/core";
 import { TableRowComponent, TableRowEditComponent, FormStrategyComponent, ConnectionEditComponent } from "./ui";
 import { EnumToOptionPipe } from "./ui/utils/enum-to-array";
 import { MainComponent } from "./ui/main/main.component";
+import { DisplaySettingsComponent } from "./ui/edit/display";
 
 @NgModule({
     declarations: [
@@ -14,13 +15,14 @@ import { MainComponent } from "./ui/main/main.component";
         FormStrategyComponent,
         TableRowComponent,
         TableRowEditComponent,
-        EnumToOptionPipe
+        EnumToOptionPipe,
+        DisplaySettingsComponent
     ],
     imports: [
         CommonModule,
         ReactiveFormsModule,
         BrowserModule,
-        VsQlikCoreModule,
+        VsQlikCoreModule
     ],
     bootstrap: [MainComponent]
 })

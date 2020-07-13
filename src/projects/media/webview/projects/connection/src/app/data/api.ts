@@ -72,6 +72,18 @@ export interface ConnectionSetting {
     };
 }
 
+export interface DisplaySettings {
+    measures: boolean;
+
+    dimensions: boolean;
+
+    script: boolean;
+
+    sheets: boolean;
+
+    variables: boolean;
+}
+
 export interface WorkspaceFolderSetting {
 
     /**
@@ -83,6 +95,8 @@ export interface WorkspaceFolderSetting {
      *
      */
     connection: ConnectionSetting;
+
+    display: DisplaySettings;
 
     /**
      * how should files rendered (yaml, json, ...)

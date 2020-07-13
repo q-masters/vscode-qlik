@@ -4,9 +4,18 @@ import { posix } from "path";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
+import { DisplaySettings } from "@core/connection";
 
 /** */
 export class ApplicationDirectory extends QixFsDirectoryAdapter {
+
+    private displaySettings: DisplaySettings = {
+        dimensions: true,
+        measures: true,
+        script: true,
+        sheets: true,
+        variables: true
+    };
 
     public constructor(
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
@@ -18,13 +27,16 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
     /**
      * read directory
      */
-    public readDirectory(): [string, vscode.FileType][] {
-        return [
-            ['master-items', vscode.FileType.Directory],
-            ['script', vscode.FileType.Directory],
-            ['sheets', vscode.FileType.Directory],
-            ['variables', vscode.FileType.Directory],
-        ];
+    public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
+        const settings = this.fsHelper.resolveWorkspace(uri)?.displaySettings as DisplaySettings;
+        const folders: [string, vscode.FileType][]  = [];
+
+        Object.keys(settings).forEach((key) => {
+            if (settings[key] !== false) {
+                folders.push([key, vscode.FileType.Directory]);
+            }
+        });
+        return folders;
     }
 
     /**

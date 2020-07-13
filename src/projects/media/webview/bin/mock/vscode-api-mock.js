@@ -28,7 +28,14 @@ window.connectionListCommand = [{
                 }
             }
         },
-        fileRender: 0
+        fileRender: 0,
+        display: {
+          dimensions: false,
+          measures: true,
+          script: true,
+          sheets: true,
+          variables: true
+        }
     }, {
         label: 'Qlik Local 2',
         connection: {
@@ -45,5 +52,12 @@ window.connectionListCommand = [{
                 }
             }
         },
-        fileRender: 1
+        fileRender: 1,
+        display: {
+          dimensions: true,
+          measures: true,
+          script: false,
+          sheets: false,
+          variables: true
+        }
     }];

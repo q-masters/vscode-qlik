@@ -13,7 +13,6 @@ import { AppListMyWorkDirectory } from "../entry/application/app-list.my-work.di
 import { AppListStreamDirectory } from "../entry/application/app-list.stream.directory";
 import { MeasureDirectory } from "../entry/master-items/measure.directory";
 import { MeasureFile } from "../entry/master-items/measure.file";
-import { QixFsMasterItemsDirectory } from "../entry/master-items/master-items.directory";
 import { DimensionDirectory } from "../entry/master-items/dimensions.directory";
 import { DimensionFile } from "../entry/master-items/dimension.file";
 
@@ -38,19 +37,16 @@ export const Routes: Route<QixFsEntry>[] = [
         path: "my work/:app/script/:file",
         ctrl: ScriptFile
     }, {
-        path: "my work/:app/master-items",
-        ctrl: QixFsMasterItemsDirectory
-    }, {
-        path: "my work/:app/master-items/measures",
+        path: "my work/:app/measures",
         ctrl: MeasureDirectory
     }, {
-        path: "my work/:app/master-items/measures/:measure",
+        path: "my work/:app/measures/:measure",
         ctrl: MeasureFile
     }, {
-        path: "my work/:app/master-items/dimensions",
+        path: "my work/:app/dimensions",
         ctrl: DimensionDirectory
     }, {
-        path: "my work/:app/master-items/dimensions/:dimension",
+        path: "my work/:app/dimensions/:dimension",
         ctrl: DimensionFile
     }, {
         path: "my work/:app/variables",
@@ -77,19 +73,16 @@ export const Routes: Route<QixFsEntry>[] = [
         path: "streams/:stream/:app",
         ctrl: ApplicationDirectory
     }, {
-        path: "streams/:stream/:app/master-items",
-        ctrl: QixFsMasterItemsDirectory
-    }, {
-        path: "streams/:stream/:app/master-items/dimensions",
+        path: "streams/:stream/:app/dimensions",
         ctrl: DimensionDirectory
     }, {
-        path: "streams/:stream/:app/master-items/dimensions/:dimension",
+        path: "streams/:stream/:app/dimensions/:dimension",
         ctrl: DimensionFile
     }, {
-        path: "streams/:stream/:app/master-items/measures",
+        path: "streams/:stream/:app/measures",
         ctrl: MeasureDirectory
     }, {
-        path: "streams/:stream/:app/master-items/measures/:measure",
+        path: "streams/:stream/:app/measures/:measure",
         ctrl: MeasureFile
     }, {
         path: "streams/:stream/:app/script",
@@ -97,12 +90,6 @@ export const Routes: Route<QixFsEntry>[] = [
     }, {
         path: "streams/:stream/:app/script/:file",
         ctrl: ScriptFile
-    }, {
-        path: "streams/:stream/:app/measures",
-        ctrl: MeasureDirectory
-    }, {
-        path: "streams/:stream/:app/measures/:measure",
-        ctrl: MeasureFile
     }, {
         path: "streams/:stream/:app/variables",
         ctrl: VariableDirectory
