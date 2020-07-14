@@ -20,18 +20,6 @@ export class MeasureDirectory extends QixDirectory<any> {
     }
 
     /**
-     * static library which allways exists
-     */
-    public stat(): vscode.FileStat | Thenable<vscode.FileStat> {
-        return {
-            ctime: Date.now(),
-            mtime: Date.now(),
-            size: 0,
-            type: vscode.FileType.Directory
-        };
-    }
-
-    /**
      * delete an variable
      */
     public async delete(uri: vscode.Uri): Promise<void> {
