@@ -32,11 +32,11 @@ export class WorkspaceFolder {
         const dSettings = this.settings.display;
 
         return {
-            dimensions: dSettings.dimensions ?? true,
-            measures: dSettings.measures ?? true,
-            script: dSettings.script ?? true,
-            sheets: dSettings.sheets ?? true,
-            variables: dSettings.variables ?? true
+            dimensions: dSettings?.dimensions ?? true,
+            measures: dSettings?.measures ?? true,
+            script: dSettings?.script ?? true,
+            sheets: dSettings?.sheets ?? true,
+            variables: dSettings?.variables ?? true
         };
     }
 }
