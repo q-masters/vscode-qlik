@@ -8,6 +8,10 @@ export declare type BeforeSaveHook = (connection: WorkspaceFolderSetting) => Wor
 @Injectable({providedIn: "root"})
 export class ConnectionFormHelper {
 
+    public get onLoad(): Observable<WorkspaceFolderSetting> {
+      return this.connection$.asObservable();
+    }
+
     private connection$: BehaviorSubject<WorkspaceFolderSetting>;
 
     private hooks: BeforeSaveHook[] = [];
@@ -81,6 +85,13 @@ export class ConnectionFormHelper {
                 },
             },
             fileRenderer: FileRenderer.YAML,
+            display: {
+              measures: true,
+              dimensions: true,
+              script: true,
+              sheets: true,
+              variables: true,
+            },
             label: "New Connection"
         };
     }

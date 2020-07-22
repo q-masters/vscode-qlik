@@ -1,62 +1,64 @@
 import * as vscode from "vscode";
+import { QixFile } from "../qix/qix.file";
+import { EnigmaSession } from "@core/connection";
+import { Entry, EntryType } from "@vsqlik/fs/data";
 import { inject } from "tsyringe";
-import { QixSheetProvider } from "@shared/qix/utils/sheet.provider";
-import { CacheRegistry } from "@shared/utils/cache-registry";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
-import { FileSystemHelper } from "../../utils/file-system.helper";
-import { QixFsFileAdapter } from "../qix/qixfs-entry";
+import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
+import { QixSheetProvider } from "@core/qix/utils/sheet.provider";
 
-export class SheetFile extends QixFsFileAdapter {
+export class SheetFile extends QixFile {
+
+    protected entryType = EntryType.SHEET;
 
     public constructor(
-        @inject(QixSheetProvider) private sheetProvider: QixSheetProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
-        @inject(CacheRegistry) private fileCache: CacheRegistry<WorkspaceFolder>
+        @inject(QixSheetProvider) private provider: QixSheetProvider,
+        @inject(FileSystemHelper) private filesystemHelper: FileSystemHelper,
     ) {
-        super();
-    }
-
-    public async stat(): Promise<vscode.FileStat> {
-        return {
-            ctime: Date.now(),
-            mtime: Date.now(),
-            size: 0,
-            type: vscode.FileType.File,
-        };
+        super(filesystemHelper);
     }
 
     /**
-     * read full content from sheet file into given format
+     * read data
      */
-    public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
-        const connection = await this.getConnection(uri);
-        const app_id     = this.fileSystemHelper.resolveAppId(uri);
-        const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
-        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString(true)) : void 0;
-
-        if (sheet_id && app_id) {
-            const data = await this.sheetProvider.getPropertyTree(connection, app_id, sheet_id);
-            return this.fileSystemHelper.renderFile(uri, data);
-        }
-
-        return Buffer.from("Could not read sheet");
+    protected async read(connection: EnigmaSession, app: string, entry: Entry): Promise<any> {
+        return await this.provider.read(connection, app, entry.id);
     }
 
     /**
      * write file
      */
     public async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
+        const app = this.filesystemHelper.resolveApp(uri);
 
-        const connection = await this.getConnection(uri);
-        const app_id     = this.fileSystemHelper.resolveAppId(uri);
-        const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
-        const sheet_id   = workspace ? this.fileCache.resolve<string>(workspace, uri.toString(true)) : void 0;
+        if (app && app.readonly === false) {
+            this.filesystemHelper.exists(uri)
+                ? await this.updateSheet(uri, content)
+                : await this.createSheet();
 
-        if (sheet_id && app_id) {
-            const data = this.fileSystemHelper.fileToJson(uri, content) as EngineAPI.IGenericObjectEntry;
-            return await this.sheetProvider.writePropertyTree(connection, app_id, sheet_id, data);
+            return;
         }
 
-        throw new Error("something failed");
+        throw vscode.FileSystemError.NoPermissions(`Not allowed made any changes to ${app?.data.data.qTitle}(${app?.id ?? ''}), app is read only.`);
+    }
+
+    private async createSheet() {
+        throw new Error("Operation not supported for sheets.");
+    }
+
+    /**
+     * update current sheet
+     */
+    private async updateSheet(uri: vscode.Uri, content: Uint8Array) {
+
+        const connection = await this.getConnection(uri);
+        const app        = this.filesystemHelper.resolveApp(uri);
+        const sheet      = this.filesystemHelper.resolveEntry(uri, this.entryType);
+
+        if (sheet?.id && app?.id) {
+            const data = this.filesystemHelper.fileToJson(uri, content) as EngineAPI.IGenericObjectEntry;
+            return await this.provider.write(connection, app.id, sheet.id, data);
+        }
+
+        throw new Error("could not update sheet");
     }
 }

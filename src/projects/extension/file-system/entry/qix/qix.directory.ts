@@ -35,6 +35,18 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
     }
 
     /**
+     * static library which allways exists
+     */
+    public stat(): vscode.FileStat | Thenable<vscode.FileStat> {
+        return {
+            ctime: Date.now(),
+            mtime: Date.now(),
+            size: 0,
+            type: vscode.FileType.Directory
+        };
+    }
+
+    /**
      * read variable directory
      */
     public async readDirectory(uri: vscode.Uri): Promise<any> {

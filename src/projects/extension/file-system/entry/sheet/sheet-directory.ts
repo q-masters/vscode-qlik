@@ -1,53 +1,52 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { QixSheetProvider } from "@shared/qix/utils/sheet.provider";
-import { CacheRegistry } from "@shared/utils/cache-registry";
-import { FileSystemHelper } from "../../utils/file-system.helper";
-import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
+import { QixDirectory, DirectoryItem, DirectoryEntry } from "../qix/qix.directory";
+import { EnigmaSession } from "@core/connection";
+import { Observable, from } from "rxjs";
+import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
+import { map } from "rxjs/operators";
+import { QixSheetProvider } from "@core/qix/utils/sheet.provider";
+import { EntryType } from "@vsqlik/fs/data";
 
 @injectable()
-export class SheetDirectory extends QixFsDirectoryAdapter {
+export class SheetDirectory extends QixDirectory<any> {
 
     public constructor(
-        @inject(QixSheetProvider) private sheetProvider: QixSheetProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
-        @inject(CacheRegistry) private fileCache: CacheRegistry<WorkspaceFolder>
+        @inject(QixSheetProvider) private provider: QixSheetProvider,
+        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
     ) {
-        super();
+        super(fileSystemHelper);
     }
 
-    /**
-     * read sheet directory
-     */
-    public async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+    protected loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<any>[]> {
 
-        const connection = await this.getConnection(uri);
-        const app_id     = this.fileSystemHelper.resolveAppId(uri);
-        const workspace  = this.fileSystemHelper.resolveWorkspace(uri);
-        const sheets: [string, vscode.FileType.File][] = [];
-
-        if (app_id && connection && workspace) {
-            const sheetList = await this.sheetProvider.getSheets(connection, app_id);
-            sheetList.forEach((sheet) => {
-                const fileName = this.fileSystemHelper.createFileName(uri, sheet.qData.title);
-                const fileUri  = this.fileSystemHelper.createEntryUri(uri, sheet.qData.title);
-
-                sheets.push([fileName, vscode.FileType.File]);
-
-                this.fileCache.add(workspace, fileUri.toString(true), sheet.qInfo.qId);
-            });
+        const app = this.fileSystemHelper.resolveAppId(uri);
+        if (!app) {
+            throw new Error(`could not find app for path: ${uri.toString(true)}`);
         }
 
-        return sheets;
+        return from(this.provider.list(connection, app)).pipe(
+            map(
+                (dimensions: any[]) => dimensions.map((sheet) => ({
+                    name: sheet.qData.title,
+                    id: sheet.qInfo.qId,
+                    data: sheet
+                }))
+            )
+        );
     }
 
-    public stat(): vscode.FileStat {
+    protected generateEntry(data: DirectoryItem<any>, uri: vscode.Uri): DirectoryEntry {
+        const fileName = this.fileSystemHelper.createFileName(uri, data.name);
+        const app = this.fileSystemHelper.resolveApp(uri);
         return {
-            ctime: Date.now(),
-            mtime: Date.now(),
-            size: 1,
-            type: vscode.FileType.Directory
+            entry: {
+                id: data.id,
+                type: EntryType.SHEET,
+                data: data.data,
+                readonly: app?.readonly ?? false
+            },
+            item: [fileName, vscode.FileType.File]
         };
     }
 }

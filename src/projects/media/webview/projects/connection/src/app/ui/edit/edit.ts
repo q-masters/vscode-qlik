@@ -66,13 +66,11 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-
         this.initConnectionForm();
         this.initAuthorizationStrategyCtrl();
         this.initObjectRenderStrategyCtrl();
 
         this.connectionFormHelper.registerBeforeSave(this.beforeSaveHook.bind(this));
-
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
             .subscribe((setting: WorkspaceFolderSetting) => {
