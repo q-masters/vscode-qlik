@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { injectable } from "tsyringe";
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
+import { QixFsDirectoryAdapter } from "./qix/qixfs-entry";
 import { DirectoryList } from "../utils/file-system.helper";
 
 @injectable()

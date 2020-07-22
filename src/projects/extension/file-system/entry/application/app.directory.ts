@@ -2,18 +2,24 @@ import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { posix } from "path";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
-import { CacheRegistry } from "@shared/utils/cache-registry";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
-import { FileSystemHelper } from "../utils/file-system.helper";
-import { QixFsDirectoryAdapter } from "./qixfs-entry";
+import { FileSystemHelper } from "../../utils/file-system.helper";
+import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
+import { DisplaySettings } from "@core/connection";
 
 /** */
 export class ApplicationDirectory extends QixFsDirectoryAdapter {
 
+    private displaySettings: DisplaySettings = {
+        dimensions: true,
+        measures: true,
+        script: true,
+        sheets: true,
+        variables: true
+    };
+
     public constructor(
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
         @inject(FileSystemHelper) private fsHelper: FileSystemHelper,
-        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<WorkspaceFolder>
     ) {
         super();
     }
@@ -21,12 +27,16 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
     /**
      * read directory
      */
-    public readDirectory(): [string, vscode.FileType][] {
-        return [
-            ['script', vscode.FileType.Directory],
-            ['variables', vscode.FileType.Directory],
-            ['sheets', vscode.FileType.Directory]
-        ];
+    public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
+        const settings = this.fsHelper.resolveWorkspace(uri)?.displaySettings as DisplaySettings;
+        const folders: [string, vscode.FileType][]  = [];
+
+        Object.keys(settings).forEach((key) => {
+            if (settings[key] !== false) {
+                folders.push([key, vscode.FileType.Directory]);
+            }
+        });
+        return folders;
     }
 
     /**

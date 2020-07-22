@@ -9,8 +9,15 @@
   "license": "MIT",
   "displayName": "vscode4qlik",
   "description": "VSCode Extension for better Qlik App Development",
-  "categories": ["Programming Languages", "Debuggers", "Other"],
-  "keywords": ["qlik", "vscode"],
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Other"
+  ],
+  "keywords": [
+    "qlik",
+    "vscode"
+  ],
   "galleryBanner": {
     "color": "#C80000",
     "theme": "dark"
@@ -23,7 +30,7 @@
     "onCommand:VsQlik.Connection.Create"
   ],
   "markdown": "github",
-  "qna": "https://github.com/q-masters/vsqlik/issues",  
+  "qna": "https://github.com/q-masters/vsqlik/issues",
   "icon": "vscode4qlik.png",
   "repository": {
     "type": "git",
@@ -32,7 +39,7 @@
   "bugs": {
     "url": "https://github.com/q-masters/vsqlik/issues"
   },
-  "homepage": "https://github.com/q-masters/vsqlik", 
+  "homepage": "https://github.com/q-masters/vsqlik",
   "contributes": {
     "commands": [
       {
@@ -77,7 +84,14 @@
                     }
                   }
                 },
-                "renderer": 1
+                "renderer": 1,
+                "display": {
+                  "dimensions": true,
+                  "measures": true,
+                  "script": true,
+                  "sheets": false,
+                  "variables": false
+                }
               }
             ]
           }
@@ -104,31 +118,32 @@
     "test:watch": "npm test -- --watch --watch-files test --watch-files extension --watch-files core",
     "vsce:publish": "./node_modules/.bin/vsce publish",
     "vsce:package": "./node_modules/.bin/vsce package"
-  },  
+  },
   "devDependencies": {
     "@types/chai": "4.2.11",
     "@types/enigma.js": "2.2.1",
-    "@types/node": "14.0.14",
+    "@types/node": "14.0.24",
     "@types/qlik-engineapi": "12.67.9",
     "@types/sinon": "^9.0.4",
-    "chai": "4.2.0",
     "@types/vscode": "1.45.1",
     "@types/ws": "7.2.6",
-    "@typescript-eslint/eslint-plugin": "3.5.0",
-    "@typescript-eslint/parser": "^3.5.0",
+    "chai": "4.2.0",
+    "@typescript-eslint/eslint-plugin": "3.7.0",
+    "@typescript-eslint/parser": "^3.7.0",
     "chalk": "4.1.0",
     "copyfiles": "2.3.0",
-    "eslint": "7.4.0",
+    "deepmerge": "^4.2.2",
+    "eslint": "7.5.0",
     "html-loader": "1.1.0",
     "minimist": "1.2.5",
     "mocha": "8.0.1",
     "sinon": "^9.0.2",
-    "ts-loader": "7.0.5",
+    "ts-loader": "8.0.1",
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
     "tsconfig-paths-webpack-plugin": "3.2.0",
     "tslint": "6.1.2",
-    "typescript": "3.9.6",
+    "typescript": "3.9.7",
     "vsce": "1.77.0",
     "webpack": "4.43.0",
     "webpack-cli": "3.3.12"

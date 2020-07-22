@@ -9,7 +9,7 @@ export class QixApplicationProvider {
     /**
      * read all qlik documents (apps) from enigma session, we currently cache the current connection
      */
-    public list(connection: EnigmaSession): Observable<EngineAPI.IDocListEntry[]> {
+    public list<T>(connection: EnigmaSession): Observable<EngineAPI.IDocListEntry[]> {
         return from(connection.open()).pipe(
             switchMap((session) => session ? from(session.getDocList() as any as Promise<EngineAPI.IDocListEntry[]>) : of([])),
             take(1)

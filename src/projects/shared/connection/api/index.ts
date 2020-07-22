@@ -38,3 +38,11 @@ export interface ConnectionSetting {
 export interface ConnectionData extends ConnectionSetting {
     cookies: any[];
 }
+
+export interface DisplaySettings {
+    dimensions: boolean;
+    measures: boolean;
+    script: boolean;
+    sheets: boolean;
+    variables: boolean;
+}

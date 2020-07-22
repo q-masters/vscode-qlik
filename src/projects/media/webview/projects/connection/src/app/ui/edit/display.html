@@ -1,0 +1,15 @@
+<div class="settings__row">
+
+  <div class="col__left">
+    Show Folders:
+  </div>
+
+  <div [formGroup]="displayFormGroup" *ngIf="displayFormGroup" class="col__right">
+      <ng-container *ngFor="let field of displayFields">
+          <label class="col__right--folder">
+              <span>{{field}}</span>
+              <input type="checkbox" formControlName="{{field}}">
+          </label>
+      </ng-container>
+  </div>
+</div>

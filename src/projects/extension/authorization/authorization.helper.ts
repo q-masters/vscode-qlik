@@ -119,8 +119,8 @@ export class AuthorizationHelper {
     {
         return "".concat(
             settings.connection.host,
-            settings.connection.path ?? "",
             settings.connection.port?.toString() ?? "",
+            settings.connection.path ?? "",
             settings.label
         );
     }
