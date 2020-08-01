@@ -133,7 +133,7 @@
     "chalk": "4.1.0",
     "copyfiles": "2.3.0",
     "deepmerge": "^4.2.2",
-    "eslint": "7.5.0",
+    "eslint": "7.6.0",
     "html-loader": "1.1.0",
     "minimist": "1.2.5",
     "mocha": "8.0.1",
