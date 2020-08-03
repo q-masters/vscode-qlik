@@ -155,7 +155,7 @@
     "reflect-metadata": "^0.1.13",
     "request": "2.88.2",
     "rimraf": "3.0.2",
-    "rxjs": "^6.6.0",
+    "rxjs": "^6.6.2",
     "tsyringe": "^4.3.0",
     "ws": "7.3.1",
     "yaml": "1.10.0"
