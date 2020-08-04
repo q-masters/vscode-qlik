@@ -47,7 +47,7 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
      */
     private submitForm(username: string, password: string): Promise<string>
     {
-        const body = `username=${username}&pwd=${password}`;
+        const body = `username=${encodeURIComponent(username)}&pwd=${encodeURIComponent(password)}`;
         const headers = {
             "Content-length": body.length,
             "Content-Type": "application/x-www-form-urlencoded"
