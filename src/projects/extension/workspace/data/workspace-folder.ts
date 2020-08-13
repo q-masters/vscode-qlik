@@ -1,5 +1,5 @@
 import { WorkspaceSetting } from "projects/extension/settings/api";
-import { EnigmaSession, DisplaySettings } from "projects/shared/connection";
+import { EnigmaSession, DisplaySettings } from "projects/extension/connection";
 
 export declare type ApplicationStorage = Map<string, string>;
 

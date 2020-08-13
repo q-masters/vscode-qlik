@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 

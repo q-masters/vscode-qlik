@@ -1,5 +1,5 @@
 import { singleton } from "tsyringe";
-import { EnigmaSession } from "@shared/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { Observable, from, of } from "rxjs";
 import { switchMap, take } from "rxjs/operators";
 

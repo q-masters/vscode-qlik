@@ -1,4 +1,4 @@
-import { AuthorizationStrategy, AuthorizationResult } from "../strategies/authorization.strategy";
+import { AuthorizationResult, AuthorizationStrategy } from "../strategies/authorization.strategy";
 import { singleton } from "tsyringe";
 
 @singleton()

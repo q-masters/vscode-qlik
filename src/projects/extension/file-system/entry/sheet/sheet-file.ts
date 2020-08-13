@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { QixFile } from "../qix/qix.file";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { Entry, EntryType } from "@vsqlik/fs/data";
 import { inject } from "tsyringe";
 import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";

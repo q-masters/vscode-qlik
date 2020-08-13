@@ -4,7 +4,7 @@ import { posix } from "path";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
-import { DisplaySettings } from "@core/connection";
+import { DisplaySettings } from "projects/extension/connection";
 
 /** */
 export class ApplicationDirectory extends QixFsDirectoryAdapter {

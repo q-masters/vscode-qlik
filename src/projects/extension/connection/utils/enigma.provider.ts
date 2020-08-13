@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 import { ConnectionHelper } from "./connection.helper";
-import { ConnectionData } from "../api";
+import { ConnectionModel } from "../model/connection";
 
 /**
  * Services to create, cache and handle enigma session
@@ -40,7 +40,7 @@ export class EnigmaSession {
      * Creates an instance of EnigmaSession.
      */
     public constructor(
-        private connection: ConnectionData
+        private connection: ConnectionModel
     ) {
         this.activeStack     = new Array();
         this.connectionQueue = new Map();
@@ -138,7 +138,7 @@ export class EnigmaSession {
     }
 
     private async openSession(id = EnigmaSession.GLOBAL_SESSION_KEY): Promise<enigmaJS.IGeneratedAPI | undefined> {
-        const session = ConnectionHelper.createSession(this.connection, id);
+        const session = ConnectionHelper.createEnigmaSession(this.connection, id);
         return session.open();
     }
 

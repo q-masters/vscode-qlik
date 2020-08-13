@@ -1,6 +1,6 @@
 import { singleton } from "tsyringe";
 import { QixListProvider, DataNode } from "./qix-list.provider";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import deepmerge from "deepmerge";
 
 export const DimensionSkeleton: EngineAPI.IGenericDimensionProperties = {

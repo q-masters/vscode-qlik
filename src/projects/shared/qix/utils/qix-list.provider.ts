@@ -1,4 +1,4 @@
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { Observable, from, EmptyError } from "rxjs";
 import { switchMap, map } from "rxjs/operators";
 import deepmerge from "deepmerge";

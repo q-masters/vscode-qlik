@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { QixFsDirectoryAdapter, Entry } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { map } from "rxjs/operators";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { Observable } from "rxjs";
 
 export interface DirectoryItem<T> {

@@ -1,17 +1,13 @@
 import { singleton, inject } from "tsyringe";
 import { ExtensionContext } from "vscode";
-import { AuthorizationService, AuthStrategy, AuthorizationStrategyConstructor } from "@shared/authorization";
-import { ConnectionSetting, EnigmaSession, ConnectionHelper } from "@shared/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { FileStorage, MemoryStorage, Storage } from "@shared/storage";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { ExtensionContext as ExtensionContextToken, VsQlikDevSettings } from "@data/tokens";
-
-interface AuthorizationResult {
-    isLoggedIn: boolean;
-    cookies?: any[];
-    loginUrl?: string;
-}
+import { AuthorizationService } from "./utils/authorization.service";
+import { AuthorizationStrategyConstructor } from "./strategies/authorization.strategy";
+import { AuthStrategy } from "./api";
 
 @singleton()
 export class AuthorizationHelper {
@@ -42,31 +38,11 @@ export class AuthorizationHelper {
         if ( this.isConnected(workspaceFolder)) {
             return this.connections.get(workspaceFolder);
         }
-
+        /*
         const authorizationProcess = this.startAuthorization(workspaceFolder);
         this.connections.set(workspaceFolder, authorizationProcess);
         return authorizationProcess;
-    }
-
-    /**
-     * start authorization process
-     */
-    private async startAuthorization(workspaceFolder: WorkspaceFolder): Promise<EnigmaSession|undefined>
-    {
-        const settings = workspaceFolder.settings;
-        const key      = this.createKey(settings);
-
-        const state    = await this.resolveAuthenticationState(settings, key);
-        const result = !state.isLoggedIn
-            ? await this.authorize(settings.connection, state.loginUrl as string)
-            : state;
-
-        if (result.isLoggedIn) {
-            /** update cache */
-            this.storage.write(key, {cookies: result?.cookies ?? []});
-            /** create / save connection */
-            return new EnigmaSession({...workspaceFolder.settings.connection, cookies: result?.cookies ?? []});
-        }
+        */
     }
 
     /**
@@ -75,39 +51,6 @@ export class AuthorizationHelper {
     private isConnected(workspaceFolder: WorkspaceFolder): boolean
     {
         return !!this.connections.has(workspaceFolder);
-    }
-
-    /**
-     * check we have an active session running on qlik server, if we have send back our current cookies
-     * if not return the loginUrl which will be passed to authorization strategy
-     */
-    private async resolveAuthenticationState(settings: WorkspaceSetting, key: string): Promise<AuthorizationResult>
-    {
-        const data = this.storage.read(key);
-        const cookies = data?.cookies ?? [];
-
-        return new Promise((resolve) => {
-            const session = ConnectionHelper.createSession({...settings.connection, cookies});
-            session.on("traffic:received", (response) => {
-                if (response.method === "OnAuthenticationInformation" || response.method === "OnConnected") {
-                    /**
-                     * remove all listeners so we dont have a memory leak
-                     * method exists but not in typings so cast this one to any
-                     */
-                    (session as any).removeAllListeners();
-                    session.close();
-
-                    if (response.params.mustAuthenticate) {
-                        this.storage.delete(key);
-                        resolve({isLoggedIn: false, loginUrl: response.params.loginUri});
-                    } else {
-                        resolve({isLoggedIn: true, cookies });
-                    }
-                }
-            });
-
-            session.open();
-        });
     }
 
     /**
@@ -126,41 +69,24 @@ export class AuthorizationHelper {
     }
 
     /**
-     * authorize vs given authorization strategy
-     */
-    private async authorize(settings: ConnectionSetting, loginUrl: string): Promise<AuthorizationResult>
-    {
-        const strategy = await this.resolveAuthorizationStrategy(settings.authorization.strategy);
-
-        if (!strategy) {
-            return {isLoggedIn: false};
-        }
-
-        const result = await this.authService.authorize(new strategy(settings, loginUrl ?? ""));
-        return result.success ? { isLoggedIn: true, cookies: result.cookies } : {isLoggedIn: false};
-    }
-
-    /**
      * get current authorization strategy constructor from settings
      */
-    private async resolveAuthorizationStrategy(strategy: AuthStrategy): Promise<AuthorizationStrategyConstructor|undefined>
+    public static async resolveStrategy(strategy: AuthStrategy): Promise<AuthorizationStrategyConstructor|null>
     {
-        let strategyConstructor;
         switch (strategy) {
+
             case AuthStrategy.FORM:
-                strategyConstructor = await (await import("./form-strategy")).default as AuthorizationStrategyConstructor;
+                return (await import('./strategies/form')).default as unknown as AuthorizationStrategyConstructor;
                 break;
 
             case AuthStrategy.NONE:
-                strategyConstructor = await (await import("./no-authorization-strategy")).default as AuthorizationStrategyConstructor;
-                break;
-
-            case AuthStrategy.CERTIFICATE:
+                return (await import('./no-authorization-strategy')).default as unknown as AuthorizationStrategyConstructor;
                 break;
 
             case AuthStrategy.CUSTOM:
                 break;
         }
-        return strategyConstructor;
+
+        return null;
     }
 }

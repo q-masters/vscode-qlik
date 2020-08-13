@@ -1,5 +1,5 @@
 import { singleton } from "tsyringe";
-import { EnigmaSession } from "../../connection";
+import { EnigmaSession } from "../../../extension/connection";
 
 @singleton()
 export class QixSheetProvider {

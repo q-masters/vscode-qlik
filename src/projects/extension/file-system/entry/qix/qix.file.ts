@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { QixFsFileAdapter, EntryType, Entry } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 
 export abstract class QixFile extends QixFsFileAdapter {
 

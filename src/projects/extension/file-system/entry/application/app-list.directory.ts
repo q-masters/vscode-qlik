@@ -2,7 +2,7 @@
 import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { QixApplicationProvider } from "@core/qix/utils/application.provider";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { DoclistEntry } from "@core/qix/api/api";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";

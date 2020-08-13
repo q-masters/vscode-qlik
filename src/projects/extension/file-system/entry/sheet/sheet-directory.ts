@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 import { QixDirectory, DirectoryItem, DirectoryEntry } from "../qix/qix.directory";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { Observable, from } from "rxjs";
 import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
 import { map } from "rxjs/operators";

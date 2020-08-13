@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { inject, injectable } from "tsyringe";
-import { EnigmaSession } from "@core/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { QixMeasureProvider } from "@core/qix/utils/measure.provider";
 
 import { Entry, EntryType } from "../../data";

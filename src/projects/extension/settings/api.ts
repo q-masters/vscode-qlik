@@ -1,4 +1,4 @@
-import { ConnectionSetting, DisplaySettings } from "projects/shared/connection";
+import { ConnectionSetting, DisplaySettings } from "projects/extension/connection";
 import { Setting } from "./settings.repository";
 
 export enum FileRenderer {

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { container } from "tsyringe";
-import { EnigmaSession } from "projects/shared/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { RouteParam } from "projects/shared/router";
 import { AuthorizationHelper } from "projects/extension/authorization/authorization.helper";
 import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils";

@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { EnigmaSession } from "@shared/connection";
+import { EnigmaSession } from "projects/extension/connection";
 import { variableDef, IVariableListItem } from "../api";
 
 @injectable()
