@@ -1,0 +1,22 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/src/projects/media/webview"
+  schedule:
+    interval: daily
+    time: "08:00"
+    timezone: Europe/Berlin
+  open-pull-requests-limit: 10
+  target-branch: development
+- package-ecosystem: npm
+  directory: "/src"
+  schedule:
+    interval: daily
+    time: "08:00"
+    timezone: Europe/Berlin
+  open-pull-requests-limit: 10
+  target-branch: development
+  ignore:
+  - dependency-name: "@types/vscode"
+    versions:
+    - "> 1.45.1"
