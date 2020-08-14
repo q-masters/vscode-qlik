@@ -1,9 +1,17 @@
+import * as vscode from "vscode";
 import { buildUrl } from "enigma.js/sense-utilities";
 import { create } from "enigma.js";
 import schema from "enigma.js/schemas/12.20.0.json";
 import WebSocket from "ws";
 import { ConnectionSetting } from "../api";
 import { ConnectionModel } from "../model/connection";
+import { WorkspaceSetting } from "@vsqlik/settings/api";
+import { container } from "tsyringe";
+import { SettingsRepository } from "@vsqlik/settings/settings.repository";
+
+export interface ConnectionSettingQuickPickItem extends vscode.QuickPickItem {
+    setting: WorkspaceSetting
+}
 
 export abstract class ConnectionHelper {
 
@@ -61,6 +69,22 @@ export abstract class ConnectionHelper {
             rejectUnauthorized: !connection.isUntrusted
         });
         return ws;
+    }
+
+    /**
+     * resolve connection from settings
+     */
+    public static async selectConnection(): Promise<WorkspaceSetting|undefined> {
+        const settingsRepository   = container.resolve<SettingsRepository>(SettingsRepository);
+        const availableConnections = settingsRepository.read();
+
+        if (availableConnections.length > 0) {
+            const items = availableConnections.map<ConnectionSettingQuickPickItem>((setting) => ({label: setting.label, setting }));
+            const selection = await vscode.window.showQuickPick(items, {placeHolder: "Select Connection"});
+            return selection?.setting;
+        }
+
+        return void 0;
     }
 
     /**

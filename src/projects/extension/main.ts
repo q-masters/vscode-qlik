@@ -4,16 +4,16 @@ import { container } from "tsyringe";
 import { QixRouter } from "@shared/router";
 
 import { OpenSettingsCommand } from "@vsqlik/settings/open-settings.command";
-import { CreateWorkspaceFolderCommand } from "@vsqlik/workspace/commands";
-import { QixFSProvider, WorkspaceFolderRegistry } from "@vsqlik/workspace/utils";
+import { QixFSProvider } from "@vsqlik/workspace/utils";
 import { Routes } from "@vsqlik/fs/data";
 import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings, ConnectionStorage } from "./data/tokens";
 import { FileStorage, MemoryStorage } from "@core/storage";
+import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
 
 /**
  * bootstrap extension
  */
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 
     /** register global environment variables */
     container.register(ExtensionContext, {useValue: context});
@@ -32,18 +32,25 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    /** register commands */
-    vscode.commands.registerCommand('VsQlik.Connection.Create'  , CreateWorkspaceFolderCommand);
-    vscode.commands.registerCommand('VsQlik.Connection.Settings', OpenSettingsCommand);
-
-    /** register workspace folders */
-    container.resolve(WorkspaceFolderRegistry).register(vscode.workspace.workspaceFolders || []);
-
     /** register routes */
     container.resolve(QixRouter).addRoutes(Routes);
 
+    /** register qixfs provider */
     const qixFs = new QixFSProvider();
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
+
+    /** register commands */
+    vscode.commands.registerCommand('VsQlik.Connection.Create'  , AddConnectionCommand);
+    vscode.commands.registerCommand('VsQlik.Connection.Settings', OpenSettingsCommand);
+
+    context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Remove', RemoveConnectionCommand));
+
+    /** register existing workspace folders (for example close and reopen editor) */
+    vscode.workspace.workspaceFolders?.forEach((folder) => {
+        if (folder.uri.scheme === 'qix') {
+            vscode.commands.executeCommand('VsQlik.Connection.Create', folder);
+        }
+    });
 }
 
 export function deactivate() {

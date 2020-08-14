@@ -1,6 +1,6 @@
 import { singleton, inject } from "tsyringe";
 import * as vscode from "vscode";
-import { ConnectionProvider, Connection } from "../../connection";
+import { ConnectionProvider } from "../../connection";
 import { SettingsRepository } from "../../settings/settings.repository";
 import { WorkspaceFolder } from "../data/workspace-folder";
 import { WorkspaceFolderScheme } from "../api/api";
@@ -33,8 +33,6 @@ export class WorkspaceFolderRegistry {
             if (!setting || folder.uri.scheme !== "qix") {
                 continue;
             }
-
-            this.connectionProvider.connect(new Connection(setting.connection));
 
             /** if a connection could not established remove the directory ? */
             const workspaceFolder = new WorkspaceFolder(setting);
