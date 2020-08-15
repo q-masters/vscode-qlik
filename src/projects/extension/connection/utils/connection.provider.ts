@@ -9,8 +9,6 @@ export class ConnectionProvider {
 
     private items: Connection[] = [];
 
-    private folders: WeakMap<Connection, string> = new WeakMap();
-
     private connections: Map<string, Connection> = new Map();
 
     /**

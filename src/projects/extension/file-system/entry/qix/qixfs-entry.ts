@@ -1,10 +1,9 @@
 import * as vscode from "vscode";
 import { container } from "tsyringe";
-import { EnigmaSession } from "projects/extension/connection";
+import { ConnectionProvider } from "projects/extension/connection";
 import { RouteParam } from "projects/shared/router";
 import { AuthorizationHelper } from "projects/extension/authorization/authorization.helper";
-import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;
@@ -25,11 +24,11 @@ export abstract class QixFsEntry {
 
     private authService: AuthorizationHelper;
 
-    private workspaceFolderRegistry: WorkspaceFolderRegistry;
+    private connectionProvider: ConnectionProvider;
 
     public constructor() {
-        this.authService             = container.resolve(AuthorizationHelper);
-        this.workspaceFolderRegistry = container.resolve(WorkspaceFolderRegistry);
+        this.authService = container.resolve(AuthorizationHelper);
+        this.connectionProvider = container.resolve(ConnectionProvider);
     }
 
     /**
@@ -47,15 +46,13 @@ export abstract class QixFsEntry {
      */
     abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
 
-    protected async getConnection(uri: vscode.Uri): Promise<EnigmaSession | undefined> {
-        const workspaceFolder = this.workspaceFolderRegistry.resolveByUri(uri);
-        if (workspaceFolder) {
-            return await this.authService.authenticate(workspaceFolder);
-        }
+    protected async getConnection(uri: vscode.Uri): Promise<Connection | undefined> {
+        const rootUri = this.getWorkspace(uri)?.uri.toString(true);
+        return rootUri ? this.connectionProvider.resolve(rootUri) : void 0;
     }
 
-    protected getWorkspace(uri: vscode.Uri): WorkspaceFolder | undefined {
-        return this.workspaceFolderRegistry.resolveByUri(uri);
+    protected getWorkspace(uri: vscode.Uri): vscode.WorkspaceFolder | undefined {
+        return vscode.workspace.getWorkspaceFolder(uri);
     }
 }
 

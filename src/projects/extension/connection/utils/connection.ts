@@ -84,6 +84,10 @@ export class Connection {
         this.engimaProvider?.destroy();
     }
 
+    public open(appId?: string): Promise<EngineAPI.IGlobal | undefined> {
+        return this.engimaProvider.open(appId);
+    }
+
     /**
      * send head request to server just to check we can reach this one
      */

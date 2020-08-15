@@ -2,6 +2,7 @@ import { singleton } from "tsyringe";
 import { EnigmaSession } from "projects/extension/connection";
 import { Observable, from, of } from "rxjs";
 import { switchMap, take } from "rxjs/operators";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 @singleton()
 export class QixApplicationProvider {
@@ -42,7 +43,7 @@ export class QixApplicationProvider {
     /**
      * create a new app
      */
-    public createApp(connection: EnigmaSession, name: string): Observable<unknown> {
+    public createApp(connection: Connection, name: string): Observable<unknown> {
         return from(connection.open()).pipe(
             switchMap((global: EngineAPI.IGlobal) => global.createApp(name))
         );
