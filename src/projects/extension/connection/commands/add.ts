@@ -50,7 +50,7 @@ export async function AddConnectionCommand(workspace?: vscode.WorkspaceFolder) {
     }
 
     if (setting && uri) {
-        const connection = new Connection(setting.connection, uri.toString(true));
+        const connection = new Connection(setting, uri.toString(true));
         container.resolve(ConnectionProvider).connect(connection);
     }
 }

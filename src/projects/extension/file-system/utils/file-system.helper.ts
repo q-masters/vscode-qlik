@@ -8,7 +8,7 @@ import { FileRenderer } from "@vsqlik/settings/api";
 import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils/registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
-import { EntryType, Entry, ApplicationEntry } from "../data";
+import { Entry } from "../data";
 
 const TEMPORARY_FILES = new CacheToken("temporary files");
 
@@ -93,13 +93,6 @@ export class FileSystemHelper {
     }
 
     /**
-     * create a entry uri
-     */
-    public createEntryUri(uri: vscode.Uri, name: string): vscode.Uri {
-        return uri.with({path: path.posix.resolve(uri.path, `${name}`)});
-    }
-
-    /**
      * render file content in specific format like YAML or JSON
      */
     public renderFile(uri: vscode.Uri, source: Object): Uint8Array {
@@ -144,48 +137,6 @@ export class FileSystemHelper {
         return false;
     }
 
-
-    /**
-     * resolves the app id by a given uri
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public resolveAppId(uri: vscode.Uri): string | undefined {
-        const app = this.resolveApp(uri);
-        return app?.id;
-    }
-
-    /**
-     * resolves app data by given uri
-     */
-    public resolveApp(uri): ApplicationEntry | undefined {
-        return this.resolveEntry(uri, EntryType.APPLICATION);
-    }
-
-    /**
-     * resolve entry data from cache
-     *
-     * @param {vscode.Uri} uri
-     * @param {EntryType} type
-     * @param {boolean} [goUp=true] if true traverse up in tree [default is true]
-     * @returns {Entry}
-     */
-    public resolveEntry<T extends Entry>(uri: vscode.Uri, type: EntryType, goUp = true): T | undefined {
-        const workspace = this.resolveWorkspace(uri);
-
-        if (workspace) {
-            let entryPath = uri.path;
-            do {
-
-                const entry = this.cacheRegistry.resolve<Entry>(workspace, uri.with({path: entryPath}).toString(true));
-                if (entry && entry.type === type) {
-                    return entry as T;
-                }
-
-                entryPath = path.posix.dirname(entryPath);
-            } while(entryPath !== "/" && goUp);
-        }
-    }
-
     public cacheEntry<T extends Entry>(uri, data: T): void {
         const workspace = this.resolveWorkspace(uri);
 
@@ -204,52 +155,6 @@ export class FileSystemHelper {
 
         if (workspace) {
             this.cacheRegistry.delete(workspace, uri.toString(true));
-        }
-    }
-
-    /**
-     * directory has been renamed, so we need to update the workspace cache
-     */
-    public renameDirectory(source: vscode.Uri, target: vscode.Uri) {
-        const workspaceFolder = this.resolveWorkspace(source);
-        const sourceUri       = source.toString(true);
-
-        if (workspaceFolder) {
-
-            const entries = this.cacheRegistry.getKeys(workspaceFolder) ?? [];
-
-            /** resolve relative path between both */
-            for (const filePath of entries) {
-
-                if (!filePath.startsWith(sourceUri)) {
-                    continue;
-                }
-
-                const relativePath = filePath.substr(sourceUri.length).replace(/^\//, '');
-                const newEntryUri  = target.with({path: path.posix.resolve(target.path, relativePath)});
-                const oldEntryUri  = source.with({path: path.posix.resolve(source.path, relativePath)});
-                const entryData    = this.cacheRegistry.resolve(workspaceFolder, oldEntryUri.toString(true));
-
-                this.cacheRegistry.delete(workspaceFolder, oldEntryUri.toString(true));
-                this.cacheRegistry.add(workspaceFolder   , newEntryUri.toString(true), entryData);
-            }
-        }
-    }
-
-    /**
-     * delete a directory
-     */
-    public deleteDirectory(source: vscode.Uri) {
-        const workspaceFolder = this.resolveWorkspace(source);
-
-        if (workspaceFolder) {
-            const entries = this.cacheRegistry.getKeys(workspaceFolder) ?? [];
-            for (const filePath of entries) {
-                if (!filePath.startsWith(source.toString())) {
-                    continue;
-                }
-                this.cacheRegistry.delete(workspaceFolder, filePath);
-            }
         }
     }
 }

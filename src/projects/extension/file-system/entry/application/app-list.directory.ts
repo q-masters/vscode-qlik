@@ -2,14 +2,14 @@
 import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { QixApplicationProvider } from "@core/qix/utils/application.provider";
-import { EnigmaSession } from "projects/extension/connection";
 import { DoclistEntry } from "@core/qix/api/api";
 import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
+import { map, tap } from "rxjs/operators";
 
-import { FileSystemHelper } from "../../utils/file-system.helper";
-import { QixDirectory, DirectoryItem, DirectoryEntry } from "../qix/qix.directory";
+import { QixDirectory, DirectoryItem } from "../qix/qix.directory";
 import { EntryType } from "@vsqlik/fs/data";
+import { Connection } from "projects/extension/connection/utils/connection";
+import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 
 /**
  * Base list directory for qix applications, this is only readonly
@@ -26,9 +26,8 @@ export abstract class AppListDirectory extends QixDirectory<DoclistEntry> {
 
     public constructor(
         @inject(QixApplicationProvider) protected applicationProvider: QixApplicationProvider,
-        @inject(FileSystemHelper) protected filesystemHelper: FileSystemHelper,
     ) {
-        super(filesystemHelper);
+        super();
     }
 
     public stat(): vscode.FileStat | Thenable<vscode.FileStat> {
@@ -43,31 +42,31 @@ export abstract class AppListDirectory extends QixDirectory<DoclistEntry> {
     /**
      * load all available apps
      */
-    protected loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<DoclistEntry>[]> {
+    protected loadData(connection: Connection, uri: vscode.Uri): Observable<DirectoryItem<DoclistEntry>[]> {
         return this.applicationProvider.list(connection)
             .pipe(
                 /** map to filtered list, exclude published apps and apps in streams */
                 map((apps: DoclistEntry[]) => this.onAppsLoaded(apps, uri)),
-                map((apps) => apps.map((app): DirectoryItem<DoclistEntry> => ({
-                    id: app.qDocId,
-                    name: app.qTitle,
-                    data: app
-                })))
+                map((apps) => apps.map((app): DirectoryItem<DoclistEntry> => {
+                    return {
+                        id: app.qDocId,
+                        name: app.qTitle,
+                        data: app
+                    };
+                })),
             );
     }
 
     /**
      * generate entry data for cache and file system
      */
-    protected generateEntry(app: DirectoryItem<DoclistEntry>): DirectoryEntry {
+    protected generateEntry(app: DirectoryItem<DoclistEntry>): FilesystemEntry {
         return {
-            entry: {
-                id: app.id,
-                readonly: !!app.data.qMeta.published,
-                type: EntryType.APPLICATION,
-                data: app
-            },
-            item: [app.name, vscode.FileType.Directory]
+            id: app.id,
+            name: app.name,
+            raw: app,
+            readonly: !!app.data.qMeta.published,
+            type: EntryType.APPLICATION
         };
     }
 }

@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 import { inject, injectable } from "tsyringe";
-import { EnigmaSession } from "projects/extension/connection";
 
 import { Entry, EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { QixFile } from "../qix/qix.file";
 import path from "path";
 import { QixDimensionProvider } from "@core/qix/utils/dimension.provider";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 @injectable()
 export class DimensionFile extends QixFile {
@@ -23,7 +23,7 @@ export class DimensionFile extends QixFile {
     /**
      * read data
      */
-    protected async read(connection: EnigmaSession, app: string, entry: Entry): Promise<any> {
+    protected async read(connection: Connection, app: string, entry: Entry): Promise<any> {
         return await this.provider.read(connection, app, entry.id);
     }
 
@@ -31,6 +31,8 @@ export class DimensionFile extends QixFile {
      * write file, update or create a new variable
      */
     public async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
+
+        const connection = this.getConnection(uri) as Connection;
         const app = this.filesystemHelper.resolveApp(uri);
 
         if (app && app.readonly === false) {
@@ -48,9 +50,10 @@ export class DimensionFile extends QixFile {
      * update existing measure
      */
     private async updateDimension(uri: vscode.Uri, data: Uint8Array) {
-        const connection = await this.getConnection(uri) as EnigmaSession;
+        const connection = this.getConnection(uri) as Connection;
+        const measure    = connection.fileSystemStorage.read(uri.toString(true));
+
         const app        = this.filesystemHelper.resolveApp(uri);
-        const measure    = this.filesystemHelper.resolveEntry(uri, EntryType.DIMENSION, false);
         const content    = this.filesystemHelper.fileToJson(uri, data);
 
         if (app && measure) {
@@ -63,7 +66,7 @@ export class DimensionFile extends QixFile {
      */
     private async createDimension(uri: vscode.Uri, content: Uint8Array) {
 
-        const connection = await this.getConnection(uri) as EnigmaSession;
+        const connection = await this.getConnection(uri) as Connection;
         const app        = this.filesystemHelper.resolveApp(uri);
         const name       = this.filesystemHelper.resolveFileName(uri, false);
 
@@ -97,22 +100,15 @@ export class DimensionFile extends QixFile {
      */
     public async rename(uri: vscode.Uri, newUri: vscode.Uri): Promise<void> {
 
-        const connection = await this.getConnection(uri);
+        const connection = this.getConnection(uri);
         const app        = this.filesystemHelper.resolveEntry(uri, EntryType.APPLICATION);
         const dimension  = this.filesystemHelper.resolveEntry(uri, EntryType.DIMENSION, false);
 
         if (app?.readonly === false && dimension && connection) {
 
             const newName = path.posix.parse(newUri.path).name;
-            const result  = await this.provider.rename(connection, app.id, dimension.id, newName);
-
-            this.filesystemHelper.deleteEntry(uri);
-            this.filesystemHelper.cacheEntry(newUri, {
-                id: dimension.id,
-                readonly: false,
-                type: EntryType.DIMENSION,
-                data: result
-            });
+            await this.provider.rename(connection, app.id, dimension.id, newName);
+            connection.fileSystemStorage.rename(uri, newUri);
         }
     }
 
@@ -135,7 +131,7 @@ export class DimensionFile extends QixFile {
         await this.writeFile(to, Buffer.from(await this.readFile(from)));
 
         /** finally delete old entry */
-        const connection = await this.getConnection(from) as EnigmaSession;
+        const connection = await this.getConnection(from) as Connection;
         const entry      = this.filesystemHelper.resolveEntry(from, EntryType.DIMENSION, false) as Entry;
 
         await this.provider.destroy(connection, source.id, entry.id);

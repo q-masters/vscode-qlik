@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
 import { QixFsDirectoryAdapter, Entry } from "../../data";
-import { FileSystemHelper } from "../../utils/file-system.helper";
-import { map } from "rxjs/operators";
-import { EnigmaSession } from "projects/extension/connection";
+import { map, tap } from "rxjs/operators";
 import { Observable } from "rxjs";
+import { Connection } from "projects/extension/connection/utils/connection";
+import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
+import path from "path";
 
 export interface DirectoryItem<T> {
     name: string,
@@ -21,18 +22,12 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
     /**
      * load data from qix
      */
-    protected abstract loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<T>[]>;
+    protected abstract loadData(connection: Connection, uri: vscode.Uri): Observable<DirectoryItem<T>[]>;
 
     /**
      * build entry list
      */
-    protected abstract generateEntry(data: DirectoryItem<T>, uri: vscode.Uri): DirectoryEntry;
-
-    public constructor(
-        protected fileSystemHelper: FileSystemHelper
-    ) {
-        super();
-    }
+    protected abstract generateEntry(data: DirectoryItem<T>, uri: vscode.Uri): FilesystemEntry;
 
     /**
      * static library which allways exists
@@ -50,7 +45,7 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
      * read variable directory
      */
     public async readDirectory(uri: vscode.Uri): Promise<any> {
-        const connection = await this.getConnection(uri);
+        const connection = this.getConnection(uri);
 
         if (!connection) {
             throw vscode.FileSystemError.NoPermissions();
@@ -66,11 +61,18 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
      * create directory list
      */
     protected buildEntryList(data: DirectoryItem<T>[], uri: vscode.Uri): [string, vscode.FileType][] {
+        const connection = this.getConnection(uri);
+
         return data.map((item) => {
-            const entry    = this.generateEntry(item, uri);
-            const entryUri = this.fileSystemHelper.createEntryUri(uri, entry.item[0]);
-            this.fileSystemHelper.cacheEntry(entryUri, entry.entry);
-            return entry.item;
+            try {
+                const entry = this.generateEntry(item, uri);
+                const entryUri   = uri.with({path: path.posix.resolve(uri.path, `${entry.name}`)});
+                connection?.fileSystemStorage.write(entryUri.toString(true), entry);
+                return [entry.name, vscode.FileType.Directory];
+            } catch (error) {
+                console.log(error);
+                throw error;
+            }
         });
     }
 

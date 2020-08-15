@@ -11,10 +11,11 @@ import { AuthorizationService } from "@auth/utils/authorization.service";
 import { AuthorizationHelper } from "@auth/authorization.helper";
 import { AuthorizationState } from "@auth/strategies/authorization.strategy";
 
-import { ConnectionSetting } from "../api";
 import { ConnectionState, ConnectionModel } from "../model/connection";
 import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
+import { WorkspaceSetting } from "@vsqlik/settings/api";
+import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -32,30 +33,43 @@ export class Connection {
     /**
      * storage to save data
      */
-    private storage: Storage;
+    private serverStorage: Storage;
 
     /**
      * one stream to unsubscribe everything
      */
     private destroy$: Subject<boolean> = new Subject();
 
+    /**
+     * @todo remove any
+     */
+    private serverFilesystemStorage: FileSystemStorage = new FileSystemStorage();
+
     public constructor(
-        private config: ConnectionSetting,
+        private serverSetting: WorkspaceSetting,
         private uri: string
     ) {
-        this.storage = container.resolve(ConnectionStorage);
-        this.connectionModel = new ConnectionModel(config);
+        this.serverStorage = container.resolve(ConnectionStorage);
+        this.connectionModel = new ConnectionModel(serverSetting.connection);
     }
 
     public get workspacePath(): string {
         return this.uri;
     }
 
+    public get serverSettings(): WorkspaceSetting {
+        return JSON.parse(JSON.stringify(this.serverSetting));
+    }
+
+    public get fileSystemStorage(): FileSystemStorage {
+        return this.serverFilesystemStorage;
+    }
+
     /**
      * runs a connection request
      */
     public connect(): Promise<boolean> {
-        const data = this.storage.read(JSON.stringify(this.config));
+        const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.cookies = data?.cookies ?? [];
 
         return this.serverExists().pipe(
@@ -78,13 +92,19 @@ export class Connection {
         this.destroy$.next(true);
         this.destroy$.complete();
 
-        this.storage.delete(JSON.stringify(this.config));
-        this.connectionModel.state = ConnectionState.CLOSED;
-
         this.engimaProvider?.destroy();
+        this.fileSystemStorage.clear();
+
+        /** @todo move outside ? */
+        this.serverStorage.delete(JSON.stringify(this.serverSetting.connection));
+        this.connectionModel.state = ConnectionState.CLOSED;
     }
 
-    public open(appId?: string): Promise<EngineAPI.IGlobal | undefined> {
+    public closeSession(appId?: string): Promise<void> {
+        return this.engimaProvider.close(appId);
+    }
+
+    public openSession(appId?: string): Promise<EngineAPI.IGlobal | undefined> {
         return this.engimaProvider.open(appId);
     }
 
@@ -92,11 +112,11 @@ export class Connection {
      * send head request to server just to check we can reach this one
      */
     private serverExists(): Observable<void> {
-        const url = ConnectionHelper.buildUrl(this.config);
+        const url = ConnectionHelper.buildUrl(this.serverSetting.connection);
         const req = new Promise<request.Request>((resolve) => {
             request.head({
                 url,
-                port: this.config.port,
+                port: this.serverSetting.connection.port,
                 rejectUnauthorized: false
             }, resolve);
         });
@@ -117,7 +137,7 @@ export class Connection {
 
         let secure$ = of(true);
 
-        if (this.config.secure) {
+        if (this.serverSetting.connection.secure) {
             secure$ = secure$.pipe(
                 switchMap(async () => await this.isTrusted() || await this.acceptUntrusted()),
                 tap((secure) => {
@@ -137,8 +157,8 @@ export class Connection {
     private isTrusted(): Promise<boolean> {
         return new Promise((resolve) => {
             const socket = tlsConnect({
-                port: this.config.port ?? 443,
-                host: this.config.host,
+                port: this.serverSetting.connection.port ?? 443,
+                host: this.serverSetting.connection.host,
                 rejectUnauthorized: false
             }, () => {
                 socket.authorized ? resolve(true) : resolve(false);
@@ -186,14 +206,14 @@ export class Connection {
         }
 
         const authService = container.resolve(AuthorizationService);
-        const strategyConstructor = await AuthorizationHelper.resolveStrategy(this.config.authorization.strategy);
+        const strategyConstructor = await AuthorizationHelper.resolveStrategy(this.serverSetting.connection.authorization.strategy);
 
         if (strategyConstructor && authState.loginUri) {
             const strategy = new strategyConstructor({
                 allowUntrusted: this.connectionModel.isUntrusted,
                 uri: authState.loginUri as string,
-                domain: this.config.authorization.data.domain,
-                password: this.config.authorization.data.password,
+                domain: this.serverSetting.connection.authorization.data.domain,
+                password: this.serverSetting.connection.authorization.data.password,
             });
 
             const authResult = await authService.authorize(strategy);
@@ -241,11 +261,10 @@ export class Connection {
      * we got connected to server
      */
     private async onConnected() {
-
-        this.storage.write(JSON.stringify(this.config), {cookies: this.connectionModel.cookies});
+        this.serverStorage.write(JSON.stringify(this.serverSetting.connection), {cookies: this.connectionModel.cookies});
         this.engimaProvider = new EnigmaSession(this.connectionModel);
 
-        const global: EngineAPI.IGlobal = await this.engimaProvider.open() as EngineAPI.IGlobal;
+        const global: EngineAPI.IGlobal = await this.engimaProvider.open("engineData", true) as EngineAPI.IGlobal;
 
         /** heartbeat */
         timer(5000, 5000).pipe(

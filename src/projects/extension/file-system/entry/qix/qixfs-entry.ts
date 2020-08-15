@@ -1,9 +1,8 @@
 import * as vscode from "vscode";
-import { container } from "tsyringe";
 import { ConnectionProvider } from "projects/extension/connection";
 import { RouteParam } from "projects/shared/router";
-import { AuthorizationHelper } from "projects/extension/authorization/authorization.helper";
 import { Connection } from "projects/extension/connection/utils/connection";
+import { container } from "tsyringe";
 
 export interface QixFsEntryConstructor {
     new(): QixFsEntry;
@@ -22,12 +21,9 @@ export abstract class QixFsEntry {
 
     public isTemporary = false;
 
-    private authService: AuthorizationHelper;
-
-    private connectionProvider: ConnectionProvider;
+    protected connectionProvider: ConnectionProvider;
 
     public constructor() {
-        this.authService = container.resolve(AuthorizationHelper);
         this.connectionProvider = container.resolve(ConnectionProvider);
     }
 
@@ -46,13 +42,9 @@ export abstract class QixFsEntry {
      */
     abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
 
-    protected async getConnection(uri: vscode.Uri): Promise<Connection | undefined> {
-        const rootUri = this.getWorkspace(uri)?.uri.toString(true);
+    protected getConnection(uri: vscode.Uri): Connection | undefined {
+        const rootUri = vscode.workspace.getWorkspaceFolder(uri)?.uri.toString(true);
         return rootUri ? this.connectionProvider.resolve(rootUri) : void 0;
-    }
-
-    protected getWorkspace(uri: vscode.Uri): vscode.WorkspaceFolder | undefined {
-        return vscode.workspace.getWorkspaceFolder(uri);
     }
 }
 

@@ -6,7 +6,7 @@ import { DirectoryList } from "../utils/file-system.helper";
 import { CacheRegistry } from "@core/utils/cache-registry";
 import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { resolve } from "path";
-import { Entry, EntryType } from "../data";
+import { EntryType } from "../data";
 
 @injectable()
 export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
@@ -28,10 +28,9 @@ export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
 
     public async readDirectory(uri: vscode.Uri): Promise<DirectoryList> {
         const connection = await this.getConnection(uri);
-        const workspace  = this.getWorkspace(uri);
 
-        if (connection && workspace) {
-            const global  = await connection.open();
+        if (connection) {
+            const global  = await connection.openSession();
             const streams = await global?.getStreamList();
 
             if (!streams) {
@@ -42,10 +41,12 @@ export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
             return this.sanitizeStreams(streams).map((stream) => {
                 const streamUri = uri.with({path: resolve(uri.path, stream.qName)});
 
-                this.cacheRegistry.add<Entry>(workspace, streamUri.toString(true), {
-                    type: EntryType.STREAM,
+                connection.fileSystemStorage.write(streamUri.toString(true), {
                     id: stream.qId,
-                    readonly: true
+                    name: stream.qName,
+                    raw: stream,
+                    readonly: true,
+                    type: EntryType.STREAM,
                 });
 
                 return [stream.qName, vscode.FileType.Directory];
