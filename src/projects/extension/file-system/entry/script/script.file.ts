@@ -55,10 +55,9 @@ export class ScriptFile extends QixFsFileAdapter {
         const connection = await this.getConnection(uri);
         const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
 
-        console.log(app);
-
         if (connection && app) {
             const content = await this.appService.readScript(connection, app.id) ?? "";
+            console.log(content.length);
             return Buffer.from(content, "utf-8");
         }
 

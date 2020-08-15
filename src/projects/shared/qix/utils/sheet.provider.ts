@@ -1,11 +1,11 @@
 import { singleton } from "tsyringe";
-import { EnigmaSession } from "../../../extension/connection";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 @singleton()
 export class QixSheetProvider {
 
-    public async list(connection: EnigmaSession, id: string): Promise<any[]> {
-        const global = await connection.open(id);
+    public async list(connection: Connection, id: string): Promise<any[]> {
+        const global = await connection.openSession(id);
         const app    = await global?.openDoc(id);
 
         if (!app) {
@@ -32,8 +32,8 @@ export class QixSheetProvider {
     /**
      * get full property tree data from sheet
      */
-    public async read(connection, app_id: string, sheet_id: string): Promise<EngineAPI.IGenericObjectEntry> {
-        const session = await connection.open(app_id);
+    public async read(connection: Connection, app_id: string, sheet_id: string): Promise<EngineAPI.IGenericObjectEntry> {
+        const session = await connection.openSession(app_id);
         const app     = await session?.openDoc(app_id) as EngineAPI.IApp;
         const sheet   = await app?.getObject(sheet_id);
 
@@ -43,8 +43,8 @@ export class QixSheetProvider {
     /**
      * write full property tree
      */
-    public async write(connection, app_id: string, sheet_id: string, content: EngineAPI.IGenericObjectEntry): Promise<void> {
-        const session = await connection.open(app_id);
+    public async write(connection: Connection, app_id: string, sheet_id: string, content: EngineAPI.IGenericObjectEntry): Promise<void> {
+        const session = await connection.openSession(app_id);
         const app     = await session?.openDoc(app_id) as EngineAPI.IApp;
         const sheet = await app?.getObject(sheet_id);
 

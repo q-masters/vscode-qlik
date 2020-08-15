@@ -3,12 +3,11 @@ import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { QixApplicationProvider } from "@core/qix/utils/application.provider";
 import { DoclistEntry } from "@core/qix/api/api";
-import { Observable } from "rxjs";
-import { map, tap } from "rxjs/operators";
+import { Observable, of } from "rxjs";
+import { map } from "rxjs/operators";
 
 import { QixDirectory, DirectoryItem } from "../qix/qix.directory";
 import { EntryType } from "@vsqlik/fs/data";
-import { Connection } from "projects/extension/connection/utils/connection";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 
 /**
@@ -42,7 +41,13 @@ export abstract class AppListDirectory extends QixDirectory<DoclistEntry> {
     /**
      * load all available apps
      */
-    protected loadData(connection: Connection, uri: vscode.Uri): Observable<DirectoryItem<DoclistEntry>[]> {
+    protected loadData(uri: vscode.Uri): Observable<DirectoryItem<DoclistEntry>[]> {
+        const connection = this.getConnection(uri);
+
+        if (!connection) {
+            return of([]);
+        }
+
         return this.applicationProvider.list(connection)
             .pipe(
                 /** map to filtered list, exclude published apps and apps in streams */

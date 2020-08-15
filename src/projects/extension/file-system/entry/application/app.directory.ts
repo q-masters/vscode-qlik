@@ -40,7 +40,6 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
         const exists = connection?.fileSystemStorage.exists(uri);
 
         if (!exists) {
-            console.log(uri);
             throw vscode.FileSystemError.FileNotFound();
         }
 
@@ -62,7 +61,7 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
             const app        = connection?.fileSystemStorage.read(uri.toString(true));
 
             if (connection && app) {
-                await this.appService.renameApp(connection, app, posix.basename(newUri.path));
+                await this.appService.renameApp(connection, app.id, posix.basename(newUri.path));
                 connection.fileSystemStorage.rename(uri, newUri);
             }
 

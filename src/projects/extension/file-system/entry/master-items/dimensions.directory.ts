@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { EnigmaSession } from "projects/extension/connection";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
@@ -14,9 +13,9 @@ export class DimensionDirectory extends QixDirectory<any> {
 
     public constructor(
         @inject(QixDimensionProvider) private dimensionProvider: QixDimensionProvider,
-        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
+        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
     ) {
-        super(fileSystemHelper);
+        super();
     }
 
     /**
@@ -54,9 +53,11 @@ export class DimensionDirectory extends QixDirectory<any> {
     /**
      * load all measures
      */
-    protected loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<any>[]> {
-        const app = this.fileSystemHelper.resolveAppId(uri);
-        if (!app) {
+    protected loadData(uri: vscode.Uri): Observable<DirectoryItem<any>[]> {
+        const connection = this.getConnection(uri);
+        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+
+        if (!app || !connection) {
             throw new Error(`could not find app for path: ${uri.toString(true)}`);
         }
 

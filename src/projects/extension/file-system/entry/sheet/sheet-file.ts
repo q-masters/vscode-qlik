@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import { QixFile } from "../qix/qix.file";
-import { EnigmaSession } from "projects/extension/connection";
 import { Entry, EntryType } from "@vsqlik/fs/data";
 import { inject } from "tsyringe";
 import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
 import { QixSheetProvider } from "@core/qix/utils/sheet.provider";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 export class SheetFile extends QixFile {
 
@@ -20,7 +20,7 @@ export class SheetFile extends QixFile {
     /**
      * read data
      */
-    protected async read(connection: EnigmaSession, app: string, entry: Entry): Promise<any> {
+    protected async read(connection: Connection, app: string, entry: Entry): Promise<any> {
         return await this.provider.read(connection, app, entry.id);
     }
 
@@ -28,17 +28,19 @@ export class SheetFile extends QixFile {
      * write file
      */
     public async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
-        const app = this.filesystemHelper.resolveApp(uri);
 
-        if (app && app.readonly === false) {
-            this.filesystemHelper.exists(uri)
+        const connection = this.getConnection(uri);
+        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+
+        if (app && !app.readonly) {
+            connection?.fileSystemStorage.exists(uri)
                 ? await this.updateSheet(uri, content)
                 : await this.createSheet();
 
             return;
         }
 
-        throw vscode.FileSystemError.NoPermissions(`Not allowed made any changes to ${app?.data.data.qTitle}(${app?.id ?? ''}), app is read only.`);
+        throw vscode.FileSystemError.NoPermissions(`Not allowed made any changes to ${app?.name ?? ''} (${app?.id ?? ''}), app is read only.`);
     }
 
     private async createSheet() {
@@ -51,10 +53,10 @@ export class SheetFile extends QixFile {
     private async updateSheet(uri: vscode.Uri, content: Uint8Array) {
 
         const connection = await this.getConnection(uri);
-        const app        = this.filesystemHelper.resolveApp(uri);
-        const sheet      = this.filesystemHelper.resolveEntry(uri, this.entryType);
+        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const sheet      = connection?.fileSystemStorage.read(uri.toString(true));
 
-        if (sheet?.id && app?.id) {
+        if (connection && app && sheet?.type === EntryType.SHEET) {
             const data = this.filesystemHelper.fileToJson(uri, content) as EngineAPI.IGenericObjectEntry;
             return await this.provider.write(connection, app.id, sheet.id, data);
         }

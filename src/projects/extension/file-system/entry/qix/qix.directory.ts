@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
 import { QixFsDirectoryAdapter, Entry } from "../../data";
-import { map, tap } from "rxjs/operators";
+import { map } from "rxjs/operators";
 import { Observable } from "rxjs";
-import { Connection } from "projects/extension/connection/utils/connection";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 import path from "path";
 
@@ -22,7 +21,7 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
     /**
      * load data from qix
      */
-    protected abstract loadData(connection: Connection, uri: vscode.Uri): Observable<DirectoryItem<T>[]>;
+    protected abstract loadData(uri: vscode.Uri): Observable<DirectoryItem<T>[]>;
 
     /**
      * build entry list
@@ -51,7 +50,7 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
             throw vscode.FileSystemError.NoPermissions();
         }
 
-        return this.loadData(connection, uri).pipe(
+        return this.loadData(uri).pipe(
             map((data) => this.sanitizeItemNames(data)),
             map((data) => this.buildEntryList(data, uri)),
         ).toPromise();
@@ -64,15 +63,11 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
         const connection = this.getConnection(uri);
 
         return data.map((item) => {
-            try {
-                const entry = this.generateEntry(item, uri);
-                const entryUri   = uri.with({path: path.posix.resolve(uri.path, `${entry.name}`)});
-                connection?.fileSystemStorage.write(entryUri.toString(true), entry);
-                return [entry.name, vscode.FileType.Directory];
-            } catch (error) {
-                console.log(error);
-                throw error;
-            }
+            const entry = this.generateEntry(item, uri);
+            const entryUri   = uri.with({path: path.posix.resolve(uri.path, `${entry.name}`)});
+
+            connection?.fileSystemStorage.write(entryUri.toString(true), entry);
+            return [entry.name, entry.fileType ?? vscode.FileType.Directory];
         });
     }
 

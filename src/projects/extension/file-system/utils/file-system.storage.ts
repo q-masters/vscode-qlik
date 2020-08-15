@@ -9,6 +9,7 @@ export interface FilesystemEntry {
     raw: {[key: string]: any};
     readonly: boolean;
     type: EntryType;
+    fileType?: vscode.FileType
 }
 
 export class FileSystemStorage extends MemoryStorage<FilesystemEntry> {

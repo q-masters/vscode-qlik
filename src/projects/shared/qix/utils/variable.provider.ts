@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
-import { EnigmaSession } from "projects/extension/connection";
 import { variableDef, IVariableListItem } from "../api";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 @injectable()
 export class QixVariableProvider {
@@ -8,8 +8,8 @@ export class QixVariableProvider {
     /**
      *  get all variables from an existing app
      */
-    public async list(connection: EnigmaSession, app_id: string) {
-        const session = await connection.open(app_id);
+    public async list(connection: Connection, app_id: string) {
+        const session = await connection.openSession(app_id);
         const app     = await session?.openDoc(app_id);
 
         if (app) {
@@ -21,8 +21,8 @@ export class QixVariableProvider {
         return [];
     }
 
-    public async readVariable(connection, app_id: string, var_id: string): Promise<EngineAPI.IGenericVariable | undefined> {
-        const session = await connection.open(app_id);
+    public async readVariable(connection: Connection, app_id: string, var_id: string): Promise<EngineAPI.IGenericVariable | undefined> {
+        const session = await connection.openSession(app_id);
         const app     = await session?.openDoc(app_id);
 
         return await app?.getVariableById(var_id);
@@ -32,12 +32,12 @@ export class QixVariableProvider {
      * create a new variable
      */
     public async createVariable(
-        connection: EnigmaSession,
+        connection: Connection,
         app_id: string,
         properties: EngineAPI.IGenericVariableProperties
     ): Promise<EngineAPI.INxInfo | undefined>
     {
-        const session = await connection.open(app_id);
+        const session = await connection.openSession(app_id);
         const app     = await session?.openDoc(app_id);
 
         const result = await app?.createVariableEx(properties);
@@ -49,9 +49,9 @@ export class QixVariableProvider {
     /**
      * update an existing variable
      */
-    public async updateVariable(connection: EnigmaSession, app_id: string, var_id: string, patch: EngineAPI.IGenericVariableProperties): Promise<void>
+    public async updateVariable(connection: Connection, app_id: string, var_id: string, patch: EngineAPI.IGenericVariableProperties): Promise<void>
     {
-        const session  = await connection.open(app_id);
+        const session  = await connection.openSession(app_id);
         const app      = await session?.openDoc(app_id);
         const variable = await app?.getVariableById(var_id);
         const patches = Object.keys(patch).map<EngineAPI.INxPatch>((property) => {
@@ -65,8 +65,8 @@ export class QixVariableProvider {
         await app?.doSave();
     }
 
-    public async deleteVariable(connection: EnigmaSession, app_id: string, var_id: string): Promise<boolean> {
-        const session  = await connection.open(app_id);
+    public async deleteVariable(connection: Connection, app_id: string, var_id: string): Promise<boolean> {
+        const session  = await connection.openSession(app_id);
         const app      = await session?.openDoc(app_id);
         const success  = await app?.destroyVariableById(var_id);
         await app?.doSave();

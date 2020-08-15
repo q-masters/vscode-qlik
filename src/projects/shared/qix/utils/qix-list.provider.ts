@@ -2,6 +2,7 @@ import { EnigmaSession } from "projects/extension/connection";
 import { Observable, from, EmptyError } from "rxjs";
 import { switchMap, map } from "rxjs/operators";
 import deepmerge from "deepmerge";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 export interface DataNode {
     [key: string]: any;
@@ -42,8 +43,8 @@ export abstract class QixListProvider {
     /**
      * resolve all measure items
      */
-    public list<T>(connection: EnigmaSession, app: string): Observable<T[]> {
-        return from(connection.open(app)).pipe(
+    public list<T>(connection: Connection, app: string): Observable<T[]> {
+        return from(connection.openSession(app)).pipe(
             switchMap((global) => global?.openDoc(app) ?? EmptyError),
             switchMap((app) => app.createSessionObject(this.listProperties)),
             switchMap((obj) => obj.getLayout()),
@@ -65,7 +66,7 @@ export abstract class QixListProvider {
     /**
      * get properties from sessionObject item
      */
-    public async read(connection: EnigmaSession, app: string, object_id: string): Promise<DataNode> {
+    public async read(connection: Connection, app: string, object_id: string): Promise<DataNode> {
         const genericObject = await this.resolveGenericObject(connection, app, object_id);
         return await genericObject.getProperties();
     }
@@ -73,7 +74,7 @@ export abstract class QixListProvider {
     /**
      * write data to sessionObject item via set properties
      */
-    public async update(connection: EnigmaSession, app: string, object_id: string, data: DataNode): Promise<void> {
+    public async update(connection: Connection, app: string, object_id: string, data: DataNode): Promise<void> {
         const genericObject = await this.resolveGenericObject(connection, app, object_id);
         return await genericObject.setProperties(data);
     }
@@ -81,7 +82,7 @@ export abstract class QixListProvider {
     /**
      * patch data
      */
-    public async patch(connection: EnigmaSession, app: string, object: string, patch: DataNode) {
+    public async patch(connection: Connection, app: string, object: string, patch: DataNode) {
         const genericObject = await this.resolveGenericObject(connection, app, object);
         const oldData       = await genericObject.getProperties();
         const newData       = deepmerge.all([oldData, patch]);
@@ -93,8 +94,8 @@ export abstract class QixListProvider {
     /**
      * destroy a session object
      */
-    public async destroy(connection: EnigmaSession, app_id: string, object: string): Promise<void> {
-        const global = await connection.open(app_id);
+    public async destroy(connection: Connection, app_id: string, object: string): Promise<void> {
+        const global = await connection.openSession(app_id);
         const app    = await global?.openDoc(app_id);
 
         if (app) {
@@ -105,8 +106,8 @@ export abstract class QixListProvider {
     /**
      * resolve generic object which we are interested for
      */
-    private async resolveGenericObject(connection: EnigmaSession, app_id: string, object_id: string): Promise<any> {
-        const global = await connection.open(app_id);
+    private async resolveGenericObject(connection: Connection, app_id: string, object_id: string): Promise<any> {
+        const global = await connection.openSession(app_id);
         const app    = await global?.openDoc(app_id);
 
         if (app) {
