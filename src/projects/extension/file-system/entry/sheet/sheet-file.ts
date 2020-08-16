@@ -29,11 +29,11 @@ export class SheetFile extends QixFile {
      */
     public async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
 
-        const connection = this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const connection = await this.getConnection(uri);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (app && !app.readonly) {
-            connection?.fileSystemStorage.exists(uri)
+            connection?.fileSystem.exists(uri)
                 ? await this.updateSheet(uri, content)
                 : await this.createSheet();
 
@@ -53,8 +53,8 @@ export class SheetFile extends QixFile {
     private async updateSheet(uri: vscode.Uri, content: Uint8Array) {
 
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
-        const sheet      = connection?.fileSystemStorage.read(uri.toString(true));
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
+        const sheet      = connection?.fileSystem.read(uri.toString(true));
 
         if (connection && app && sheet?.type === EntryType.SHEET) {
             const data = this.filesystemHelper.fileToJson(uri, content) as EngineAPI.IGenericObjectEntry;

@@ -53,7 +53,7 @@ export class ScriptFile extends QixFsFileAdapter {
         }
 
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app) {
             const content = await this.appService.readScript(connection, app.id) ?? "";
@@ -75,7 +75,7 @@ export class ScriptFile extends QixFsFileAdapter {
         }
 
         const connection = await this.getConnection(uri);
-        const app     = connection?.fileSystemStorage.parent(fileUri, EntryType.APPLICATION);
+        const app     = connection?.fileSystem.parent(fileUri, EntryType.APPLICATION);
 
         if (!app || !connection) {
             throw vscode.FileSystemError.FileNotFound();

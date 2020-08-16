@@ -21,7 +21,7 @@ export class AppListMyWorkDirectory extends AppListDirectory {
      * create a new app
      */
     public async createDirectory(uri: vscode.Uri, name: string): Promise<void> {
-        const connection = this.getConnection(uri);
+        const connection = await this.getConnection(uri);
 
         if (connection) {
             return this.applicationProvider.createApp(connection, name).pipe(
@@ -38,7 +38,7 @@ export class AppListMyWorkDirectory extends AppListDirectory {
                  * add data to file cache so we find it again
                  */
                 map((entry: EngineAPI.IAppEntry) => {
-                    connection.fileSystemStorage.write(uri.toString(true), {
+                    connection.fileSystem.write(uri.toString(true), {
                         name: entry.qTitle,
                         raw: entry,
                         id: entry.qID,
@@ -58,7 +58,7 @@ export class AppListMyWorkDirectory extends AppListDirectory {
         const connection = await this.getConnection(uri);
 
         if (connection) {
-            const fsEntry = connection.fileSystemStorage.read(uri.toString(true));
+            const fsEntry = connection.fileSystem.read(uri.toString(true));
             if (!fsEntry || fsEntry.type !== EntryType.APPLICATION) {
                 throw vscode.FileSystemError.FileNotFound();
             }
@@ -66,7 +66,7 @@ export class AppListMyWorkDirectory extends AppListDirectory {
             await this.applicationProvider.deleteApp(connection, fsEntry.id);
             await connection.closeSession(fsEntry.id);
 
-            connection.fileSystemStorage.deleteDirectory(uri);
+            connection.fileSystem.deleteDirectory(uri);
         }
     }
 

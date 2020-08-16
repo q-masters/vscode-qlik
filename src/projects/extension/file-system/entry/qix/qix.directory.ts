@@ -1,9 +1,8 @@
 import * as vscode from "vscode";
 import { QixFsDirectoryAdapter, Entry } from "../../data";
-import { map } from "rxjs/operators";
-import { Observable } from "rxjs";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 import path from "path";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 export interface DirectoryItem<T> {
     name: string,
@@ -21,12 +20,12 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
     /**
      * load data from qix
      */
-    protected abstract loadData(uri: vscode.Uri): Observable<DirectoryItem<T>[]>;
+    protected abstract loadData(uri: vscode.Uri): Promise<DirectoryItem<T>[]>;
 
     /**
      * build entry list
      */
-    protected abstract generateEntry(data: DirectoryItem<T>, uri: vscode.Uri): FilesystemEntry;
+    protected abstract generateEntry(data: DirectoryItem<T>, connection: Connection, uri: vscode.Uri): FilesystemEntry;
 
     /**
      * static library which allways exists
@@ -44,29 +43,32 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
      * read variable directory
      */
     public async readDirectory(uri: vscode.Uri): Promise<any> {
-        const connection = this.getConnection(uri);
+        const connection = await this.getConnection(uri);
 
         if (!connection) {
             throw vscode.FileSystemError.NoPermissions();
         }
 
-        return this.loadData(uri).pipe(
-            map((data) => this.sanitizeItemNames(data)),
-            map((data) => this.buildEntryList(data, uri)),
-        ).toPromise();
+        let data = await this.loadData(uri);
+        data = this.sanitizeItemNames(data ?? []);
+        return this.buildEntryList(data, uri);
     }
 
     /**
      * create directory list
      */
-    protected buildEntryList(data: DirectoryItem<T>[], uri: vscode.Uri): [string, vscode.FileType][] {
-        const connection = this.getConnection(uri);
+    protected async buildEntryList(data: DirectoryItem<T>[], uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+
+        const connection = await this.getConnection(uri);
+
+        if (!connection) {
+            return [];
+        }
 
         return data.map((item) => {
-            const entry = this.generateEntry(item, uri);
+            const entry = this.generateEntry(item, connection, uri);
             const entryUri   = uri.with({path: path.posix.resolve(uri.path, `${entry.name}`)});
-
-            connection?.fileSystemStorage.write(entryUri.toString(true), entry);
+            connection?.fileSystem.write(entryUri.toString(true), entry);
             return [entry.name, entry.fileType ?? vscode.FileType.Directory];
         });
     }

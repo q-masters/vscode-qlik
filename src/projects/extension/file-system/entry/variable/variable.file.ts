@@ -32,11 +32,11 @@ export class VariableFile extends QixFsFileAdapter {
      */
     public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app) {
 
-            const variable = connection.fileSystemStorage.read(uri.toString(true));
+            const variable = connection.fileSystem.read(uri.toString(true));
 
             if (!variable || variable.type !== EntryType.VARIABLE) {
                 return Buffer.from("Error");
@@ -63,11 +63,11 @@ export class VariableFile extends QixFsFileAdapter {
     public async rename(uri: vscode.Uri, newUri: vscode.Uri): Promise<void> {
 
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (app && connection) {
 
-            const variable = connection.fileSystemStorage.read(uri.toString(true));
+            const variable = connection.fileSystem.read(uri.toString(true));
 
             if (!variable || variable.type !== EntryType.VARIABLE) {
                 return;
@@ -79,8 +79,8 @@ export class VariableFile extends QixFsFileAdapter {
             // well this is now wrong for a move we need to delete and add
             await this.variableProvider.updateVariable(connection, app.id, variable.id, patch as any);
 
-            connection.fileSystemStorage.delete(uri.toString(true));
-            connection.fileSystemStorage.write(newUri.toString(true), Object.assign(variable, { name: newName }));
+            connection.fileSystem.delete(uri.toString(true));
+            connection.fileSystem.write(newUri.toString(true), Object.assign(variable, { name: newName }));
         }
     }
 
@@ -93,20 +93,20 @@ export class VariableFile extends QixFsFileAdapter {
         await this.writeFile(to, rawSource);
 
         const connection = await this.getConnection(from);
-        const app        = connection?.fileSystemStorage.parent(from, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(from, EntryType.APPLICATION);
 
         if (!app || !connection) {
             throw vscode.FileSystemError.Unavailable();
         }
 
-        const variable = connection.fileSystemStorage.read(from.toString(true));
+        const variable = connection.fileSystem.read(from.toString(true));
 
         if (!variable || variable.type !== EntryType.VARIABLE) {
             throw vscode.FileSystemError.Unavailable();
         }
 
         this.variableProvider.deleteVariable(connection, app.id, variable.id);
-        connection.fileSystemStorage.delete(from.toString(true));
+        connection.fileSystem.delete(from.toString(true));
     }
 
     /**
@@ -115,7 +115,7 @@ export class VariableFile extends QixFsFileAdapter {
     public async stat(uri: vscode.Uri): Promise<vscode.FileStat | void> {
 
         const connection = await this.getConnection(uri);
-        const variable   = connection?.fileSystemStorage.read(uri.toString(true));
+        const variable   = connection?.fileSystem.read(uri.toString(true));
 
         if(!variable || variable.type !== EntryType.VARIABLE) {
             throw vscode.FileSystemError.FileNotFound();
@@ -141,7 +141,7 @@ export class VariableFile extends QixFsFileAdapter {
         }
 
         /** ist das eine neue variable oder existiert sie bereits ? */
-        connection?.fileSystemStorage.exists(uri)
+        connection?.fileSystem.exists(uri)
             ? await this.updateVariable(uri, content)
             : await this.createVariable(uri, content);
     }
@@ -152,7 +152,7 @@ export class VariableFile extends QixFsFileAdapter {
     private async createVariable(uri: vscode.Uri, content: Uint8Array): Promise<void> {
 
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (!connection || !app) {
             throw new Error("could not write variable, not connected or app not exists");
@@ -165,7 +165,7 @@ export class VariableFile extends QixFsFileAdapter {
         const data   = Object.assign({}, this.qlikVarTpl, source, {qName: name});
         const response = await this.variableProvider.createVariable(connection, app.id, data) as any;
 
-        connection.fileSystemStorage.write(uri.toString(true), {
+        connection.fileSystem.write(uri.toString(true), {
             id: response.id,
             name,
             raw: data,
@@ -181,13 +181,13 @@ export class VariableFile extends QixFsFileAdapter {
     private async updateVariable(uri: vscode.Uri, content: Uint8Array) {
 
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (!connection || !app) {
             throw new Error("could not write variable, not connected or app not exists");
         }
 
-        const variable = connection.fileSystemStorage.read(uri.toString(true));
+        const variable = connection.fileSystem.read(uri.toString(true));
 
         if (!variable || variable.type !== EntryType.VARIABLE) {
             throw new Error("could not write variable");

@@ -33,7 +33,7 @@ export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
             return this.sanitizeStreams(streams).map((stream) => {
                 const streamUri = uri.with({path: resolve(uri.path, stream.qName)});
 
-                connection.fileSystemStorage.write(streamUri.toString(true), {
+                connection.fileSystem.write(streamUri.toString(true), {
                     id: stream.qId,
                     name: stream.qName,
                     raw: stream,

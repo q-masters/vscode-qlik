@@ -42,7 +42,7 @@ export abstract class QixFsEntry {
      */
     abstract stat(uri: vscode.Uri, params?: RouteParam ): vscode.FileStat | Thenable<vscode.FileStat>;
 
-    protected getConnection(uri: vscode.Uri): Connection | undefined {
+    protected async getConnection(uri: vscode.Uri): Promise<Connection | undefined> {
         const rootUri = vscode.workspace.getWorkspaceFolder(uri)?.uri.toString(true);
         return rootUri ? this.connectionProvider.resolve(rootUri) : void 0;
     }

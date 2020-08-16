@@ -35,7 +35,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
      */
     public async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app) {
             const variables = await this.variableProvider.list(connection, app.id);
@@ -44,7 +44,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
                 const fileName = this.fileSystemHelper.createFileName(uri, variable.qName);
                 const fileUri  = uri.with({path: path.posix.resolve(uri.path, `${fileName}`)});
 
-                connection.fileSystemStorage.write(fileUri.toString(true), {
+                connection.fileSystem.write(fileUri.toString(true), {
                     id: variable.qInfo.qId,
                     name: variable.qName,
                     raw: variable,
@@ -66,10 +66,10 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
     public async delete(uri: vscode.Uri): Promise<void> {
 
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app) {
-            const variable = connection.fileSystemStorage.read(uri.toString(true));
+            const variable = connection.fileSystem.read(uri.toString(true));
 
             if (!variable?.id) {
                 throw vscode.FileSystemError.Unavailable(uri);
@@ -78,7 +78,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
             const success = await this.variableProvider.deleteVariable(connection, app.id, variable.id);
 
             if (success) {
-                connection.fileSystemStorage.delete(uri.toString(true));
+                connection.fileSystem.delete(uri.toString(true));
             }
         }
     }

@@ -3,12 +3,12 @@ import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { QixApplicationProvider } from "@core/qix/utils/application.provider";
 import { DoclistEntry } from "@core/qix/api/api";
-import { Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
 
 import { QixDirectory, DirectoryItem } from "../qix/qix.directory";
 import { EntryType } from "@vsqlik/fs/data";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 /**
  * Base list directory for qix applications, this is only readonly
@@ -16,7 +16,7 @@ import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
  */
 export abstract class AppListDirectory extends QixDirectory<DoclistEntry> {
 
-    protected abstract onAppsLoaded(apps: DoclistEntry[], uri: vscode.Uri): DoclistEntry[];
+    protected abstract onAppsLoaded(apps: DoclistEntry[], connection: Connection, uri: vscode.Uri): DoclistEntry[];
 
     /**
      * if set to true, we only fetch published apps
@@ -41,17 +41,17 @@ export abstract class AppListDirectory extends QixDirectory<DoclistEntry> {
     /**
      * load all available apps
      */
-    protected loadData(uri: vscode.Uri): Observable<DirectoryItem<DoclistEntry>[]> {
-        const connection = this.getConnection(uri);
+    protected async loadData(uri: vscode.Uri): Promise<DirectoryItem<DoclistEntry>[]> {
+        const connection = await this.getConnection(uri);
 
         if (!connection) {
-            return of([]);
+            return [];
         }
 
         return this.applicationProvider.list(connection)
             .pipe(
                 /** map to filtered list, exclude published apps and apps in streams */
-                map((apps: DoclistEntry[]) => this.onAppsLoaded(apps, uri)),
+                map((apps: DoclistEntry[]) => this.onAppsLoaded(apps, connection, uri)),
                 map((apps) => apps.map((app): DirectoryItem<DoclistEntry> => {
                     return {
                         id: app.qDocId,
@@ -59,13 +59,14 @@ export abstract class AppListDirectory extends QixDirectory<DoclistEntry> {
                         data: app
                     };
                 })),
-            );
+            ).toPromise();
     }
 
     /**
      * generate entry data for cache and file system
      */
     protected generateEntry(app: DirectoryItem<DoclistEntry>): FilesystemEntry {
+
         return {
             id: app.id,
             name: app.name,

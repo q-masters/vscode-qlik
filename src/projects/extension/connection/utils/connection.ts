@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Subject, of, Observable, from, timer } from "rxjs";
+import { Subject, of, Observable, from, timer, BehaviorSubject } from "rxjs";
 import { container } from "tsyringe";
 import { switchMap, tap, catchError, take, map, throttle, takeUntil } from "rxjs/operators";
 import request from "request";
@@ -35,15 +35,16 @@ export class Connection {
      */
     private serverStorage: Storage;
 
+    private stateChange$: BehaviorSubject<ConnectionState> = new BehaviorSubject(ConnectionState.CLOSED);
+
     /**
      * one stream to unsubscribe everything
      */
     private destroy$: Subject<boolean> = new Subject();
 
     /**
-     * @todo remove any
      */
-    private serverFilesystemStorage: FileSystemStorage = new FileSystemStorage();
+    private serverFilesystem: FileSystemStorage = new FileSystemStorage();
 
     public constructor(
         private serverSetting: WorkspaceSetting,
@@ -61,8 +62,12 @@ export class Connection {
         return JSON.parse(JSON.stringify(this.serverSetting));
     }
 
-    public get fileSystemStorage(): FileSystemStorage {
-        return this.serverFilesystemStorage;
+    public get fileSystem(): FileSystemStorage {
+        return this.serverFilesystem;
+    }
+
+    public get stateChange(): Observable<ConnectionState> {
+        return this.stateChange$.asObservable();
     }
 
     /**
@@ -79,6 +84,7 @@ export class Connection {
             catchError((error) => {
                 const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error.message}`;
                 vscode.window.showErrorMessage(message);
+                this.stateChange$.next(ConnectionState.ERROR);
                 return of(false);
             }),
             take(1)
@@ -93,11 +99,12 @@ export class Connection {
         this.destroy$.complete();
 
         this.engimaProvider?.destroy();
-        this.fileSystemStorage.clear();
+        this.fileSystem.clear();
 
         /** @todo move outside ? */
         this.serverStorage.delete(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.state = ConnectionState.CLOSED;
+        this.stateChange$.next(ConnectionState.CLOSED);
     }
 
     public closeSession(appId?: string): Promise<void> {
@@ -265,6 +272,7 @@ export class Connection {
         this.engimaProvider = new EnigmaSession(this.connectionModel);
 
         const global: EngineAPI.IGlobal = await this.engimaProvider.open("engineData", true) as EngineAPI.IGlobal;
+        this.stateChange$.next(ConnectionState.CONNECTED);
 
         /** heartbeat */
         timer(5000, 5000).pipe(

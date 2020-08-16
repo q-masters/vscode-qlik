@@ -19,10 +19,10 @@ export abstract class QixFile extends QixFsFileAdapter {
     public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
 
         const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app) {
-            const entry = connection.fileSystemStorage.read(uri.toString(true));
+            const entry = connection.fileSystem.read(uri.toString(true));
 
             if (!entry || entry.type !== this.entryType) {
                 return Buffer.from("Error");
@@ -39,8 +39,8 @@ export abstract class QixFile extends QixFsFileAdapter {
      * get stats of variable
      */
     public async stat(uri: vscode.Uri): Promise<vscode.FileStat | void> {
-        const connection = this.getConnection(uri);
-        if (connection?.fileSystemStorage.exists(uri)) {
+        const connection = await this.getConnection(uri);
+        if (connection?.fileSystem.exists(uri)) {
             return {
                 ctime: Date.now(),
                 mtime: Date.now(),

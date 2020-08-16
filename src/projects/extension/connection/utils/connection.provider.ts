@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { singleton } from "tsyringe";
 import { Connection } from "./connection";
+import { ConnectionState } from "../model/connection";
+import { filter, map, take, takeUntil } from "rxjs/operators";
 
 @singleton()
 export class ConnectionProvider {
@@ -38,8 +40,21 @@ export class ConnectionProvider {
     /**
      * resolve an connection by a given uri
      */
-    public resolve(uri: string): Connection | undefined {
-        return this.connections.get(uri);
+    public resolve(uri: string): Promise<Connection | undefined> {
+        const connection = this.connections.get(uri);
+
+        if (!connection) {
+            return Promise.resolve(void 0);
+        }
+
+        return connection.stateChange.pipe(
+            takeUntil(connection.stateChange.pipe(
+                filter((state) => state === ConnectionState.ERROR)
+            )),
+            filter((state: ConnectionState) => state === ConnectionState.CONNECTED),
+            map(() => connection),
+            take(1)
+        ).toPromise();
     }
 
     /**

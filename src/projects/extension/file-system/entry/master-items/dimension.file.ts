@@ -33,10 +33,10 @@ export class DimensionFile extends QixFile {
     public async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
 
         const connection = await this.getConnection(uri);
-        const app = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app && app.readonly === false) {
-            connection?.fileSystemStorage.exists(uri)
+            connection?.fileSystem.exists(uri)
                 ? await this.updateDimension(uri, content)
                 : await this.createDimension(uri, content);
 
@@ -52,8 +52,8 @@ export class DimensionFile extends QixFile {
     private async updateDimension(uri: vscode.Uri, data: Uint8Array) {
 
         const connection = await this.getConnection(uri);
-        const app = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
-        const measure = connection?.fileSystemStorage.read(uri.toString(true));
+        const app = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
+        const measure = connection?.fileSystem.read(uri.toString(true));
         const content = this.filesystemHelper.fileToJson(uri, data);
 
         if (connection && app && measure) {
@@ -67,7 +67,7 @@ export class DimensionFile extends QixFile {
     private async createDimension(uri: vscode.Uri, content: Uint8Array) {
 
         const connection = await this.getConnection(uri);
-        const app = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
         const name = this.filesystemHelper.resolveFileName(uri, false);
 
         if (app && connection) {
@@ -83,7 +83,7 @@ export class DimensionFile extends QixFile {
             const dimension = await this.provider.create<any>(connection, app.id, properties);
             const data      = await dimension.getLayout();
 
-            connection.fileSystemStorage.write(uri.toString(true), {
+            connection.fileSystem.write(uri.toString(true), {
                 id: dimension.id,
                 name: this.filesystemHelper.resolveFileName(uri),
                 raw: data,
@@ -100,14 +100,14 @@ export class DimensionFile extends QixFile {
      */
     public async rename(uri: vscode.Uri, newUri: vscode.Uri): Promise<void> {
 
-        const connection = this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
-        const dimension  = connection?.fileSystemStorage.read(uri.toString(true));
+        const connection = await this.getConnection(uri);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
+        const dimension  = connection?.fileSystem.read(uri.toString(true));
 
         if (app && !app.readonly && dimension && connection) {
             const newName = path.posix.parse(newUri.path).name;
             await this.provider.rename(connection, app.id, dimension.id, newName);
-            connection.fileSystemStorage.rename(uri, newUri);
+            connection.fileSystem.rename(uri, newUri);
         }
     }
 
@@ -116,12 +116,12 @@ export class DimensionFile extends QixFile {
      */
     public async move(from: vscode.Uri, to: vscode.Uri): Promise<void> {
 
-        const target = this.getConnection(to);
-        const targetApp = target?.fileSystemStorage.parent(to, EntryType.APPLICATION);
+        const target = await this.getConnection(to);
+        const targetApp = target?.fileSystem.parent(to, EntryType.APPLICATION);
 
-        const source = this.getConnection(from);
-        const sourceApp = source?.fileSystemStorage.parent(from, EntryType.APPLICATION);
-        const entry = source?.fileSystemStorage.read(from.toString(true));
+        const source = await this.getConnection(from);
+        const sourceApp = source?.fileSystem.parent(from, EntryType.APPLICATION);
+        const entry = source?.fileSystem.read(from.toString(true));
 
         if (targetApp?.readonly) {
             throw vscode.FileSystemError.NoPermissions(`could not move dimension ${targetApp?.id ?? ''} is readonly.`);
@@ -140,6 +140,6 @@ export class DimensionFile extends QixFile {
 
         /** finally delete old entry */
         await this.provider.destroy(source, sourceApp.id, entry.id);
-        source.fileSystemStorage.delete(from.toString(true));
+        source.fileSystem.delete(from.toString(true));
     }
 }

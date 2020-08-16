@@ -16,10 +16,10 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
     /**
      * read directory
      */
-    public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
+    public async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
 
         const folders: [string, vscode.FileType][]  = [];
-        const connection = this.getConnection(uri);
+        const connection = await this.getConnection(uri);
 
         if (connection) {
             const settings = connection.serverSettings.display;
@@ -36,8 +36,8 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
      * get current stats of application
      */
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
-        const connection = this.getConnection(uri);
-        const exists = connection?.fileSystemStorage.exists(uri);
+        const connection = await this.getConnection(uri);
+        const exists = connection?.fileSystem.exists(uri);
 
         if (!exists) {
             throw vscode.FileSystemError.FileNotFound();
@@ -57,12 +57,12 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
     async rename(uri: vscode.Uri, newUri: vscode.Uri): Promise<void> {
 
         try {
-            const connection = this.getConnection(uri);
-            const app        = connection?.fileSystemStorage.read(uri.toString(true));
+            const connection = await this.getConnection(uri);
+            const app        = connection?.fileSystem.read(uri.toString(true));
 
             if (connection && app) {
                 await this.appService.renameApp(connection, app.id, posix.basename(newUri.path));
-                connection.fileSystemStorage.rename(uri, newUri);
+                connection.fileSystem.rename(uri, newUri);
             }
 
         } catch (error) {

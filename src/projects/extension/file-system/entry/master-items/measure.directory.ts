@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 import { QixMeasureProvider } from "@core/qix/utils/measure.provider";
-import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
 import { EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { QixDirectory, DirectoryItem } from "../qix/qix.directory";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 @injectable()
 export class MeasureDirectory extends QixDirectory<any> {
@@ -24,47 +24,45 @@ export class MeasureDirectory extends QixDirectory<any> {
      */
     public async delete(uri: vscode.Uri): Promise<void> {
 
-        const connection = this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const connection = await this.getConnection(uri);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app && app.readonly === false) {
-            const entry = connection.fileSystemStorage.read(uri.toString(true));
+            const entry = connection.fileSystem.read(uri.toString(true));
 
             if (!entry || entry.type !== EntryType.MEASURE) {
                 throw vscode.FileSystemError.FileNotFound();
             }
 
             await this.measureProvider.destroy(connection, app.id, entry.id);
-            connection.fileSystemStorage.delete(uri.toString());
+            connection.fileSystem.delete(uri.toString());
         }
     }
 
     /**
      * load all measures
      */
-    protected loadData(uri: vscode.Uri): Observable<DirectoryItem<any>[]> {
+    protected async loadData(uri: vscode.Uri): Promise<DirectoryItem<any>[]> {
 
-        const connection = this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const connection = await this.getConnection(uri);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
-        if (!app || !connection) {
-            throw new Error(`could not find app for path: ${uri.toString(true)}`);
+        if (!connection || !app) {
+            return [];
         }
 
-        return this.measureProvider.list<any>(connection, app.id).pipe(
-            map(
-                (measures: any[]) => measures.map((measure) => this.mapMeasureToDirectoryItem(measure))
-            )
-        );
+        return this.measureProvider.list<any>(connection, app.id)
+            .pipe(
+                map((measures: any[]) => measures.map((measure) => this.mapMeasureToDirectoryItem(measure)))
+            ).toPromise();
     }
 
     /**
      * ressolve data for file system
      */
-    protected generateEntry(measure: DirectoryItem<any>, uri: vscode.Uri): FilesystemEntry {
+    protected generateEntry(measure: DirectoryItem<any>, connection: Connection, uri: vscode.Uri): FilesystemEntry {
 
-        const connection = this.getConnection(uri);
-        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
+        const app = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         return {
             id: measure.id,
