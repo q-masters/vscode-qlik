@@ -1,8 +1,7 @@
 import * as vscode from "vscode";
-import { Subject, of, Observable, from, timer, BehaviorSubject } from "rxjs";
+import { Subject, of, Observable, timer, BehaviorSubject } from "rxjs";
 import { container } from "tsyringe";
-import { switchMap, tap, catchError, take, map, throttle, takeUntil } from "rxjs/operators";
-import request from "request";
+import { switchMap, tap, catchError, take, throttle, takeUntil } from "rxjs/operators";
 import { connect as tlsConnect} from "tls";
 
 import { Storage } from "@core/storage";
@@ -77,8 +76,7 @@ export class Connection {
         const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.cookies = data?.cookies ?? [];
 
-        return this.serverExists().pipe(
-            switchMap(() => this.checkCertificate()),
+        return this.checkCertificate().pipe(
             switchMap(() => this.authorize()),
             tap(() => this.onConnected()),
             catchError((error) => {
@@ -113,26 +111,6 @@ export class Connection {
 
     public openSession(appId?: string): Promise<EngineAPI.IGlobal | undefined> {
         return this.engimaProvider.open(appId);
-    }
-
-    /**
-     * send head request to server just to check we can reach this one
-     */
-    private serverExists(): Observable<void> {
-        const url = ConnectionHelper.buildUrl(this.serverSetting.connection);
-        const req = new Promise<request.Request>((resolve) => {
-            request.head({
-                url,
-                port: this.serverSetting.connection.port,
-                rejectUnauthorized: false
-            }, resolve);
-        });
-
-        return from(req).pipe(map((response) => {
-            if (response instanceof Error) {
-                throw new Error(`not found: ${url}`);
-            }
-        }));
     }
 
     /**

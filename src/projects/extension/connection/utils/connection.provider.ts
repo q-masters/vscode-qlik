@@ -17,6 +17,7 @@ export class ConnectionProvider {
      * connect to a server
      */
     public async connect(connection: Connection) {
+        console.log(connection.workspacePath);
         this.connections.set(connection.workspacePath, connection);
         this.items.push(connection);
 
@@ -44,6 +45,8 @@ export class ConnectionProvider {
         const connection = this.connections.get(uri);
 
         if (!connection) {
+            console.log("nein");
+            console.log(uri);
             return Promise.resolve(void 0);
         }
 

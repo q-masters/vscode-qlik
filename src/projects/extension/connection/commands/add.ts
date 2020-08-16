@@ -22,8 +22,8 @@ export async function AddConnectionCommand(workspace?: vscode.WorkspaceFolder) {
         setting = await ConnectionHelper.selectConnection();
         if (setting) {
             const name = setting.label;
-            const path = `qix://`.concat(setting.label, '.', setting.connection.host);
-            uri = vscode.Uri.parse(path);
+            const path = `qix://`.concat(setting.label, '.', setting.connection.host, setting.connection.path ?? '/');
+            uri = vscode.Uri.parse(path, true);
 
             const newWorkspaceFolder = { name, uri };
             if (vscode.workspace.getWorkspaceFolder(uri)) {
@@ -48,6 +48,9 @@ export async function AddConnectionCommand(workspace?: vscode.WorkspaceFolder) {
     } else {
         setting = container.resolve(SettingsRepository).find(workspaceFolderName ?? '');
     }
+
+    const workspacefolder = vscode.workspace.getWorkspaceFolder(uri as vscode.Uri);
+    console.log(workspacefolder?.uri.toString(true));
 
     if (setting && uri) {
         const connection = new Connection(setting, uri.toString(true));
