@@ -1,7 +1,7 @@
 import { singleton } from "tsyringe";
 import { QixListProvider, DataNode } from "./qix-list.provider";
-import { EnigmaSession } from "@core/connection";
 import deepmerge from "deepmerge";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 export const DimensionSkeleton: EngineAPI.IGenericDimensionProperties = {
     qInfo: {
@@ -58,7 +58,7 @@ export class QixDimensionProvider extends QixListProvider {
     /**
      * rename measure
      */
-    public async rename(connection: EnigmaSession, app: string, measure: string, newName: string) {
+    public async rename(connection: Connection, app: string, measure: string, newName: string) {
         const patch   = {
             qMetaDef: {
                 title: newName

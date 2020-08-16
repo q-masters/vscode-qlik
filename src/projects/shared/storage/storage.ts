@@ -11,4 +11,6 @@ export interface Storage {
      * delete from cache
      */
     delete(key: string);
+
+    clear();
 }

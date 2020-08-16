@@ -4,6 +4,7 @@ import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
 import { QixFsFileAdapter } from "../qix/qixfs-entry";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { posix } from "path";
+import { EntryType } from "@vsqlik/fs/data";
 
 export class ScriptFile extends QixFsFileAdapter {
 
@@ -52,10 +53,10 @@ export class ScriptFile extends QixFsFileAdapter {
         }
 
         const connection = await this.getConnection(uri);
-        const app_id     = this.fileSystemHelper.resolveAppId(uri);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
-        if (connection && app_id) {
-            const content = await this.appService.readScript(connection, app_id) ?? "";
+        if (connection && app) {
+            const content = await this.appService.readScript(connection, app.id) ?? "";
             return Buffer.from(content, "utf-8");
         }
 
@@ -74,13 +75,13 @@ export class ScriptFile extends QixFsFileAdapter {
         }
 
         const connection = await this.getConnection(uri);
-        const app_id     = this.fileSystemHelper.resolveAppId(fileUri);
+        const app     = connection?.fileSystem.parent(fileUri, EntryType.APPLICATION);
 
-        if (!app_id || !connection) {
+        if (!app || !connection) {
             throw vscode.FileSystemError.FileNotFound();
         }
 
-        await this.appService.writeScript(connection, app_id, content.toString());
+        await this.appService.writeScript(connection, app.id, content.toString());
     }
 
     /**

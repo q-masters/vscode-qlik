@@ -1,7 +1,7 @@
 import { singleton } from "tsyringe";
-import { EnigmaSession } from "@shared/connection";
 import { Observable, from, of } from "rxjs";
 import { switchMap, take } from "rxjs/operators";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 @singleton()
 export class QixApplicationProvider {
@@ -9,8 +9,8 @@ export class QixApplicationProvider {
     /**
      * read all qlik documents (apps) from enigma session, we currently cache the current connection
      */
-    public list<T>(connection: EnigmaSession): Observable<EngineAPI.IDocListEntry[]> {
-        return from(connection.open()).pipe(
+    public list<T>(connection: Connection): Observable<EngineAPI.IDocListEntry[]> {
+        return from(connection.openSession()).pipe(
             switchMap((session) => session ? from(session.getDocList() as any as Promise<EngineAPI.IDocListEntry[]>) : of([])),
             take(1)
         );
@@ -19,8 +19,8 @@ export class QixApplicationProvider {
     /**
      * read script from app
      */
-    public async readScript(connection: EnigmaSession, id: string): Promise<string | undefined> {
-        const session = await connection.open(id);
+    public async readScript(connection: Connection, id: string): Promise<string | undefined> {
+        const session = await connection.openSession(id);
         const app     = await session?.openDoc(id);
         return await app?.getScript();
     }
@@ -28,9 +28,9 @@ export class QixApplicationProvider {
     /**
      * write script to app
      */
-    public async writeScript(connection: EnigmaSession, id: string, content: string): Promise<void> {
+    public async writeScript(connection: Connection, id: string, content: string): Promise<void> {
 
-        const session = await connection.open(id);
+        const session = await connection.openSession(id);
         const app     = await session?.openDoc(id);
 
         if (app) {
@@ -42,8 +42,8 @@ export class QixApplicationProvider {
     /**
      * create a new app
      */
-    public createApp(connection: EnigmaSession, name: string): Observable<unknown> {
-        return from(connection.open()).pipe(
+    public createApp(connection: Connection, name: string): Observable<unknown> {
+        return from(connection.openSession()).pipe(
             switchMap((global: EngineAPI.IGlobal) => global.createApp(name))
         );
     }
@@ -51,13 +51,13 @@ export class QixApplicationProvider {
     /**
      * delete app
      */
-    public async deleteApp(connection: EnigmaSession, appId: string): Promise<void>
+    public async deleteApp(connection: Connection, appId: string): Promise<void>
     {
         /** first close session on app */
-        await connection.close(appId);
+        await connection.closeSession(appId);
 
         /** get global and delete app */
-        const session = await connection.open();
+        const session = await connection.openSession();
         if (session) {
             await session.deleteApp(appId);
         }
@@ -70,10 +70,10 @@ export class QixApplicationProvider {
      * @param id id of the app which should renamed
      * @param name the new name of the app
      */
-    public async renameApp(connection: EnigmaSession, id: string, name: string): Promise<void> {
+    public async renameApp(connection: Connection, id: string, name: string): Promise<void> {
 
         /** get global and delete app */
-        const session = await connection.open(id);
+        const session = await connection.openSession(id);
         const app     = await session?.openDoc(id);
 
         const properties = await app?.getAppProperties();
@@ -85,8 +85,8 @@ export class QixApplicationProvider {
     /**
      * get app data
      */
-    public getAppData(connection: EnigmaSession, id: string): Observable<EngineAPI.IAppEntry> {
-        return from(connection.open()).pipe(
+    public getAppData(connection: Connection, id: string): Observable<EngineAPI.IAppEntry> {
+        return from(connection.openSession()).pipe(
             switchMap((global: EngineAPI.IGlobal) => global.getAppEntry(id))
         );
     }

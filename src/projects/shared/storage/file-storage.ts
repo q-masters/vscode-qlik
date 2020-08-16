@@ -13,6 +13,10 @@ export class FileStorage implements Storage{
         private file: string
     ) {}
 
+    public clear() {
+        throw new Error("@todo implement");
+    }
+
     /**
      * get cached data
      */

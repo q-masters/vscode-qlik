@@ -1,22 +1,22 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { EnigmaSession } from "@core/connection";
-import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
 import { EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
-import { QixDirectory, DirectoryItem, DirectoryEntry } from "../qix/qix.directory";
+import { QixDirectory, DirectoryItem } from "../qix/qix.directory";
 import { QixDimensionProvider } from "@core/qix/utils/dimension.provider";
+import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 @injectable()
 export class DimensionDirectory extends QixDirectory<any> {
 
     public constructor(
         @inject(QixDimensionProvider) private dimensionProvider: QixDimensionProvider,
-        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
+        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
     ) {
-        super(fileSystemHelper);
+        super();
     }
 
     /**
@@ -37,51 +37,52 @@ export class DimensionDirectory extends QixDirectory<any> {
     public async delete(uri: vscode.Uri): Promise<void> {
 
         const connection = await this.getConnection(uri);
-        const app        = this.fileSystemHelper.resolveApp(uri);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection && app?.readonly === false) {
-            const entry = this.fileSystemHelper.resolveEntry(uri, EntryType.DIMENSION, false);
+            const entry = connection.fileSystem.read(uri.toString(true));
 
-            if (!entry) {
+            if (!entry || entry.type !== EntryType.DIMENSION) {
                 throw vscode.FileSystemError.FileNotFound();
             }
 
             await this.dimensionProvider.destroy(connection, app.id, entry.id);
-            this.fileSystemHelper.deleteEntry(uri);
+            connection.fileSystem.delete(uri.toString(true));
         }
     }
 
     /**
      * load all measures
      */
-    protected loadData(connection: EnigmaSession, uri: vscode.Uri): Observable<DirectoryItem<any>[]> {
-        const app = this.fileSystemHelper.resolveAppId(uri);
-        if (!app) {
+    protected async loadData(uri: vscode.Uri): Promise<DirectoryItem<any>[]> {
+        const connection = await this.getConnection(uri);
+        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
+
+        if (!app || !connection) {
             throw new Error(`could not find app for path: ${uri.toString(true)}`);
         }
 
-        return this.dimensionProvider.list<any>(connection, app).pipe(
+        return this.dimensionProvider.list<any>(connection, app.id).pipe(
             map(
                 (dimensions: any[]) => dimensions.map((measure) => this.mapDimensionToDirectory(measure))
             )
-        );
+        ).toPromise();
     }
 
     /**
      * ressolve data for file system
      */
-    protected generateEntry(dimension: DirectoryItem<any>, uri: vscode.Uri): DirectoryEntry {
-        const fileName = this.fileSystemHelper.createFileName(uri, dimension.name);
-        const app = this.fileSystemHelper.resolveApp(uri);
+    protected generateEntry(dimension: DirectoryItem<any>, connection: Connection, uri: vscode.Uri): FilesystemEntry {
+
+        const app  = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         return {
-            entry: {
-                id: dimension.id,
-                type: EntryType.DIMENSION,
-                data: dimension.data,
-                readonly: app?.readonly ?? false
-            },
-            item: [fileName, vscode.FileType.File]
+            id: dimension.id,
+            fileType: vscode.FileType.File,
+            name: this.fileSystemHelper.createFileName(uri, dimension.name),
+            raw: dimension.data,
+            readonly: app?.readonly ?? false,
+            type: EntryType.DIMENSION,
         };
     }
 

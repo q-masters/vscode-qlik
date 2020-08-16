@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 import { ConnectionHelper } from "./connection.helper";
-import { ConnectionData } from "../api";
+import { ConnectionModel } from "../model/connection";
 
 /**
  * Services to create, cache and handle enigma session
@@ -16,6 +16,11 @@ export class EnigmaSession {
      * array of active session id's
      */
     private activeStack: Array<string>;
+
+    /**
+     * array of persistence sesssion
+     */
+    private persistentStack: Array<string>;
 
     /**
      * all sessions which exists
@@ -40,9 +45,10 @@ export class EnigmaSession {
      * Creates an instance of EnigmaSession.
      */
     public constructor(
-        private connection: ConnectionData
+        private connection: ConnectionModel
     ) {
         this.activeStack     = new Array();
+        this.persistentStack = new Array();
         this.connectionQueue = new Map();
         this.sessionCache    = new Map();
     }
@@ -68,14 +74,13 @@ export class EnigmaSession {
     /**
      * return an existing session object or create a new one
      */
-    public async open(appId?: string): Promise<EngineAPI.IGlobal | undefined>
+    public async open(id = EnigmaSession.GLOBAL_SESSION_KEY, keepAlive = false): Promise<EngineAPI.IGlobal | undefined>
     {
-        const id = appId || EnigmaSession.GLOBAL_SESSION_KEY;
         let session: enigmaJS.IGeneratedAPI;
 
         /** create new session */
         if (!this.isCached(id)) {
-            session = await this.createSessionObject(id);
+            session = await this.createSessionObject(id, keepAlive);
         } else {
             session = await this.activateSession(id);
         }
@@ -111,15 +116,15 @@ export class EnigmaSession {
      *
      * @todo refactor this one
      */
-    private async createSessionObject(id: string): Promise<enigmaJS.IGeneratedAPI>
+    private async createSessionObject(id: string, keepAlive = false): Promise<enigmaJS.IGeneratedAPI>
     {
         if (!this.connectionQueue.has(id)) {
-            this.connectionQueue.set(id, this.resolveSession(id));
+            this.connectionQueue.set(id, this.resolveSession(id, keepAlive));
         }
         return this.connectionQueue.get(id) as Promise<enigmaJS.IGeneratedAPI>;
     }
 
-    private async resolveSession(id: string): Promise<enigmaJS.IGeneratedAPI> {
+    private async resolveSession(id: string, keepAlive): Promise<enigmaJS.IGeneratedAPI> {
         await this.suspendOldestSession();
 
         const session = await this.openSession(id);
@@ -129,8 +134,9 @@ export class EnigmaSession {
                 session.on("closed", () => this.removeSessionFromCache(id));
             }
             this.sessionCache.set(id, session);
-            this.activeStack.push(id);
             this.connectionQueue.delete(id);
+
+            keepAlive ? this.persistentStack.push(id) : this.activeStack.push(id);
             return session;
         }
 
@@ -138,7 +144,7 @@ export class EnigmaSession {
     }
 
     private async openSession(id = EnigmaSession.GLOBAL_SESSION_KEY): Promise<enigmaJS.IGeneratedAPI | undefined> {
-        const session = ConnectionHelper.createSession(this.connection, id);
+        const session = ConnectionHelper.createEnigmaSession(this.connection, id);
         return session.open();
     }
 
@@ -155,7 +161,7 @@ export class EnigmaSession {
      */
     private isActive(id: string): boolean
     {
-        return this.activeStack.indexOf(id) > -1;
+        return this.activeStack.indexOf(id) > -1 || this.persistentStack.indexOf(id) > -1;
     }
 
     /**

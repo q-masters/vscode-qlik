@@ -1,14 +1,15 @@
 import request from "request";
 import { Response } from "request";
-import { AuthorizationStrategy, AuthorizationResult } from "./authorization.strategy";
-import { AuthorizationSetting } from "../api";
-import WebSocket from "ws";
 import { IncomingMessage } from "http";
+import WebSocket from "ws";
+import { Stepper, IStep, InputStep, ResolvedStep } from "../../stepper";
+import { AuthorizationResult, AuthorizationStrategy } from "./authorization.strategy";
 
-interface Credentials {
-    domain: string;
-    password: string;
-}
+/**
+ * allowUntrusted
+ * uri
+ * credentials
+ */
 
 /**
  * login to qlik with form strategy
@@ -23,16 +24,15 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
             error: ""
         };
 
-        const {domain, password} = await this.resolveCredentials(this.connection.authorization);
+        const {domain, password} = await this.resolveCredentials();
 
         try {
-            const redirectUri = await this.submitForm(domain, password);
-            const cookies     = await this.finalizeLoginProcess(redirectUri);
-
-            response.success = true;
+            /** uri */
+            const redirectUri = await this.submitForm(this.config.uri, domain, password, !this.config.allowUntrusted);
+            const cookies     = await this.finalizeLoginProcess(redirectUri, !this.config.allowUntrusted);
             response.cookies = cookies;
+            response.success = true;
         } catch (error) {
-            console.log(error);
             response.error   = error;
             response.success = false;
         }
@@ -40,12 +40,38 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
         return response;
     }
 
-    protected abstract resolveCredentials(settings: AuthorizationSetting<any>): Promise<{domain: string; password: string;}>;
+    /**
+     * resolve login credentials via input steps in visual studio code
+     */
+    protected async resolveCredentials(): Promise<{ domain: string; password: string; }> {
+
+        const stepper  = new Stepper("Login");
+        stepper.addStep(this.createStep(this.config.domain, "domain\\username"));
+        stepper.addStep(this.createStep(this.config.password, "password", true));
+
+        const [domain, password] = await stepper.run<string>();
+
+        if (!domain || !password) {
+            throw new Error("could not resolve credentials");
+        }
+
+        return { domain, password };
+    }
+
+    /**
+     * create a step
+     */
+    private createStep(value: string | undefined, placeholder = "", isPassword = false): IStep {
+        if (!value || value.trim() === "") {
+            return new InputStep(placeholder, 'login to server', isPassword);
+        }
+        return new ResolvedStep(value);
+    }
 
     /**
      * submit form data and returns a redirect uri
      */
-    private submitForm(username: string, password: string): Promise<string>
+    private async submitForm(uri: string, username: string, password: string, rejectUnauthorized = true): Promise<string>
     {
         const body = `username=${encodeURIComponent(username)}&pwd=${encodeURIComponent(password)}`;
         const headers = {
@@ -54,7 +80,7 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
         };
 
         return new Promise((resolve, reject) => {
-            const options = { body, headers, method: "POST", uri: this.loginUrl };
+            const options = { body, headers, method: "POST", uri, rejectUnauthorized };
             request(options, (error, response: Response) => {
                 if (error) {
                     reject(error);
@@ -74,9 +100,9 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
      * finalize login process, since we know now the redirect uri which is called
      * after login is working
      */
-    private finalizeLoginProcess(uri: string): Promise<any[]>
+    private finalizeLoginProcess(uri: string, rejectUnauthorized = true): Promise<any[]>
     {
-        const ws = new WebSocket(uri);
+        const ws = new WebSocket(uri, {rejectUnauthorized});
         let result;
 
         return new Promise((resolve, reject) => {
