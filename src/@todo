@@ -1,0 +1,18 @@
+MasterObjectList
+
+params: [{qInfo: {qId: "MasterObjectList", qType: "MasterObjectList"},…}]
+0: {qInfo: {qId: "MasterObjectList", qType: "MasterObjectList"},…}
+qAppObjectListDef: {qType: "masterobject",…}
+qData: {name: "/qMetaDef/title", labelExpression: "/labelExpression", visualization: "/visualization",…}
+labelExpression: "/labelExpression"
+name: "/qMetaDef/title"
+tags: "/qMetaDef/tags"
+visualization: "/visualization"
+qType: "masterobject"
+qInfo: {qId: "MasterObjectList", qType: "MasterObjectList"}
+qId: "MasterObjectList"
+qType: "MasterObjectList"
+
+-> getObject()
+    -> setProperties()
+    -> getProperties()
