@@ -1,8 +1,6 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 import { QixVariableProvider } from "@shared/qix/utils/variable.provider";
-import { CacheRegistry } from "@shared/utils/cache-registry";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 
 import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
 import { FileSystemHelper } from "../../utils/file-system.helper";
@@ -14,8 +12,7 @@ export class VariableDirectory extends QixFsDirectoryAdapter{
 
     public constructor(
         @inject(QixVariableProvider) private variableProvider: QixVariableProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
-        @inject(CacheRegistry) private fileCache: CacheRegistry<WorkspaceFolder>
+        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
     ) {
         super();
     }

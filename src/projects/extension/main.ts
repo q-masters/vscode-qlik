@@ -4,11 +4,11 @@ import { container } from "tsyringe";
 import { QixRouter } from "@shared/router";
 
 import { OpenSettingsCommand } from "@vsqlik/settings/open-settings.command";
-import { QixFSProvider } from "@vsqlik/workspace/utils";
 import { Routes } from "@vsqlik/fs/data";
 import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings, ConnectionStorage } from "./data/tokens";
 import { FileStorage, MemoryStorage } from "@core/storage";
 import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
+import { QixFSProvider } from "./file-system/utils/qix-fs.provider";
 
 /**
  * bootstrap extension

@@ -4,11 +4,9 @@ import { singleton, inject } from "tsyringe";
 import { transform, isEqual, isObject } from 'lodash';
 import YAML from "yaml";
 
-import { FileRenderer } from "@vsqlik/settings/api";
-import { WorkspaceFolderRegistry } from "@vsqlik/workspace/utils/registry";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
+import { FileRenderer, WorkspaceSetting } from "@vsqlik/settings/api";
 import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
-import { Entry } from "../data";
+import { SettingsRepository } from "@vsqlik/settings/settings.repository";
 
 const TEMPORARY_FILES = new CacheToken("temporary files");
 
@@ -18,17 +16,10 @@ export declare type DirectoryList = [string, vscode.FileType.Directory][];
 export class FileSystemHelper {
 
     public constructor(
-        @inject(WorkspaceFolderRegistry) private workspaceRegistry: WorkspaceFolderRegistry,
-        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<CacheToken|WorkspaceFolder>,
+        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<CacheToken>,
+        @inject(SettingsRepository) private settingsRepository: SettingsRepository
     ) {
         this.cacheRegistry.registerCache(TEMPORARY_FILES);
-    }
-
-    /**
-     * get current workspace folder by given uri
-     */
-    public resolveWorkspace(uri: vscode.Uri): WorkspaceFolder | undefined {
-        return this.workspaceRegistry.resolveByUri(uri);
     }
 
     /**
@@ -86,7 +77,7 @@ export class FileSystemHelper {
     }
 
     public createFileName(uri: vscode.Uri, name: string) {
-        const setting = this.resolveWorkspace(uri)?.settings;
+        const setting = this.resolveWorkspaceSetting(uri);
         const prefix  = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
         /** replace \ and / by unicode characters so they will not replaced by vscode anymore */
         return `${name.replace(/\u002F/g, '\uFF0F').replace(/[\uFE68\uFF3C]/g, '\u005C')}.${prefix}`;
@@ -96,7 +87,7 @@ export class FileSystemHelper {
      * render file content in specific format like YAML or JSON
      */
     public renderFile(uri: vscode.Uri, source: Object): Uint8Array {
-        const setting = this.resolveWorkspace(uri)?.settings;
+        const setting = this.resolveWorkspaceSetting(uri);
         const content = setting?.fileRenderer === FileRenderer.YAML
             ? YAML.stringify(source, {indent: 2})
             : JSON.stringify(source, null, 4);
@@ -108,7 +99,7 @@ export class FileSystemHelper {
      * convert file content back to json format
      */
     public fileToJson(uri: vscode.Uri, source: Uint8Array): Object {
-        const setting = this.resolveWorkspace(uri)?.settings;
+        const setting = this.resolveWorkspaceSetting(uri);
         const content = setting?.fileRenderer === FileRenderer.YAML
             ? YAML.parse(source.toString())
             : JSON.parse(source.toString());
@@ -124,37 +115,12 @@ export class FileSystemHelper {
         return YAML.parse(content) || JSON.parse(content) || '';
     }
 
-    /**
-     * check file or directory exists
-     */
-    public exists(uri: vscode.Uri): boolean {
-        const workspaceFolder = this.resolveWorkspace(uri);
-
-        if (workspaceFolder) {
-            return this.cacheRegistry.exists(workspaceFolder, uri.toString(true));
-        }
-
-        return false;
+    private resolveWorkspace(uri: vscode.Uri): vscode.WorkspaceFolder | undefined {
+        return vscode.workspace.getWorkspaceFolder(uri);
     }
 
-    public cacheEntry<T extends Entry>(uri, data: T): void {
+    private resolveWorkspaceSetting(uri: vscode.Uri): WorkspaceSetting | undefined {
         const workspace = this.resolveWorkspace(uri);
-
-        if (workspace) {
-            this.cacheRegistry.add(workspace, uri.toString(true), data);
-        }
-    }
-
-    /**
-     * delete an entry
-     *
-     * @todo improve entry so we know it is a directory since we have to do more then
-     */
-    public deleteEntry(uri: vscode.Uri): void {
-        const workspace = this.resolveWorkspace(uri);
-
-        if (workspace) {
-            this.cacheRegistry.delete(workspace, uri.toString(true));
-        }
+        return workspace ? this.settingsRepository.find(workspace.name) : void 0;
     }
 }

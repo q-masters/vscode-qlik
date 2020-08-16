@@ -1,21 +1,13 @@
 import * as vscode from "vscode";
-import { injectable, inject } from "tsyringe";
+import { injectable } from "tsyringe";
 
 import { QixFsDirectoryAdapter } from "./qix/qixfs-entry";
 import { DirectoryList } from "../utils/file-system.helper";
-import { CacheRegistry } from "@core/utils/cache-registry";
-import { WorkspaceFolder } from "@vsqlik/workspace/data/workspace-folder";
 import { resolve } from "path";
 import { EntryType } from "../data";
 
 @injectable()
 export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
-
-    public constructor(
-        @inject(CacheRegistry) private cacheRegistry: CacheRegistry<WorkspaceFolder>
-    ) {
-        super();
-    }
 
     public stat(): vscode.FileStat | Thenable<vscode.FileStat> {
         return {

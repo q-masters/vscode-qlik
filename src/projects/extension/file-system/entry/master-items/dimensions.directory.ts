@@ -5,8 +5,9 @@ import { map } from "rxjs/operators";
 
 import { EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
-import { QixDirectory, DirectoryItem, DirectoryEntry } from "../qix/qix.directory";
+import { QixDirectory, DirectoryItem } from "../qix/qix.directory";
 import { QixDimensionProvider } from "@core/qix/utils/dimension.provider";
+import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 
 @injectable()
 export class DimensionDirectory extends QixDirectory<any> {
@@ -35,18 +36,18 @@ export class DimensionDirectory extends QixDirectory<any> {
      */
     public async delete(uri: vscode.Uri): Promise<void> {
 
-        const connection = await this.getConnection(uri);
-        const app        = this.fileSystemHelper.resolveApp(uri);
+        const connection = this.getConnection(uri);
+        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
 
         if (connection && app?.readonly === false) {
-            const entry = this.fileSystemHelper.resolveEntry(uri, EntryType.DIMENSION, false);
+            const entry = connection.fileSystemStorage.read(uri.toString(true));
 
-            if (!entry) {
+            if (!entry || entry.type !== EntryType.DIMENSION) {
                 throw vscode.FileSystemError.FileNotFound();
             }
 
             await this.dimensionProvider.destroy(connection, app.id, entry.id);
-            this.fileSystemHelper.deleteEntry(uri);
+            connection.fileSystemStorage.delete(uri.toString(true));
         }
     }
 
@@ -61,7 +62,7 @@ export class DimensionDirectory extends QixDirectory<any> {
             throw new Error(`could not find app for path: ${uri.toString(true)}`);
         }
 
-        return this.dimensionProvider.list<any>(connection, app).pipe(
+        return this.dimensionProvider.list<any>(connection, app.id).pipe(
             map(
                 (dimensions: any[]) => dimensions.map((measure) => this.mapDimensionToDirectory(measure))
             )
@@ -71,18 +72,18 @@ export class DimensionDirectory extends QixDirectory<any> {
     /**
      * ressolve data for file system
      */
-    protected generateEntry(dimension: DirectoryItem<any>, uri: vscode.Uri): DirectoryEntry {
-        const fileName = this.fileSystemHelper.createFileName(uri, dimension.name);
-        const app = this.fileSystemHelper.resolveApp(uri);
+    protected generateEntry(dimension: DirectoryItem<any>, uri: vscode.Uri): FilesystemEntry {
+
+        const connection = this.getConnection(uri);
+        const app        = connection?.fileSystemStorage.parent(uri, EntryType.APPLICATION);
 
         return {
-            entry: {
-                id: dimension.id,
-                type: EntryType.DIMENSION,
-                data: dimension.data,
-                readonly: app?.readonly ?? false
-            },
-            item: [fileName, vscode.FileType.File]
+            id: dimension.id,
+            fileType: vscode.FileType.File,
+            name: this.fileSystemHelper.createFileName(uri, dimension.name),
+            raw: dimension.data,
+            readonly: app?.readonly ?? false,
+            type: EntryType.DIMENSION,
         };
     }
 

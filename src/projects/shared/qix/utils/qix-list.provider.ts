@@ -1,4 +1,3 @@
-import { EnigmaSession } from "projects/extension/connection";
 import { Observable, from, EmptyError } from "rxjs";
 import { switchMap, map } from "rxjs/operators";
 import deepmerge from "deepmerge";
@@ -52,8 +51,8 @@ export abstract class QixListProvider {
         );
     }
 
-    public async create<T extends EngineAPI.IGenericObject>(connection: EnigmaSession, app_id: string, properties: EngineAPI.IGenericProperties): Promise<T> {
-        const global = await connection.open(app_id);
+    public async create<T extends EngineAPI.IGenericObject>(connection: Connection, app_id: string, properties: EngineAPI.IGenericProperties): Promise<T> {
+        const global = await connection.openSession(app_id);
         const app    = await global?.openDoc(app_id);
 
         if (app) {
