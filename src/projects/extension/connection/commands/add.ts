@@ -49,9 +49,6 @@ export async function AddConnectionCommand(workspace?: vscode.WorkspaceFolder) {
         setting = container.resolve(SettingsRepository).find(workspaceFolderName ?? '');
     }
 
-    const workspacefolder = vscode.workspace.getWorkspaceFolder(uri as vscode.Uri);
-    console.log(workspacefolder?.uri.toString(true));
-
     if (setting && uri) {
         const connection = new Connection(setting, uri.toString(true));
         container.resolve(ConnectionProvider).connect(connection);

@@ -126,6 +126,7 @@ export class Connection {
             secure$ = secure$.pipe(
                 switchMap(async () => await this.isTrusted() || await this.acceptUntrusted()),
                 tap((secure) => {
+                    console.log(secure);
                     if (!secure) {
                         throw new Error("not a trusted connection");
                     }
@@ -157,24 +158,23 @@ export class Connection {
      *
      * to much vscode inside
      */
-    private async acceptUntrusted(): Promise<boolean> {
-        const selection = await vscode.window.showQuickPick(
-            [{label: 'yes'}, {label: 'no'}],
-            {
-                placeHolder: 'Current connection is not secure, continue ?',
-                canPickMany: false,
-                ignoreFocusOut: true
-            }
-        );
-
-        if (!selection) {
-            return false;
-        }
-
-        const allowUntrusted = selection.label === 'yes';
-        this.connectionModel.isUntrusted = allowUntrusted;
-        return allowUntrusted;
+    private acceptUntrusted(): Promise<boolean> {
+        return new Promise((resolve) => {
+            const quickPick = vscode.window.createQuickPick();
+            quickPick.items = [{label: 'abort'}, {label: 'trust'}, {label: 'allways trust'}];
+            quickPick.ignoreFocusOut = true;
+            quickPick.canSelectMany = false;
+            quickPick.title = `Connection for ${this.serverSetting.label} (${this.serverSetting.connection.host}) is not secure. Continue?`;
+            quickPick.onDidChangeSelection((selected) => {
+                const isTrusted = selected[0].label === 'trust';
+                this.connectionModel.isUntrusted = isTrusted;
+                isTrusted ? resolve(true) : resolve(false);
+                quickPick.dispose();
+            });
+            quickPick.show();
+        });
     }
+
     /**
      * own service certificate check end
      */
