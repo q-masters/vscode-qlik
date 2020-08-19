@@ -135,7 +135,7 @@
     "copyfiles": "2.3.0",
     "deepmerge": "4.2.2",
     "eslint": "7.7.0",
-    "html-loader": "1.1.0",
+    "html-loader": "1.2.0",
     "minimist": "1.2.5",
     "mocha": "8.1.1",
     "sinon": "9.0.3",
