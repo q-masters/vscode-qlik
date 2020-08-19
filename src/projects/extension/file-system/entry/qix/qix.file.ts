@@ -25,7 +25,7 @@ export abstract class QixFile extends QixFsFileAdapter {
             const entry = connection.fileSystem.read(uri.toString(true));
 
             if (!entry || entry.type !== this.entryType) {
-                return Buffer.from("Error");
+                return Buffer.from("Error, entrytype not matched (for example read script file but id is for a variable.");
             }
 
             const data = await this.read(connection, app.id, entry);

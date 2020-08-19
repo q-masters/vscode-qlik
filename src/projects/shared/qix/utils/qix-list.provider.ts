@@ -1,5 +1,5 @@
 import { Observable, from, EmptyError } from "rxjs";
-import { switchMap, map } from "rxjs/operators";
+import { switchMap, map, catchError } from "rxjs/operators";
 import deepmerge from "deepmerge";
 import { Connection } from "projects/extension/connection/utils/connection";
 
@@ -47,7 +47,10 @@ export abstract class QixListProvider {
             switchMap((global) => global?.openDoc(app) ?? EmptyError),
             switchMap((app) => app.createSessionObject(this.listProperties)),
             switchMap((obj) => obj.getLayout()),
-            map((layout) => this.extractListItems<T>(layout))
+            map((layout) => this.extractListItems<T>(layout)),
+            catchError((error) => {
+                throw error;
+            })
         );
     }
 
