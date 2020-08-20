@@ -12,6 +12,9 @@ export interface GeneratedApi {
 
 export abstract class QixListProvider {
 
+
+    public abstract createProperties(name: string): DataNode;
+
     /**
      * list properties to create a sessionObject
      */
@@ -79,6 +82,18 @@ export abstract class QixListProvider {
     public async update(connection: Connection, app: string, object_id: string, data: DataNode): Promise<void> {
         const genericObject = await this.resolveGenericObject(connection, app, object_id);
         return await genericObject.setProperties(data);
+    }
+
+    /**
+     * rename measure
+     */
+    public async rename(connection: Connection, appId: string, objectId: string, newName: string) {
+        const patch   = {
+            qMetaDef: {
+                title: newName
+            }
+        };
+        return await this.patch(connection, appId, objectId, patch);
     }
 
     /**

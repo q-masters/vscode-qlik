@@ -2,7 +2,7 @@ import { singleton } from "tsyringe";
 import { Connection } from "projects/extension/connection/utils/connection";
 
 @singleton()
-export class QixSheetProvider {
+export class QixSheetProvider  {
 
     public async list(connection: Connection, id: string): Promise<any[]> {
         const global = await connection.openSession(id);

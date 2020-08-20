@@ -42,7 +42,7 @@ export class VisualizationDirectory extends QixDirectory<any> {
         if (connection && app?.readonly === false) {
             const entry = connection.fileSystem.read(uri.toString(true));
 
-            if (!entry || entry.type !== EntryType.DIMENSION) {
+            if (!entry || entry.type !== EntryType.VISUALIZATION) {
                 throw vscode.FileSystemError.FileNotFound();
             }
 

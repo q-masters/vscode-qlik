@@ -11,10 +11,10 @@ export class SheetFile extends QixFile {
     protected entryType = EntryType.SHEET;
 
     public constructor(
-        @inject(QixSheetProvider) private provider: QixSheetProvider,
+        @inject(QixSheetProvider) provider: QixSheetProvider,
         @inject(FileSystemHelper) private filesystemHelper: FileSystemHelper,
     ) {
-        super(filesystemHelper);
+        super(filesystemHelper, provider);
     }
 
     /**
@@ -24,33 +24,14 @@ export class SheetFile extends QixFile {
         return await this.provider.read(connection, app, entry.id);
     }
 
-    /**
-     * write file
-     */
-    public async writeFile(uri: vscode.Uri, content: Uint8Array): Promise<void> {
-
-        const connection = await this.getConnection(uri);
-        const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
-
-        if (app && !app.readonly) {
-            connection?.fileSystem.exists(uri)
-                ? await this.updateSheet(uri, content)
-                : await this.createSheet();
-
-            return;
-        }
-
-        throw vscode.FileSystemError.NoPermissions(`Not allowed made any changes to ${app?.name ?? ''} (${app?.id ?? ''}), app is read only.`);
-    }
-
-    private async createSheet() {
+    protected async create() {
         throw new Error("Operation not supported for sheets.");
     }
 
     /**
      * update current sheet
      */
-    private async updateSheet(uri: vscode.Uri, content: Uint8Array) {
+    protected async update(uri: vscode.Uri, content: Uint8Array) {
 
         const connection = await this.getConnection(uri);
         const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
