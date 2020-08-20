@@ -1,5 +1,5 @@
 import { Observable, from, EmptyError } from "rxjs";
-import { switchMap, map } from "rxjs/operators";
+import { switchMap, map, catchError } from "rxjs/operators";
 import deepmerge from "deepmerge";
 import { Connection } from "projects/extension/connection/utils/connection";
 
@@ -11,6 +11,9 @@ export interface GeneratedApi {
 }
 
 export abstract class QixListProvider {
+
+
+    public abstract createProperties(name: string): DataNode;
 
     /**
      * list properties to create a sessionObject
@@ -47,7 +50,10 @@ export abstract class QixListProvider {
             switchMap((global) => global?.openDoc(app) ?? EmptyError),
             switchMap((app) => app.createSessionObject(this.listProperties)),
             switchMap((obj) => obj.getLayout()),
-            map((layout) => this.extractListItems<T>(layout))
+            map((layout) => this.extractListItems<T>(layout)),
+            catchError((error) => {
+                throw error;
+            })
         );
     }
 
@@ -76,6 +82,18 @@ export abstract class QixListProvider {
     public async update(connection: Connection, app: string, object_id: string, data: DataNode): Promise<void> {
         const genericObject = await this.resolveGenericObject(connection, app, object_id);
         return await genericObject.setProperties(data);
+    }
+
+    /**
+     * rename measure
+     */
+    public async rename(connection: Connection, appId: string, objectId: string, newName: string) {
+        const patch   = {
+            qMetaDef: {
+                title: newName
+            }
+        };
+        return await this.patch(connection, appId, objectId, patch);
     }
 
     /**

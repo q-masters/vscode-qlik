@@ -6,6 +6,7 @@ import { EntryType } from "@vsqlik/fs/data";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
 import { Connection } from "projects/extension/connection/utils/connection";
+import { map } from "rxjs/operators";
 
 @injectable()
 export class SheetDirectory extends QixDirectory<any> {
@@ -26,26 +27,28 @@ export class SheetDirectory extends QixDirectory<any> {
             throw new Error(`could not find app for path: ${uri.toString(true)}`);
         }
 
-        const data = await this.provider.list(connection, app.id);
-        return data.map((sheet) => ({
-            name: sheet.qData.title,
-            id: sheet.qInfo.qId,
-            data: sheet
-        }));
+        return this.provider.list<any>(connection, app.id)
+            .pipe(
+                map((sheets) => sheets.map((sheet) => {
+                    console.dir(sheet);
+                    return {
+                        name: sheet.qData.title,
+                        id: sheet.qInfo.qId,
+                        data: sheet
+                    };
+                }))
+            ).toPromise();
     }
 
-    protected generateEntry(data: DirectoryItem<any>, connection: Connection, uri: vscode.Uri): FilesystemEntry {
-
+    protected generateEntry(sheet: DirectoryItem<any>, connection: Connection, uri: vscode.Uri): FilesystemEntry {
         const app = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
-        const fileName = this.fileSystemHelper.createFileName(uri, data.name);
-
         return {
-            id: data.id,
-            name: fileName,
-            raw: data,
-            readonly: app?.readonly ?? true,
+            id: sheet.id,
+            fileType: vscode.FileType.File,
+            name: this.fileSystemHelper.createFileName(uri, sheet.name),
+            raw: sheet.data,
+            readonly: app?.readonly ?? false,
             type: EntryType.SHEET,
-            fileType: vscode.FileType.File
         };
     }
 }

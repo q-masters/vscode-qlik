@@ -1,16 +1,17 @@
+
 import { inject, injectable } from "tsyringe";
 import { EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { QixFile } from "../qix/qix.file";
-import { QixDimensionProvider } from "@core/qix/utils/dimension.provider";
+import { QixVisualizationProvider } from "@core/qix/utils/visualization.provider";
 
 @injectable()
-export class DimensionFile extends QixFile {
+export class VisualizationFile extends QixFile {
 
-    protected entryType = EntryType.DIMENSION;
+    protected entryType = EntryType.VISUALIZATION;
 
     public constructor(
-        @inject(QixDimensionProvider) provider: QixDimensionProvider,
+        @inject(QixVisualizationProvider) provider: QixVisualizationProvider,
         @inject(FileSystemHelper) private filesystemHelper: FileSystemHelper,
     ) {
         super(filesystemHelper, provider);

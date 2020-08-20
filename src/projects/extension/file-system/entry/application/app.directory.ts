@@ -22,7 +22,7 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
         const connection = await this.getConnection(uri);
 
         if (connection) {
-            const settings = connection.serverSettings.display;
+            const settings = {...connection.serverSettings.display, visualization: true};
             Object.keys(settings).forEach((key) => {
                 if (settings[key] !== false) {
                     folders.push([key, vscode.FileType.Directory]);

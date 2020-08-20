@@ -8,6 +8,7 @@ export enum EntryType {
     STREAM,
     SHEET,
     VARIABLE,
+    VISUALIZATION,
     UNKNOWN
 }
 

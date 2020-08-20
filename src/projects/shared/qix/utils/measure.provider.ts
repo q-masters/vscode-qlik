@@ -50,7 +50,7 @@ export class QixMeasureProvider extends QixListProvider {
         }
     };
 
-    public createMeasureProperties(name: string): MeasureProperties {
+    public createProperties(name: string): MeasureProperties {
         const data = {
             qMeasure: {
                 qLabel: name
