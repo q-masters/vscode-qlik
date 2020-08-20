@@ -68,12 +68,12 @@ export abstract class QixFile extends QixFsFileAdapter {
         /**
          * check we can move file into directory should not work if type is different
          */
-        if (targetApp?.readonly || target?.fileSystem.read(to.toString(true))?.type !== this.entryType) {
-            throw vscode.FileSystemError.NoPermissions(`could not move dimension ${targetApp?.id ?? ''} is readonly.`);
+        if (targetApp?.readonly) {
+            throw vscode.FileSystemError.NoPermissions(`Not allowed to move file to destination.`);
         }
 
         if (!source || !sourceApp || sourceApp?.readonly) {
-            throw vscode.FileSystemError.NoPermissions(`could not remove dimension from source, since ${sourceApp?.id ?? ''} is readonly, retry copy.`);
+            throw vscode.FileSystemError.NoPermissions(`could not remove file from source, since ${sourceApp?.id ?? ''} is readonly, retry copy.`);
         }
 
         if (!entry) {
