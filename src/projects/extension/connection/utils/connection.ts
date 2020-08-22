@@ -15,6 +15,7 @@ import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
+import { serverExists } from "../commands/server-exists";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -76,11 +77,12 @@ export class Connection {
         const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.cookies = data?.cookies ?? [];
 
-        return this.checkCertificate().pipe(
+        return serverExists(this.serverSetting.connection).pipe(
+            switchMap(() => this.checkCertificate()),
             switchMap(() => this.authorize()),
             tap(() => this.onConnected()),
             catchError((error) => {
-                const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error.message}`;
+                const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error?.message ?? error}`;
                 vscode.window.showErrorMessage(message);
                 this.stateChange$.next(ConnectionState.ERROR);
                 return of(false);
@@ -126,7 +128,6 @@ export class Connection {
             secure$ = secure$.pipe(
                 switchMap(async () => await this.isTrusted() || await this.acceptUntrusted()),
                 tap((secure) => {
-                    console.log(secure);
                     if (!secure) {
                         throw new Error("not a trusted connection");
                     }
@@ -202,6 +203,7 @@ export class Connection {
             });
 
             const authResult = await authService.authorize(strategy);
+            console.log(authResult);
             if (authResult.success) {
                 this.connectionModel.cookies = authResult.cookies;
                 return true;

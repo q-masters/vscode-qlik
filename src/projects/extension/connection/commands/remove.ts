@@ -9,9 +9,10 @@ export function RemoveConnectionCommand(workspacePath?: string) {
     }
 
     const folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(workspacePath));
+    console.dir(folder);
     if (folder) {
-
         try {
+            console.log(vscode.workspace.workspaceFolders);
             vscode.workspace.updateWorkspaceFolders(folder.index, 1);
 
             const connectionProvider = container.resolve(ConnectionProvider);

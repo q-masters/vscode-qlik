@@ -11,7 +11,7 @@ export class DimensionFile extends QixFile {
 
     public constructor(
         @inject(QixDimensionProvider) provider: QixDimensionProvider,
-        @inject(FileSystemHelper) private filesystemHelper: FileSystemHelper,
+        @inject(FileSystemHelper) filesystemHelper: FileSystemHelper,
     ) {
         super(filesystemHelper, provider);
     }

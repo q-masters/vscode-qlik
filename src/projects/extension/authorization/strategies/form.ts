@@ -50,11 +50,9 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
         stepper.addStep(this.createStep(this.config.password, "password", true));
 
         const [domain, password] = await stepper.run<string>();
-
         if (!domain || !password) {
             throw new Error("could not resolve credentials");
         }
-
         return { domain, password };
     }
 
