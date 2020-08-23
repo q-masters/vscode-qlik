@@ -43,6 +43,8 @@ export interface ConnectionSetting {
      * authorization settings
      */
     authorization: AuthorizationSetting;
+
+    ssl_fingerprint?: string;
 }
 
 export interface ConnectionConfiguration {

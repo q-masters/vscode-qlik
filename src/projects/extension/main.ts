@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import { container } from "tsyringe";
 import { QixRouter } from "@shared/router";
 
-import { OpenSettingsCommand } from "@vsqlik/settings/open-settings.command";
+import { SettingsOpenCommand, SettingsUpdateCommand } from "@settings";
 import { Routes } from "@vsqlik/fs/data";
 import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings, ConnectionStorage } from "./data/tokens";
 import { FileStorage, MemoryStorage } from "@core/storage";
@@ -57,12 +57,13 @@ export function activate(context: vscode.ExtensionContext) {
  */
 function registerCommands(context: vscode.ExtensionContext) {
     /** register commands */
-    vscode.commands.registerCommand('VsQlik.Connection.Create'     , AddConnectionCommand);
-    vscode.commands.registerCommand('VsQlik.Connection.Settings', OpenSettingsCommand);
+    vscode.commands.registerCommand('VsQlik.Connection.Create'  , AddConnectionCommand);
+    vscode.commands.registerCommand('VsQlik.Connection.Settings', SettingsOpenCommand);
 
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Connect', ServerConnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Disconnect', ServerDisconnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Remove', RemoveConnectionCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Settings.Update', SettingsUpdateCommand));
 }
 
 /**
