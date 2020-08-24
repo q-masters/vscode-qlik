@@ -111,5 +111,13 @@ export const Routes: Route<QixFsEntry>[] = [
     }, {
         path: "streams/:stream/:app/sheets/:sheet",
         ctrl: SheetFile
-    }
+    },
+    {
+        path: "streams/:stream/:app/visualization",
+        ctrl: VisualizationDirectory
+    },
+    {
+        path: "streams/:stream/:app/visualization/:id",
+        ctrl: VisualizationFile
+    },
 ];

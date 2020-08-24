@@ -12,7 +12,7 @@ export class VisualizationFile extends QixFile {
 
     public constructor(
         @inject(QixVisualizationProvider) provider: QixVisualizationProvider,
-        @inject(FileSystemHelper) private filesystemHelper: FileSystemHelper,
+        @inject(FileSystemHelper) filesystemHelper: FileSystemHelper,
     ) {
         super(filesystemHelper, provider);
     }

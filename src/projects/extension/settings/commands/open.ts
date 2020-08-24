@@ -1,9 +1,9 @@
-import { ConnectionSettingsWebview } from "./settings.webview";
+import { ConnectionSettingsWebview } from "../settings.webview";
 import { container } from "tsyringe";
-import { SettingsRepository } from "./settings.repository";
+import { SettingsRepository } from "../settings.repository";
 import { ExtensionContext } from "projects/extension/data/tokens";
 
-export function OpenSettingsCommand() {
+export function SettingsOpenCommand() {
 
     const view = new ConnectionSettingsWebview(
         container.resolve(SettingsRepository),

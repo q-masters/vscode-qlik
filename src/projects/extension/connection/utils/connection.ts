@@ -15,6 +15,7 @@ import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
+import { serverExists } from "../commands/server-exists";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -76,11 +77,12 @@ export class Connection {
         const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.cookies = data?.cookies ?? [];
 
-        return this.checkCertificate().pipe(
+        return serverExists(this.serverSetting.connection).pipe(
+            switchMap(() => this.checkCertificate()),
             switchMap(() => this.authorize()),
             tap(() => this.onConnected()),
             catchError((error) => {
-                const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error.message}`;
+                const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error?.message ?? error}`;
                 vscode.window.showErrorMessage(message);
                 this.stateChange$.next(ConnectionState.ERROR);
                 return of(false);
@@ -124,9 +126,9 @@ export class Connection {
 
         if (this.serverSetting.connection.secure) {
             secure$ = secure$.pipe(
-                switchMap(async () => await this.isTrusted() || await this.acceptUntrusted()),
+                switchMap(() => this.isTrusted()),
+                switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerprint) : of(true)),
                 tap((secure) => {
-                    console.log(secure);
                     if (!secure) {
                         throw new Error("not a trusted connection");
                     }
@@ -140,14 +142,19 @@ export class Connection {
     /**
      * checks certificate for https connections, if certificate is secure
      */
-    private isTrusted(): Promise<boolean> {
+    private isTrusted(): Promise<{trusted: boolean, fingerprint: string}> {
         return new Promise((resolve) => {
             const socket = tlsConnect({
                 port: this.serverSetting.connection.port ?? 443,
                 host: this.serverSetting.connection.host,
                 rejectUnauthorized: false
             }, () => {
-                socket.authorized ? resolve(true) : resolve(false);
+                const certificate = socket.getPeerCertificate();
+                const response = {
+                    trusted: socket.authorized,
+                    fingerprint: certificate.fingerprint256
+                };
+                resolve(response);
             });
         });
     }
@@ -158,20 +165,35 @@ export class Connection {
      *
      * to much vscode inside
      */
-    private acceptUntrusted(): Promise<boolean> {
+    private acceptUntrusted(fingerprint: string): Promise<boolean> {
         return new Promise((resolve) => {
-            const quickPick = vscode.window.createQuickPick();
-            quickPick.items = [{label: 'abort'}, {label: 'trust'}, {label: 'allways trust'}];
-            quickPick.ignoreFocusOut = true;
-            quickPick.canSelectMany = false;
-            quickPick.title = `Connection for ${this.serverSetting.label} (${this.serverSetting.connection.host}) is not secure. Continue?`;
-            quickPick.onDidChangeSelection((selected) => {
-                const isTrusted = selected[0].label === 'trust';
-                this.connectionModel.isUntrusted = isTrusted;
-                isTrusted ? resolve(true) : resolve(false);
-                quickPick.dispose();
-            });
-            quickPick.show();
+
+            if (this.serverSettings.connection.ssl_fingerprint === fingerprint) {
+                this.connectionModel.isUntrusted = true;
+                resolve(true);
+            } else {
+                const quickPick = vscode.window.createQuickPick();
+                quickPick.items = [{label: 'abort'}, {label: `trust: ${fingerprint}`}, {label: 'allways trust'}];
+                quickPick.ignoreFocusOut = true;
+                quickPick.canSelectMany = false;
+                quickPick.title = `Connection for ${this.serverSetting.label} (${this.serverSetting.connection.host}) is not secure.`;
+                quickPick.onDidChangeSelection((selected) => {
+                    switch (selected[0]) {
+                        case quickPick.items[0]:
+                            resolve(false);
+                            break;
+                        case quickPick.items[2]:
+                            /** patch settings and add ssl fingerprint to settings */
+                            vscode.commands.executeCommand( 'VsQlik.Settings.Update', this.serverSetting, {connection:{ ssl_fingerprint: fingerprint }});
+                        // eslint-disable-next-line no-fallthrough
+                        default:
+                            this.connectionModel.isUntrusted = true;
+                            resolve(true);
+                    }
+                    quickPick.dispose();
+                });
+                quickPick.show();
+            }
         });
     }
 

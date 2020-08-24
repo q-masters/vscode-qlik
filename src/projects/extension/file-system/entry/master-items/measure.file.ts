@@ -10,7 +10,7 @@ export class MeasureFile extends QixFile {
     protected entryType = EntryType.MEASURE;
 
     public constructor(
-        @inject(QixMeasureProvider) protected provider: QixMeasureProvider,
+        @inject(QixMeasureProvider) provider: QixMeasureProvider,
         @inject(FileSystemHelper) filesystemHelper: FileSystemHelper,
     ) {
         super(filesystemHelper, provider);
