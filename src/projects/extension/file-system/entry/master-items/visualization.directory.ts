@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { map, tap } from "rxjs/operators";
+import { map } from "rxjs/operators";
 
 import { EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
@@ -63,7 +63,6 @@ export class VisualizationDirectory extends QixDirectory<any> {
         }
 
         return this.visualizationProvider.list<any>(connection, app.id).pipe(
-            tap((data) => console.dir(data)),
             map(
                 (visualizations: any[]) => visualizations.map((visualization) => this.mapToDirectory(visualization))
             )

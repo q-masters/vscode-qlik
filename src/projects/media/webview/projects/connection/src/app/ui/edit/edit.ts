@@ -96,10 +96,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     public doSave() {
         this.connectionFormHelper.save()
             .pipe(takeUntil(this.destroy$))
-            .subscribe((connection) => {
-                console.dir(connection);
-                this.save.emit(connection);
-            });
+            .subscribe((connection) => this.save.emit(connection));
     }
 
     /**

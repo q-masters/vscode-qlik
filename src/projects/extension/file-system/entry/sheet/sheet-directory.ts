@@ -30,7 +30,6 @@ export class SheetDirectory extends QixDirectory<any> {
         return this.provider.list<any>(connection, app.id)
             .pipe(
                 map((sheets) => sheets.map((sheet) => {
-                    console.dir(sheet);
                     return {
                         name: sheet.qData.title,
                         id: sheet.qInfo.qId,
