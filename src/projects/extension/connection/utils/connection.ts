@@ -271,7 +271,15 @@ export class Connection {
         this.serverStorage.write(JSON.stringify(this.serverSetting.connection), {cookies: this.connectionModel.cookies});
         this.engimaProvider = new EnigmaSession(this.connectionModel);
 
-        const global: EngineAPI.IGlobal = await this.engimaProvider.open("engineData", true) as EngineAPI.IGlobal;
+        const global: EngineAPI.IGlobal = await this.engimaProvider.open("engineData") as EngineAPI.IGlobal;
+        const isQlikCore = (await global?.getConfiguration())?.qFeatures.qIsDesktop;
+
+        /**
+         * by default add a setting for max sessions, qlik core only needs this if this is a none licensed
+         * version otherwise we could open more sessions for qlik sense desktop is no limit
+         */
+        this.engimaProvider.maxSessions = isQlikCore ? 5 : -1;
+
         this.stateChange$.next(ConnectionState.CONNECTED);
 
         /** heartbeat */

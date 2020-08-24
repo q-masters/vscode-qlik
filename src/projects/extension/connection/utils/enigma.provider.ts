@@ -194,7 +194,7 @@ export class EnigmaSession {
         }
 
         const oldestSessionId = this.activeStack.shift();
-        const connection = this.loadFromCache(oldestSessionId);
+        const connection      = this.loadFromCache(oldestSessionId);
 
         if (connection) {
             await connection.session.suspend();
