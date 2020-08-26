@@ -1,3 +1,2 @@
-export * from "./authorization";
-export * from "./connection";
+export * from "../extension/connection";
 export * from "./router";

@@ -1,6 +1,5 @@
 import { singleton } from "tsyringe";
 import { QixListProvider, DataNode } from "./qix-list.provider";
-import { EnigmaSession } from "@core/connection";
 import deepmerge from "deepmerge";
 
 export const DimensionSkeleton: EngineAPI.IGenericDimensionProperties = {
@@ -46,25 +45,13 @@ export class QixDimensionProvider extends QixListProvider {
         }
     };
 
-    public createDimensionProperties(name: string): EngineAPI.IGenericDimensionProperties {
+    public createProperties(name: string): EngineAPI.IGenericDimensionProperties {
         const data = {
             qMetaDef: {
                 title: name
             }
         };
         return deepmerge.all([DimensionSkeleton, data], {clone: true}) as EngineAPI.IGenericDimensionProperties;
-    }
-
-    /**
-     * rename measure
-     */
-    public async rename(connection: EnigmaSession, app: string, measure: string, newName: string) {
-        const patch   = {
-            qMetaDef: {
-                title: newName
-            }
-        };
-        return await this.patch(connection, app, measure, patch);
     }
 
     /**

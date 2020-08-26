@@ -22,9 +22,8 @@ export class AppListMyWorkDirectory extends AppListDirectory {
      */
     public async createDirectory(uri: vscode.Uri, name: string): Promise<void> {
         const connection = await this.getConnection(uri);
-        const workspace  = this.filesystemHelper.resolveWorkspace(uri);
 
-        if (connection && workspace) {
+        if (connection) {
             return this.applicationProvider.createApp(connection, name).pipe(
                 /**
                  * switch to app data
@@ -39,7 +38,13 @@ export class AppListMyWorkDirectory extends AppListDirectory {
                  * add data to file cache so we find it again
                  */
                 map((entry: EngineAPI.IAppEntry) => {
-                    this.fileSystemHelper.cacheEntry(uri, { id: entry.qID, readonly: false, type: EntryType.APPLICATION });
+                    connection.fileSystem.write(uri.toString(true), {
+                        name: entry.qTitle,
+                        raw: entry,
+                        id: entry.qID,
+                        readonly: false,
+                        type: EntryType.APPLICATION
+                    });
                 })
             ).toPromise();
         }
@@ -51,16 +56,17 @@ export class AppListMyWorkDirectory extends AppListDirectory {
      */
     public async delete(uri: vscode.Uri): Promise<void> {
         const connection = await this.getConnection(uri);
-        const app_id     = this.filesystemHelper.resolveAppId(uri);
 
         if (connection) {
-            if (!app_id) {
+            const fsEntry = connection.fileSystem.read(uri.toString(true));
+            if (!fsEntry || fsEntry.type !== EntryType.APPLICATION) {
                 throw vscode.FileSystemError.FileNotFound();
             }
 
-            await connection.close(app_id);
-            await this.applicationProvider.deleteApp(connection, app_id);
-            this.filesystemHelper.deleteDirectory(uri);
+            await this.applicationProvider.deleteApp(connection, fsEntry.id);
+            await connection.closeSession(fsEntry.id);
+
+            connection.fileSystem.deleteDirectory(uri);
         }
     }
 

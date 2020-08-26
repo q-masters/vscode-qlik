@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { singleton, inject } from "tsyringe";
 import { WorkspaceSetting } from "./api";
 import { VsQlikServerSettings } from "projects/extension/data/tokens";
+import deepmerge from "deepmerge";
 
 export interface Setting {
     uid: string;
@@ -44,8 +45,8 @@ export class SettingsRepository {
         return this.data.some((setting) => setting.uid === id);
     }
 
-    public find(name: string): WorkspaceSetting | undefined {
-        return this.read().find((setting) => setting.label === name);
+    public find(needle: string): WorkspaceSetting | undefined {
+        return this.read().find((setting) => setting.uid === needle || setting.label === needle);
     }
 
     /**
@@ -64,6 +65,11 @@ export class SettingsRepository {
     public async update(source: WorkspaceSetting): Promise<void> {
         this.data = this.data.map<WorkspaceSetting>((setting: WorkspaceSetting) => setting.uid === source.uid ? source : setting);
         await this.writeSettings();
+    }
+
+    public async patchSetting(setting: WorkspaceSetting, patch): Promise<void> {
+        const patched = deepmerge(setting, patch);
+        this.update(patched);
     }
 
     /**
@@ -144,8 +150,8 @@ export class SettingsRepository {
      * removes settings uid before we write
      */
     private cleanUpSetting(setting: WorkspaceSetting): WorkspaceSetting {
-        const cloned = {...setting};
-        delete cloned.uid;
-        return cloned;
+        const cloned: any = {...setting};
+        delete cloned?.id;
+        return cloned as WorkspaceSetting;
     }
 }

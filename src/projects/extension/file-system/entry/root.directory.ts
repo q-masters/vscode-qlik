@@ -29,7 +29,7 @@ export class QixFsRootDirectory extends QixFsDirectoryAdapter {
             return [];
         }
 
-        const global     = await connection?.open();
+        const global     = await connection?.openSession();
         const isQlikCore = (await global?.getConfiguration())?.qFeatures.qIsDesktop;
 
         const directories: DirectoryList = [

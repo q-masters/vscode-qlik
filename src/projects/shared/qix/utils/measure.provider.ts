@@ -1,7 +1,7 @@
 import { singleton } from "tsyringe";
 import { QixListProvider, DataNode } from "./qix-list.provider";
-import { EnigmaSession } from "@core/connection";
 import deepmerge from "deepmerge";
+import { Connection } from "projects/extension/connection/utils/connection";
 
 export interface MeasureProperties {
     qInfo: {
@@ -50,7 +50,7 @@ export class QixMeasureProvider extends QixListProvider {
         }
     };
 
-    public createMeasureProperties(name: string): MeasureProperties {
+    public createProperties(name: string): MeasureProperties {
         const data = {
             qMeasure: {
                 qLabel: name
@@ -65,7 +65,7 @@ export class QixMeasureProvider extends QixListProvider {
     /**
      * rename measure
      */
-    public async rename(connection: EnigmaSession, app: string, measure: string, newName: string) {
+    public async rename(connection: Connection, app: string, measure: string, newName: string) {
         const patch   = {
             qMeasure: {
                 qLabel: newName,

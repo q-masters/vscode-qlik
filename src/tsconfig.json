@@ -15,7 +15,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
+      "@auth/*": ["projects/extension/authorization/*"],
       "@data/*": ["projects/extension/data/*"],
+      "@settings": ["projects/extension/settings"],
+
       "@vsqlik/enigma" : ["../backup/enigma"],
       "@vsqlik/stepper": ["projects/shared/stepper"],
 

@@ -15,6 +15,8 @@ import { MeasureDirectory } from "../entry/master-items/measure.directory";
 import { MeasureFile } from "../entry/master-items/measure.file";
 import { DimensionDirectory } from "../entry/master-items/dimensions.directory";
 import { DimensionFile } from "../entry/master-items/dimension.file";
+import { VisualizationDirectory } from "../entry/master-items/visualization.directory";
+import { VisualizationFile } from "../entry/master-items/visualization.file";
 
 export const Routes: Route<QixFsEntry>[] = [
     /** Workspace Folder Root Directory */
@@ -61,7 +63,14 @@ export const Routes: Route<QixFsEntry>[] = [
         path: "my work/:app/sheets/:sheet",
         ctrl: SheetFile
     },
-
+    {
+        path: "my work/:app/visualization",
+        ctrl: VisualizationDirectory
+    },
+    {
+        path: "my work/:app/visualization/:id",
+        ctrl: VisualizationFile
+    },
     /** streams */
     {
         path: "streams",
@@ -102,5 +111,13 @@ export const Routes: Route<QixFsEntry>[] = [
     }, {
         path: "streams/:stream/:app/sheets/:sheet",
         ctrl: SheetFile
-    }
+    },
+    {
+        path: "streams/:stream/:app/visualization",
+        ctrl: VisualizationDirectory
+    },
+    {
+        path: "streams/:stream/:app/visualization/:id",
+        ctrl: VisualizationFile
+    },
 ];
