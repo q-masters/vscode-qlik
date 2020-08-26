@@ -3,7 +3,6 @@ import { singleton, inject } from "tsyringe";
 import { WorkspaceSetting } from "./api";
 import { VsQlikServerSettings } from "projects/extension/data/tokens";
 import deepmerge from "deepmerge";
-import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 export interface Setting {
     uid: string;
