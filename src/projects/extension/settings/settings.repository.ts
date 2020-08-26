@@ -3,6 +3,7 @@ import { singleton, inject } from "tsyringe";
 import { WorkspaceSetting } from "./api";
 import { VsQlikServerSettings } from "projects/extension/data/tokens";
 import deepmerge from "deepmerge";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 export interface Setting {
     uid: string;
@@ -150,8 +151,8 @@ export class SettingsRepository {
      * removes settings uid before we write
      */
     private cleanUpSetting(setting: WorkspaceSetting): WorkspaceSetting {
-        const cloned = {...setting};
-        delete cloned.uid;
-        return cloned;
+        const cloned: any = {...setting};
+        delete cloned?.id;
+        return cloned as WorkspaceSetting;
     }
 }
