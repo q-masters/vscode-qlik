@@ -24,9 +24,8 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
             error: ""
         };
 
-        const {domain, password} = await this.resolveCredentials();
-
         try {
+            const {domain, password} = await this.resolveCredentials();
             /** uri */
             const redirectUri = await this.submitForm(this.config.uri, domain, password, !this.config.allowUntrusted);
             const cookies     = await this.finalizeLoginProcess(redirectUri, !this.config.allowUntrusted);
