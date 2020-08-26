@@ -138,7 +138,7 @@
     "eslint": "7.7.0",
     "html-loader": "1.2.1",
     "minimist": "1.2.5",
-    "mocha": "8.1.1",
+    "mocha": "8.1.2",
     "sinon": "9.0.3",
     "ts-loader": "8.0.2",
     "ts-node": "8.10.2",
