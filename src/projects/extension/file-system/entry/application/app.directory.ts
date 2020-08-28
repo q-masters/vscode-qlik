@@ -37,7 +37,7 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
      */
     async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
         const connection = await this.getConnection(uri);
-        const exists = connection?.fileSystem.exists(uri);
+        const exists = connection?.fileSystem.exists(uri.toString(true));
 
         if (!exists) {
             throw vscode.FileSystemError.FileNotFound();

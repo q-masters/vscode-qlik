@@ -42,7 +42,7 @@ export abstract class QixFile extends QixFsFileAdapter {
      */
     public async stat(uri: vscode.Uri): Promise<vscode.FileStat | void> {
         const connection = await this.getConnection(uri);
-        if (connection?.fileSystem.exists(uri)) {
+        if (connection?.fileSystem.exists(uri.toString(true))) {
             return {
                 ctime: Date.now(),
                 mtime: Date.now(),
@@ -97,7 +97,7 @@ export abstract class QixFile extends QixFsFileAdapter {
         const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
 
         if (connection &&  app && app.readonly === false) {
-            connection?.fileSystem.exists(uri)
+            connection?.fileSystem.exists(uri.toString(true))
                 ? await this.update(uri, content)
                 : await this.create(uri, content);
 

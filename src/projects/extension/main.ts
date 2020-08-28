@@ -11,6 +11,8 @@ import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
 import { QixFSProvider } from "./file-system/utils/qix-fs.provider";
 import { ServerConnectCommand } from "./connection/commands/connect";
 import { ServerDisconnectCommand } from "./connection/commands/disconnect";
+import { ScriptLoadDataCommand } from "./script";
+import { LogFileProvider } from "./file-system/utils/virtual-file.provider";
 
 /**
  * bootstrap extension
@@ -40,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
     /** register qixfs provider */
     const qixFs = new QixFSProvider();
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
+    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider("vsqlik-out", container.resolve(LogFileProvider)));
 
     registerCommands(context);
     registerWorkspacefolderEvents();
@@ -50,6 +53,8 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.commands.executeCommand('VsQlik.Connection.Connect', folder);
         }
     });
+
+
 }
 
 /**
@@ -57,8 +62,9 @@ export function activate(context: vscode.ExtensionContext) {
  */
 function registerCommands(context: vscode.ExtensionContext) {
     /** register commands */
-    vscode.commands.registerCommand('VsQlik.Connection.Create'  , AddConnectionCommand);
+    vscode.commands.registerCommand('VsQlik.Connection.Create',   AddConnectionCommand);
     vscode.commands.registerCommand('VsQlik.Connection.Settings', SettingsOpenCommand);
+    vscode.commands.registerTextEditorCommand('VsQlik.Script.LoadData',     ScriptLoadDataCommand);
 
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Connect', ServerConnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Disconnect', ServerDisconnectCommand));

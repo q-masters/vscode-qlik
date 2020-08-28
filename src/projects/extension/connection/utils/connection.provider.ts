@@ -40,8 +40,10 @@ export class ConnectionProvider {
     /**
      * resolve an connection by a given uri
      */
-    public resolve(uri: string): Promise<Connection | undefined> {
-        const connection = this.connections.get(uri);
+    public resolve(uri: vscode.Uri): Promise<Connection | undefined> {
+
+        const rootUri = vscode.workspace.getWorkspaceFolder(uri)?.uri.toString(true);
+        const connection = rootUri ? this.connections.get(rootUri) : null;
 
         if (!connection) {
             return Promise.resolve(void 0);

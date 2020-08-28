@@ -14,10 +14,6 @@ export interface FilesystemEntry {
 
 export class FileSystemStorage extends MemoryStorage<FilesystemEntry> {
 
-    public exists(uri: vscode.Uri): boolean {
-        return !!this.read(uri.toString(true));
-    }
-
     /**
      * rename file or directory
      */

@@ -141,7 +141,7 @@ export class VariableFile extends QixFsFileAdapter {
         }
 
         /** ist das eine neue variable oder existiert sie bereits ? */
-        connection?.fileSystem.exists(uri)
+        connection?.fileSystem.exists(uri.toString(true))
             ? await this.updateVariable(uri, content)
             : await this.createVariable(uri, content);
     }
