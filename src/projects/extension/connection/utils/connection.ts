@@ -115,6 +115,10 @@ export class Connection {
         return this.engimaProvider.open(appId);
     }
 
+    public createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined> {
+        return this.engimaProvider.createSession(keepAlive);
+    }
+
     /**
      * check for secure connection and certificate
      * if this is a secure connection and certificate is not secure
@@ -257,7 +261,7 @@ export class Connection {
                         break;
 
                     default:
-                        reject('something bad happens');
+                        reject(response);
                 }
             });
             session.open();
@@ -271,7 +275,7 @@ export class Connection {
         this.serverStorage.write(JSON.stringify(this.serverSetting.connection), {cookies: this.connectionModel.cookies});
         this.engimaProvider = new EnigmaSession(this.connectionModel);
 
-        const global: EngineAPI.IGlobal = await this.engimaProvider.open("engineData") as EngineAPI.IGlobal;
+        const global: EngineAPI.IGlobal = await this.engimaProvider.open('engineData', true) as EngineAPI.IGlobal;
         const isQlikCore = (await global?.getConfiguration())?.qFeatures.qIsDesktop;
 
         /**

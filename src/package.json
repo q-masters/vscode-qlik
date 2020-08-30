@@ -51,6 +51,15 @@
         "command": "VsQlik.Connection.Settings",
         "title": "Show Connection Settings",
         "category": "VsQlik"
+      },
+      {
+        "command": "VsQlik.Script.LoadData",
+        "title": "Run script and refresh app data from data sources",
+        "category": "VsQlik",
+        "icon": {
+          "light": "./projects/media/icons/load-data.light.svg",
+          "dark": "./projects/media/icons/load-data.dark.svg"
+        }
       }
     ],
     "configuration": [
@@ -97,7 +106,29 @@
           }
         }
       }
-    ]
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "VsQlik.Script.LoadData",
+          "group": "navigation",
+          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs'"
+        }
+      ],
+      "commandPalette": [{
+          "command": "VsQlik.Script.LoadData",
+          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs'"
+      }]
+    },
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "vsqlik-load-data",
+          "title": "VsQlik Load Data",
+          "icon": ""
+        }
+      ]
+    }
   },
   "scripts": {
     "copyreadme": "copyfiles ../README.md ./README.md",

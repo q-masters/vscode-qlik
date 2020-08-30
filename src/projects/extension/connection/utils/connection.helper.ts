@@ -68,6 +68,17 @@ export abstract class ConnectionHelper {
             headers,
             rejectUnauthorized: !connection.isUntrusted
         });
+
+        /*
+        ws.on("message", (e) => {
+            console.dir(e);
+        });
+
+        ws.on("error", (e) => {
+            console.dir(e);
+        });
+        */
+
         return ws;
     }
 
