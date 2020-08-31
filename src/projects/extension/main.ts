@@ -5,14 +5,13 @@ import { QixRouter } from "@shared/router";
 
 import { SettingsOpenCommand, SettingsUpdateCommand } from "@settings";
 import { Routes } from "@vsqlik/fs/data";
-import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings, ConnectionStorage } from "./data/tokens";
+import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings, ConnectionStorage, QlikOutputChannel } from "./data/tokens";
 import { FileStorage, MemoryStorage } from "@core/storage";
 import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
 import { QixFSProvider } from "./file-system/utils/qix-fs.provider";
 import { ServerConnectCommand } from "./connection/commands/connect";
 import { ServerDisconnectCommand } from "./connection/commands/disconnect";
 import { ScriptLoadDataCommand } from "./script";
-import { LogFileProvider } from "./file-system/utils/virtual-file.provider";
 
 /**
  * bootstrap extension
@@ -25,6 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
     container.register(VsQlikDevSettings, {
         useFactory: () => vscode.workspace.getConfiguration().get('VsQlik.Developer')
     });
+
+    container.register(QlikOutputChannel, { useFactory: outputChannelFactory() });
 
     /** register connection storage */
     container.register(ConnectionStorage, {
@@ -42,7 +43,6 @@ export function activate(context: vscode.ExtensionContext) {
     /** register qixfs provider */
     const qixFs = new QixFSProvider();
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
-    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider("vsqlik-out", container.resolve(LogFileProvider)));
 
     registerCommands(context);
     registerWorkspacefolderEvents();
@@ -70,6 +70,16 @@ function registerCommands(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Disconnect', ServerDisconnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Remove', RemoveConnectionCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Settings.Update', SettingsUpdateCommand));
+}
+
+function outputChannelFactory(): () => vscode.OutputChannel {
+    let channel: vscode.OutputChannel;
+    return () => {
+        if (!channel) {
+            channel = vscode.window.createOutputChannel(`Qlik`);
+        }
+        return channel;
+    };
 }
 
 /**

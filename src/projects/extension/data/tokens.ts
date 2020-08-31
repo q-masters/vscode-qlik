@@ -7,3 +7,4 @@ export const WorkspaceFolders: InjectionToken<string[]> = "VsCodeWorkspaceFolder
 export const VsQlikServerSettings: InjectionToken<string> = "VsQlik Server Settings in settings.json file";
 export const VsQlikDevSettings: InjectionToken<string> = "VsQlik Developer Settings key in settings.json file";
 export const ConnectionStorage: InjectionToken<Storage> = "Storage to save connection settings";
+export const QlikOutputChannel: InjectionToken<vscode.OutputChannel> = "Output channel for log informations";

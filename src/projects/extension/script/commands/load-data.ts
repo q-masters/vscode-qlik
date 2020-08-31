@@ -4,12 +4,11 @@ import { EntryType } from '@vsqlik/fs/data';
 import { ConnectionProvider } from 'projects/extension/connection';
 import { interval, from, merge } from 'rxjs';
 import { switchMap, map, takeWhile, finalize } from 'rxjs/operators';
-import { LogFileProvider } from '@vsqlik/fs/utils/virtual-file.provider';
 import { isBoolean } from 'util';
+import { QlikOutputChannel } from '@data/tokens';
 
 export async function ScriptLoadDataCommand() {
 
-    const logFileProvider = container.resolve(LogFileProvider);
     const document = vscode.window.activeTextEditor?.document;
 
     if (!document) {
@@ -32,12 +31,9 @@ export async function ScriptLoadDataCommand() {
             return;
         }
 
-        const fileUri = vscode.Uri.parse('vsqlik-out:load data: ' + app.name);
-        const file = logFileProvider.create(fileUri);
-        const doc = await vscode.workspace.openTextDocument(fileUri);
-
-        file.writeLn(`load data for ${app.name}`);
-        await vscode.window.showTextDocument(doc, {preview: false});
+        const out = container.resolve(QlikOutputChannel);
+        out.show(true);
+        out.appendLine(`>>> ${new Date().toLocaleTimeString()} load data for ${app.name}`);
 
         /** streams and log logic */
         const dataLoad$ = from(application.doReload());
@@ -53,17 +49,15 @@ export async function ScriptLoadDataCommand() {
                 takeWhile(() => !isCompleted, true),
                 finalize(() => {
                     global.session.close();
-                    file.writeLn(`completed`);
-                    file.writeLn(``);
-                    file.dismiss();
+                    out.appendLine(`<<<`);
+                    out.appendLine(``);
                 })
             )
             .subscribe((result) => isBoolean(result)
                 ? (isCompleted = true)
-                : result.length > 0 ? file.writeLn(result) : void 0
+                : result.length > 0 ? out.appendLine(result) : void 0
             );
 
-        return doc;
     } catch (error) {
         console.log(error);
     }
