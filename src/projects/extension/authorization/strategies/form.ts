@@ -14,7 +14,7 @@ import { AuthorizationResult, AuthorizationStrategy } from "./authorization.stra
 /**
  * login to qlik with form strategy
  */
-abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
+export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
     public async run(): Promise<AuthorizationResult>
     {

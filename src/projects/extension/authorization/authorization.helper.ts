@@ -29,15 +29,17 @@ export class AuthorizationHelper {
         switch (strategy) {
 
             case AuthStrategy.FORM:
-                return (await import('./strategies/form')).default as unknown as AuthorizationStrategyConstructor;
+                return await (await import('./strategies/form')).default as unknown as AuthorizationStrategyConstructor;
 
             case AuthStrategy.NONE:
-                return (await import('./no-authorization-strategy')).default as unknown as AuthorizationStrategyConstructor;
+                return await (await import('./no-authorization-strategy')).default as unknown as AuthorizationStrategyConstructor;
 
             case AuthStrategy.CUSTOM:
+                return null;
                 break;
-        }
 
-        return null;
+            default:
+                return null;
+        }
     }
 }
