@@ -15,14 +15,13 @@ interface ServerInformation {
 export function fetchServerInformation(setting: ConnectionSetting): Observable<ServerInformation> {
 
     const url = ConnectionHelper.buildUrl(setting);
-    let tryCount = setting.secure ? 0 : 1;
+    let tryCount = 0;
 
     /**
      * for https connections try at least 2 times:
+     *
      * 1. run with rejectUnauthorized: true if this works the server exists and has a valid certificate
      * 2. run with rejectUnauthorized: false if this works server exists but no valid certificate
-     *
-     * if not secure only 1 try
      */
     return of(true).pipe(
         switchMap(() => fetch(url, {
@@ -34,10 +33,11 @@ export function fetchServerInformation(setting: ConnectionSetting): Observable<S
             takeWhile(() => tryCount < 2),
             concat(throwError(`Server not found: ${setting.host}`)),
         )),
-        map(() => ({ exists: true, trusted: tryCount === 0, fingerPrint: ''})),
-        /**
-         * get finger print from server and add this to the server informations
-         */
+        map(() => ({
+            exists: true,
+            trusted: tryCount === 0 || !setting.secure,
+            fingerPrint: ''
+        })),
         switchMap((res) => {
             return from(getFingerPrint(setting)).pipe(map((fingerPrint) => Object.assign(res, {fingerPrint})));
         }),

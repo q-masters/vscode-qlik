@@ -14,7 +14,6 @@ import { EnigmaSession } from "./enigma.provider";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
 import { fetchServerInformation } from "../commands/fetch-server-informations";
-import FormAuthorizationStrategy from "@auth/strategies/form";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -162,27 +161,23 @@ export class Connection {
      */
     private async authorize(): Promise<boolean> {
 
+        /** this also happens we are automatically logged in */
         const authState = await this.checkAuthState();
         if (authState.authorized) {
             return true;
         }
 
         const authService = container.resolve(AuthorizationService);
-        // const strategyConstructor = await AuthorizationHelper.resolveStrategy(this.serverSetting.connection.authorization.strategy);
+        const authResult = await authService.authorize({
+            allowUntrusted: this.connectionModel.isUntrusted,
+            credentials: this.serverSetting.connection.authorization.data,
+            strategy: this.serverSetting.connection.authorization.strategy,
+            uri: authState.loginUri,
+        });
 
-        if (authState.loginUri) {
-            const strategy = new FormAuthorizationStrategy({
-                allowUntrusted: this.connectionModel.isUntrusted,
-                uri: authState.loginUri as string,
-                domain: this.serverSetting.connection.authorization.data.domain,
-                password: this.serverSetting.connection.authorization.data.password,
-            });
-
-            const authResult = await authService.authorize(strategy);
-            if (authResult.success) {
-                this.connectionModel.cookies = authResult.cookies;
-                return true;
-            }
+        if (authResult.success) {
+            this.connectionModel.cookies = authResult.cookies;
+            return true;
         }
 
         throw new Error('Authorization failed');

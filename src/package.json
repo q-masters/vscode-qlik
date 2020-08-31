@@ -143,6 +143,7 @@
     "postwebview:build": "node ./bin/webapp-finalize.js",
     "webview:dev": "npm start --prefix ./projects/media/webview -- --configuration browser",
     "vscode:prepublish": "npm run build -- --mode=production && npm run copyreadme",
+    "lint": "npm run lint:extension && npm run lint:webview",
     "lint:extension": "node bin/eslint-reporter './projects/extension/**/*.ts'",
     "lint:webview": "npm run lint --prefix ./projects/media/webview",
     "test": "mocha --reporter spec -r ts-node/register  -r tsconfig-paths/register ./test/**/*.spec.ts",

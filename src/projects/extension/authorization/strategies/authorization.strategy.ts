@@ -29,6 +29,8 @@ export interface AuthConfig {
 
 export abstract class AuthorizationStrategy {
 
+    protected config: AuthConfig;
+
     private authTitle = "";
 
     public set title(title: string) {
@@ -39,9 +41,9 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    public constructor(
-        protected config: AuthConfig
-    ) {}
+    public configure(config: AuthConfig) {
+        this.config = config;
+    }
 
     public abstract run(): Promise<AuthorizationResult>;
 }
