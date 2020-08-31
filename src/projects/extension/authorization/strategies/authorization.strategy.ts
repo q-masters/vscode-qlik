@@ -25,6 +25,8 @@ export interface AuthConfig {
     domain?: string;
 
     password?: string;
+
+    name: string;
 }
 
 export abstract class AuthorizationStrategy {

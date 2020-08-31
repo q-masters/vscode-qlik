@@ -9,7 +9,6 @@ export class InputStep extends Step<string> {
 
     public constructor(
         private placeholder: string,
-        private additionalTitle = "",
         private isPassword = false
     ) {
         super();
@@ -42,7 +41,7 @@ export class InputStep extends Step<string> {
      */
     private render(): vscode.InputBox {
         const field = vscode.window.createInputBox();
-        field.title = this.additionalTitle.length ? `${this.title} - ${this.additionalTitle}` : this.title;
+        field.title = this.title;
         field.password = this.isPassword;
         field.placeholder = this.placeholder;
         field.ignoreFocusOut = true;

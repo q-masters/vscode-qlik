@@ -171,6 +171,7 @@ export class Connection {
         const authResult = await authService.authorize({
             allowUntrusted: this.connectionModel.isUntrusted,
             credentials: this.serverSetting.connection.authorization.data,
+            name: this.connectionModel.setting.host,
             strategy: this.serverSetting.connection.authorization.strategy,
             uri: authState.loginUri,
         });

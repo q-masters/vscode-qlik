@@ -50,9 +50,9 @@ export class AuthorizationService {
         }
 
         if (strategy) {
-            const {allowUntrusted, uri} = config;
+            const {allowUntrusted, uri, name} = config;
             const {domain, password}    = config.credentials;
-            strategy.configure({ allowUntrusted, uri, domain, password });
+            strategy.configure({ allowUntrusted, uri, name, domain, password });
             return strategy;
         }
 
