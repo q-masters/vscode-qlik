@@ -6,10 +6,16 @@ import { interval, from, merge } from 'rxjs';
 import { switchMap, map, takeWhile, finalize } from 'rxjs/operators';
 import { isBoolean } from 'util';
 import { QlikOutputChannel } from '@data/tokens';
+import { basename } from 'path';
 
 export async function ScriptLoadDataCommand(): Promise<void> {
 
-    const document = vscode.window.activeTextEditor?.document;
+    /** get all visible text editors and find the editor which contains the script */
+    const visibleTextEditors = vscode.window.visibleTextEditors;
+    const editor = visibleTextEditors.find((editor) =>
+        editor.document.uri.scheme === 'qix' && basename(editor.document.uri.fsPath) === 'main.qvs');
+
+    const document = editor?.document;
 
     if (!document) {
         return;
