@@ -5,6 +5,7 @@ import { QixVariableProvider } from "@shared/qix/utils/variable.provider";
 import { FileRenderer } from "@vsqlik/settings/api";
 import { QixFsFileAdapter, EntryType } from "../../data";
 import { FileSystemHelper } from "../../utils/file-system.helper";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 @injectable()
 export class VariableFile extends QixFsFileAdapter {
@@ -197,6 +198,6 @@ export class VariableFile extends QixFsFileAdapter {
         const target = this.fileSystemHelper.fileToJson(uri, content);
         const patch  = this.fileSystemHelper.createPatch(target, source);
 
-        this.variableProvider.updateVariable(connection, app.id, variable.id, patch);
+        this.variableProvider.updateVariable(connection, app.id, variable.id, patch as any);
     }
 }
