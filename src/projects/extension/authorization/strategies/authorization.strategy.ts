@@ -43,7 +43,7 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    public configure(config: AuthConfig) {
+    public configure(config: AuthConfig): void {
         this.config = config;
     }
 

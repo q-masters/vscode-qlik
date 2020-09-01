@@ -4,7 +4,7 @@ import { ConnectionHelper } from "../utils/connection.helper";
 /**
  * create a new workspace folder for given connection
  */
-export async function AddConnectionCommand() {
+export async function AddConnectionCommand(): Promise<void> {
 
     const setting = await ConnectionHelper.selectConnection();
 

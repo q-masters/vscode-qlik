@@ -132,7 +132,7 @@ export abstract class QixFile extends QixFsFileAdapter {
     /**
      * create new file
      */
-    protected async create(uri: vscode.Uri, content: Uint8Array) {
+    protected async create(uri: vscode.Uri, content: Uint8Array): Promise<void> {
 
         const connection = await this.getConnection(uri);
         const app        = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
@@ -158,7 +158,6 @@ export abstract class QixFile extends QixFsFileAdapter {
                 type: this.entryType,
                 fileType: vscode.FileType.File
             });
-            return;
         }
     }
 

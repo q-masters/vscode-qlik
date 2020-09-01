@@ -92,7 +92,7 @@ export class Connection {
     /**
      * disconnect
      */
-    public destroy() {
+    public destroy(): void {
         this.destroy$.next(true);
         this.destroy$.complete();
 

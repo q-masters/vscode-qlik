@@ -2,6 +2,7 @@ import { AuthorizationResult, AuthorizationStrategy } from "../strategies/author
 import { singleton } from "tsyringe";
 import { AuthStrategy } from "@auth/api";
 import FormAuthorizationStrategy from "@auth/strategies/form";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 @singleton()
 export class AuthorizationService {
@@ -24,7 +25,7 @@ export class AuthorizationService {
     /**
      * run authorization strategy in queue
      */
-    public async authorize(config: any): Promise<AuthorizationResult> {
+    public async authorize(config: DataNode): Promise<AuthorizationResult> {
         const strategy = this.resolveAuthorizationStrategy(config);
         return new Promise((resolve) => {
             this.authorizationQueueItems.set(strategy, (result: AuthorizationResult) => {

@@ -16,7 +16,7 @@ export class ConnectionProvider {
     /**
      * connect to a server
      */
-    public async connect(connection: Connection) {
+    public async connect(connection: Connection): Promise<void> {
         this.connections.set(connection.workspacePath, connection);
         this.items.push(connection);
 
@@ -28,7 +28,7 @@ export class ConnectionProvider {
     /**
      * close a connection
      */
-    public close(path: string) {
+    public close(path: string): void {
         const connection = this.connections.get(path);
 
         if (connection) {

@@ -8,7 +8,7 @@ export class Stepper {
         private title: string
     ) { }
 
-    public addStep(step: IStep) {
+    public addStep(step: IStep): void {
         this.steps.push(step);
     }
 

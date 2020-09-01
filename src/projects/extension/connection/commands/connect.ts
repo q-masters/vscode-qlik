@@ -11,7 +11,7 @@ import { Connection } from "../utils/connection";
  *
  * if the event is triggered it has been added to the file explorer and can safly removed
  */
-export function ServerConnectCommand(workspace: vscode.WorkspaceFolder) {
+export function ServerConnectCommand(workspace: vscode.WorkspaceFolder): void {
 
     const workspaceFolderName = workspace?.name;
     const uri = workspace.uri;

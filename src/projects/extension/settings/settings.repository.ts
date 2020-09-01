@@ -3,6 +3,7 @@ import { singleton, inject } from "tsyringe";
 import { WorkspaceSetting } from "./api";
 import { VsQlikServerSettings } from "projects/extension/data/tokens";
 import deepmerge from "deepmerge";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 export interface Setting {
     uid: string;
@@ -67,8 +68,8 @@ export class SettingsRepository {
         await this.writeSettings();
     }
 
-    public async patchSetting(setting: WorkspaceSetting, patch): Promise<void> {
-        const patched = deepmerge(setting, patch);
+    public async patchSetting(setting: WorkspaceSetting, patch: DataNode): Promise<void> {
+        const patched = deepmerge(setting, patch) as WorkspaceSetting;
         this.update(patched);
     }
 
@@ -83,7 +84,7 @@ export class SettingsRepository {
     /**
      * reloads all data
      */
-    public reload() {
+    public reload(): void {
         this.loadData();
     }
 

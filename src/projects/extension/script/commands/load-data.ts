@@ -7,7 +7,7 @@ import { switchMap, map, takeWhile, finalize } from 'rxjs/operators';
 import { isBoolean } from 'util';
 import { QlikOutputChannel } from '@data/tokens';
 
-export async function ScriptLoadDataCommand() {
+export async function ScriptLoadDataCommand(): Promise<void> {
 
     const document = vscode.window.activeTextEditor?.document;
 

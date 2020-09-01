@@ -7,6 +7,7 @@ import YAML from "yaml";
 import { FileRenderer, WorkspaceSetting } from "@vsqlik/settings/api";
 import { CacheRegistry, CacheToken } from "@shared/utils/cache-registry";
 import { SettingsRepository } from "@vsqlik/settings/settings.repository";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 const TEMPORARY_FILES = new CacheToken("temporary files");
 
@@ -28,7 +29,7 @@ export class FileSystemHelper {
      * in this case we write the content of main copy.qvs into main.qvs and register
      * main copy.qvs as temporary file.
      */
-    public registerTempoaryFileEntry(uri: vscode.Uri, content?: Uint8Array) {
+    public registerTempoaryFileEntry(uri: vscode.Uri, content?: Uint8Array): void {
         this.cacheRegistry.add(TEMPORARY_FILES, uri.toString(true), content);
     }
 
@@ -42,14 +43,14 @@ export class FileSystemHelper {
     /**
      * remove a temporary file from CacheRegistry
      */
-    public deleteTempoaryFileEntry(uri: vscode.Uri) {
+    public deleteTempoaryFileEntry(uri: vscode.Uri): void {
         vscode.commands.executeCommand(`vsqlik.qixfs.delete`, uri);
     }
 
     /**
      * register a temporary file in CacheRegistry
      */
-    public unregisterTemporaryFile(uri: vscode.Uri) {
+    public unregisterTemporaryFile(uri: vscode.Uri): unknown {
         return this.cacheRegistry.delete(TEMPORARY_FILES, uri.toString(true));
     }
 
@@ -68,7 +69,7 @@ export class FileSystemHelper {
      * get diff of 2 json objects
      * @see https://gist.github.com/Yimiprod/7ee176597fef230d1451
      */
-    public createPatch(source, target) {
+    public createPatch(source: DataNode, target: DataNode): DataNode{
         return transform(source, (result, value, key) => {
             if (!isEqual(value, target[key])) {
                 result[key] = isObject(value) && isObject(target[key]) ? this.createPatch(value, target[key]) : value;
@@ -76,7 +77,7 @@ export class FileSystemHelper {
         });
     }
 
-    public createFileName(uri: vscode.Uri, name: string) {
+    public createFileName(uri: vscode.Uri, name: string): string {
         const setting = this.resolveWorkspaceSetting(uri);
         const prefix  = setting?.fileRenderer === FileRenderer.YAML ? 'yaml' : 'json';
         /** replace \ and / by unicode characters so they will not replaced by vscode anymore */
@@ -86,7 +87,7 @@ export class FileSystemHelper {
     /**
      * render file content in specific format like YAML or JSON
      */
-    public renderFile(uri: vscode.Uri, source: Object): Uint8Array {
+    public renderFile(uri: vscode.Uri, source: DataNode): Uint8Array {
         const setting = this.resolveWorkspaceSetting(uri);
         const content = setting?.fileRenderer === FileRenderer.YAML
             ? YAML.stringify(source, {indent: 2})
@@ -98,7 +99,7 @@ export class FileSystemHelper {
     /**
      * convert file content back to json format
      */
-    public fileToJson(uri: vscode.Uri, source: Uint8Array): Object {
+    public fileToJson(uri: vscode.Uri, source: Uint8Array): DataNode {
         const setting = this.resolveWorkspaceSetting(uri);
         const content = setting?.fileRenderer === FileRenderer.YAML
             ? YAML.parse(source.toString())

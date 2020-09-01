@@ -30,12 +30,12 @@ export class ConnectionModel {
         this.connectionState = state;
     }
 
-    public get setting(): ConnectionSetting {
-        return JSON.parse(JSON.stringify(this.connectionSetting));
-    }
-
     public get state(): ConnectionState {
         return this.connectionState;
+    }
+
+    public get setting(): ConnectionSetting {
+        return JSON.parse(JSON.stringify(this.connectionSetting));
     }
 
     public set isAuthorizationRequired(requireAuth: boolean) {

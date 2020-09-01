@@ -30,12 +30,12 @@ export abstract class VsQlikWebview<T> {
     }
 
     /** webview gets closed */
-    public close() {
+    public close(): void {
         this.view.dispose();
     }
 
     /** send message to inner view */
-    protected send<T>(message: T) {
+    protected send<T>(message: T): void {
         this.view.webview.postMessage(message);
     }
 

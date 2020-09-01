@@ -19,7 +19,9 @@ export abstract class Step<R> implements IStep {
         return this.stepTitle;
     }
 
-    public destroy(): void {}
+    public destroy(): void {
+        return;
+    }
 
     abstract execute(): Promise<R>;
 }

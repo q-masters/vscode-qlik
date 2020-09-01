@@ -47,8 +47,8 @@ export class EnigmaSession {
     public constructor(
         private connection: ConnectionModel
     ) {
-        this.activeStack     = new Array();
-        this.persistentStack = new Array();
+        this.activeStack     = [];
+        this.persistentStack = [];
         this.connectionQueue = new Map();
         this.sessionCache    = new Map();
     }
@@ -61,11 +61,11 @@ export class EnigmaSession {
         return this.maxSessionCount;
     }
 
-    public beforeWebsocketCreate(hook: () => WebSocket.ClientOptions) {
+    public beforeWebsocketCreate(hook: () => WebSocket.ClientOptions): void {
         this.requestHooks.push(hook);
     }
 
-    public destroy() {
+    public destroy(): void {
         this.sessionCache.forEach((session) => session.session.close());
         this.sessionCache.clear();
         this.requestHooks = [];
@@ -103,7 +103,7 @@ export class EnigmaSession {
      */
     public async createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined>
     {
-        let id: string = '';
+        let id = '';
         do {
             id = Math.random().toString(32).substr(2);
         } while(this.sessionCache.has(id));

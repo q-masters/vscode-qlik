@@ -5,6 +5,7 @@ import { QixFsFileAdapter } from "../qix/qixfs-entry";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { posix } from "path";
 import { EntryType } from "@vsqlik/fs/data";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 export class ScriptFile extends QixFsFileAdapter {
 
@@ -17,7 +18,7 @@ export class ScriptFile extends QixFsFileAdapter {
         super();
     }
 
-    public async stat(uri: vscode.Uri, params): Promise<vscode.FileStat> {
+    public async stat(uri: vscode.Uri, params: DataNode): Promise<vscode.FileStat> {
 
         const isTemporary = this.fileSystemHelper.isTemporaryFileEntry(uri);
         const fileName    = params.file;

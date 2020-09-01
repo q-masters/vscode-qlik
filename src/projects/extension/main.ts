@@ -16,7 +16,7 @@ import { ScriptLoadDataCommand } from "./script";
 /**
  * bootstrap extension
  */
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
 
     /** register global environment variables */
     container.register(ExtensionContext, {useValue: context});
@@ -102,6 +102,6 @@ function registerWorkspacefolderEvents() {
     });
 }
 
-export function deactivate() {
+export function deactivate(): void {
     /** @todo implement */
 }

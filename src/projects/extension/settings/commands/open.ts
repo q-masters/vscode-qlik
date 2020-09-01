@@ -3,7 +3,7 @@ import { container } from "tsyringe";
 import { SettingsRepository } from "../settings.repository";
 import { ExtensionContext } from "projects/extension/data/tokens";
 
-export function SettingsOpenCommand() {
+export function SettingsOpenCommand(): void {
 
     const view = new ConnectionSettingsWebview(
         container.resolve(SettingsRepository),
