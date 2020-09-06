@@ -7,7 +7,8 @@ const TsConfigPathsPlugin =  require('tsconfig-paths-webpack-plugin');
 const config = {
     target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
     entry: {
-        "extension": './projects/extension/main.ts'
+        "extension": './projects/extension/main.ts',
+        "qvs-language-server": './projects/language-server/main.ts',
     },
     mode: "development",
     output: {

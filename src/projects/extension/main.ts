@@ -11,7 +11,7 @@ import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
 import { QixFSProvider } from "./file-system/utils/qix-fs.provider";
 import { ServerConnectCommand } from "./connection/commands/connect";
 import { ServerDisconnectCommand } from "./connection/commands/disconnect";
-import { ScriptLoadDataCommand } from "./script";
+import { ScriptModule } from "./script/script-module";
 
 /**
  * bootstrap extension
@@ -54,7 +54,12 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
 
-
+    /**
+     * bootstrap script module
+     * - dataload editor
+     * - check script syntax
+     */
+    ScriptModule.bootstrap();
 }
 
 /**
@@ -64,7 +69,6 @@ function registerCommands(context: vscode.ExtensionContext) {
     /** register commands */
     vscode.commands.registerCommand('VsQlik.Connection.Create',   AddConnectionCommand);
     vscode.commands.registerCommand('VsQlik.Connection.Settings', SettingsOpenCommand);
-    vscode.commands.registerTextEditorCommand('VsQlik.Script.LoadData',     ScriptLoadDataCommand);
 
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Connect', ServerConnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Disconnect', ServerDisconnectCommand));
@@ -103,5 +107,7 @@ function registerWorkspacefolderEvents() {
 }
 
 export function deactivate(): void {
+
     /** @todo implement */
+    ScriptModule.destroy();
 }
