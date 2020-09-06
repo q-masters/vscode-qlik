@@ -16,7 +16,7 @@ export class ConnectionProvider {
     /**
      * connect to a server
      */
-    public async connect(connection: Connection) {
+    public async connect(connection: Connection): Promise<void> {
         this.connections.set(connection.workspacePath, connection);
         this.items.push(connection);
 
@@ -28,7 +28,7 @@ export class ConnectionProvider {
     /**
      * close a connection
      */
-    public close(path: string) {
+    public close(path: string): void {
         const connection = this.connections.get(path);
 
         if (connection) {
@@ -40,8 +40,10 @@ export class ConnectionProvider {
     /**
      * resolve an connection by a given uri
      */
-    public resolve(uri: string): Promise<Connection | undefined> {
-        const connection = this.connections.get(uri);
+    public resolve(uri: vscode.Uri): Promise<Connection | undefined> {
+
+        const rootUri = vscode.workspace.getWorkspaceFolder(uri)?.uri.toString(true);
+        const connection = rootUri ? this.connections.get(rootUri) : null;
 
         if (!connection) {
             return Promise.resolve(void 0);

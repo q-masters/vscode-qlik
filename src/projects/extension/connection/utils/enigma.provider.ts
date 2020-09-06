@@ -47,8 +47,8 @@ export class EnigmaSession {
     public constructor(
         private connection: ConnectionModel
     ) {
-        this.activeStack     = new Array();
-        this.persistentStack = new Array();
+        this.activeStack     = [];
+        this.persistentStack = [];
         this.connectionQueue = new Map();
         this.sessionCache    = new Map();
     }
@@ -61,37 +61,66 @@ export class EnigmaSession {
         return this.maxSessionCount;
     }
 
-    public beforeWebsocketCreate(hook: () => WebSocket.ClientOptions) {
+    public beforeWebsocketCreate(hook: () => WebSocket.ClientOptions): void {
         this.requestHooks.push(hook);
     }
 
-    public destroy() {
+    public destroy(): void {
         this.sessionCache.forEach((session) => session.session.close());
         this.sessionCache.clear();
         this.requestHooks = [];
     }
 
     /**
-     * return an existing session object or create a new one
+     * opens a new session
+     *
+     * @param {string} [id=EnigmaSession.GLOBAL_SESSION_KEY]
+     * @param {boolean} [keepAlive=false]
+     * @param {string} [cacheKey]
+     * @returns {(Promise<EngineAPI.IGlobal | undefined>)}
+     * @memberof EnigmaSession
      */
-    public async open(id = EnigmaSession.GLOBAL_SESSION_KEY, keepAlive = false): Promise<EngineAPI.IGlobal | undefined>
+    public async open(id = EnigmaSession.GLOBAL_SESSION_KEY, keepAlive = false, cacheKey?: string): Promise<EngineAPI.IGlobal | undefined>
     {
         let session: enigmaJS.IGeneratedAPI;
 
         /** create new session */
-        if (!this.isCached(id)) {
-            session = await this.createSessionObject(id, keepAlive);
+        if (!this.isCached(cacheKey ?? id)) {
+            session = await this.createSessionObject(id, keepAlive, cacheKey);
         } else {
-            session = await this.activateSession(id);
+            session = await this.activateSession(cacheKey ?? id);
         }
 
         return session as EngineAPI.IGlobal;
     }
 
-    public async close(appId?: string): Promise<void> {
-        const key = appId || EnigmaSession.GLOBAL_SESSION_KEY;
-        if (this.isCached(key)) {
-            await this.loadFromCache(key).session.close();
+    /**
+     * open a random session which could not be found anymore
+     *
+     * @param {boolean} [keepAlive=false]
+     * @returns {(Promise<EngineAPI.IGlobal | undefined>)}
+     * @memberof EnigmaSession
+     */
+    public async createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined>
+    {
+        let id = '';
+        do {
+            id = Math.random().toString(32).substr(2);
+        } while(this.sessionCache.has(id));
+        return this.open(EnigmaSession.GLOBAL_SESSION_KEY, keepAlive, id);
+    }
+
+    /**
+     * close an existing session
+     *
+     * @param {string} [appId]
+     * @returns {Promise<void>}
+     * @memberof EnigmaSession
+     */
+    public async close(key?: string): Promise<void> {
+        const cacheKey = key || EnigmaSession.GLOBAL_SESSION_KEY;
+        if (this.isCached(cacheKey)) {
+            await this.loadFromCache(cacheKey).session.close();
         }
     }
 
@@ -116,12 +145,14 @@ export class EnigmaSession {
      *
      * @todo refactor this one
      */
-    private async createSessionObject(id: string, keepAlive = false): Promise<enigmaJS.IGeneratedAPI>
+    private async createSessionObject(id: string, keepAlive = false, cacheId?: string): Promise<enigmaJS.IGeneratedAPI>
     {
-        if (!this.connectionQueue.has(id)) {
-            this.connectionQueue.set(id, this.resolveSession(id, keepAlive));
+        const cacheKey = cacheId ?? id;
+
+        if (!this.connectionQueue.has(cacheKey)) {
+            this.connectionQueue.set(cacheKey, this.resolveSession(id, keepAlive));
         }
-        return this.connectionQueue.get(id) as Promise<enigmaJS.IGeneratedAPI>;
+        return this.connectionQueue.get(cacheKey) as Promise<enigmaJS.IGeneratedAPI>;
     }
 
     private async resolveSession(id: string, keepAlive): Promise<enigmaJS.IGeneratedAPI> {

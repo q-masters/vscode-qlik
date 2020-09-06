@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export function RemoveConnectionCommand(workspacePath: string) {
+export function RemoveConnectionCommand(workspacePath: string): void {
 
     const folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(workspacePath));
     if (folder) {

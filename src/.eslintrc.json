@@ -5,7 +5,8 @@
     },
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended"
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
     "parserOptions": {
         "ecmaVersion": 11,
@@ -34,8 +35,9 @@
         "eol-last": "error",
         "no-trailing-spaces": ["error"],
         "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off",
         // "no-console": ["error", {"allow": ["error", "warn"]}],
-        "@typescript-eslint/no-unused-vars": ["error"],
         "@typescript-eslint/restrict-template-expressions": ["error", {
             "allowAny": true
         }]

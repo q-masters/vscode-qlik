@@ -1,5 +1,8 @@
 import { AuthorizationResult, AuthorizationStrategy } from "../strategies/authorization.strategy";
 import { singleton } from "tsyringe";
+import { AuthStrategy } from "@auth/api";
+import FormAuthorizationStrategy from "@auth/strategies/form";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 @singleton()
 export class AuthorizationService {
@@ -22,7 +25,8 @@ export class AuthorizationService {
     /**
      * run authorization strategy in queue
      */
-    public async authorize(strategy: AuthorizationStrategy): Promise<AuthorizationResult> {
+    public async authorize(config: DataNode): Promise<AuthorizationResult> {
+        const strategy = this.resolveAuthorizationStrategy(config);
         return new Promise((resolve) => {
             this.authorizationQueueItems.set(strategy, (result: AuthorizationResult) => {
                 resolve({
@@ -35,6 +39,25 @@ export class AuthorizationService {
                 this.runAuthorization();
             }
         });
+    }
+
+    private resolveAuthorizationStrategy(config: any): AuthorizationStrategy {
+        let strategy: AuthorizationStrategy | undefined = void 0;
+
+        switch (config.strategy) {
+            case AuthStrategy.FORM:
+                strategy = new FormAuthorizationStrategy();
+                break;
+        }
+
+        if (strategy) {
+            const {allowUntrusted, uri, name} = config;
+            const {domain, password}    = config.credentials;
+            strategy.configure({ allowUntrusted, uri, name, domain, password });
+            return strategy;
+        }
+
+        throw new Error('Could not resolve Authorization strategy');
     }
 
     /**

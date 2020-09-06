@@ -2,7 +2,7 @@ import { Storage } from "./storage";
 
 export class MemoryStorage<T> implements Storage {
 
-    private storage = {};
+    private storage: Object = {};
 
     public get data(): {[key: string]: T} {
         return JSON.parse(JSON.stringify(this.storage));
@@ -25,5 +25,9 @@ export class MemoryStorage<T> implements Storage {
 
     clear() {
         this.storage = {};
+    }
+
+    exists(key: string): boolean {
+        return Object.prototype.hasOwnProperty.call(this.storage, key);
     }
 }

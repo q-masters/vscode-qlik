@@ -1,6 +1,6 @@
 {
   "name": "vscode-qlik",
-  "version": "0.0.1",
+  "version": "0.10.0",
   "publisher": "q-masters",
   "author": "q-masters",
   "engines": {
@@ -51,6 +51,15 @@
         "command": "VsQlik.Connection.Settings",
         "title": "Show Connection Settings",
         "category": "VsQlik"
+      },
+      {
+        "command": "VsQlik.Script.LoadData",
+        "title": "Run script and refresh app data from data sources",
+        "category": "VsQlik",
+        "icon": {
+          "light": "./projects/media/icons/load-data.light.svg",
+          "dark": "./projects/media/icons/load-data.dark.svg"
+        }
       }
     ],
     "configuration": [
@@ -97,7 +106,29 @@
           }
         }
       }
-    ]
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "VsQlik.Script.LoadData",
+          "group": "navigation",
+          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs'"
+        }
+      ],
+      "commandPalette": [{
+          "command": "VsQlik.Script.LoadData",
+          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs'"
+      }]
+    },
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "vsqlik-load-data",
+          "title": "VsQlik Load Data",
+          "icon": ""
+        }
+      ]
+    }
   },
   "scripts": {
     "copyreadme": "copyfiles ../README.md ./README.md",
@@ -112,6 +143,7 @@
     "postwebview:build": "node ./bin/webapp-finalize.js",
     "webview:dev": "npm start --prefix ./projects/media/webview -- --configuration browser",
     "vscode:prepublish": "npm run build -- --mode=production && npm run copyreadme",
+    "lint": "npm run lint:extension && npm run lint:webview",
     "lint:extension": "node bin/eslint-reporter './projects/extension/**/*.ts'",
     "lint:webview": "npm run lint --prefix ./projects/media/webview",
     "test": "mocha --reporter spec -r ts-node/register  -r tsconfig-paths/register ./test/**/*.spec.ts",
@@ -122,23 +154,23 @@
   "devDependencies": {
     "@types/chai": "4.2.12",
     "@types/enigma.js": "2.2.1",
-    "@types/node": "14.6.0",
+    "@types/node": "14.6.4",
     "@types/node-fetch": "^2.5.7",
     "@types/qlik-engineapi": "12.67.9",
     "@types/request": "2.48.5",
     "@types/sinon": "9.0.5",
     "@types/vscode": "1.45.1",
     "@types/ws": "7.2.6",
-    "@typescript-eslint/eslint-plugin": "3.10.1",
+    "@typescript-eslint/eslint-plugin": "4.0.0",
     "@typescript-eslint/parser": "3.10.1",
     "chai": "4.2.0",
     "chalk": "4.1.0",
     "copyfiles": "2.3.0",
     "deepmerge": "4.2.2",
-    "eslint": "7.7.0",
+    "eslint": "7.8.1",
     "html-loader": "1.3.0",
     "minimist": "1.2.5",
-    "mocha": "8.1.2",
+    "mocha": "8.1.3",
     "sinon": "9.0.3",
     "ts-loader": "8.0.3",
     "ts-node": "9.0.0",
@@ -146,18 +178,18 @@
     "tsconfig-paths-webpack-plugin": "3.3.0",
     "tslint": "6.1.3",
     "typescript": "4.0.2",
-    "vsce": "1.79.3",
+    "vsce": "1.79.5",
     "webpack": "4.44.1",
-    "webpack-cli": "3.3.12"
+    "webpack-cli": "3.3.12",
+    "rimraf": "3.0.2"
   },
   "dependencies": {
-    "enigma.js": "2.7.1",
+    "enigma.js": "2.7.2",
     "lodash": "^4.17.20",
     "node-fetch": "^2.6.0",
     "object-hash": "2.0.3",
     "reflect-metadata": "^0.1.13",
     "request": "2.88.2",
-    "rimraf": "3.0.2",
     "rxjs": "^6.6.2",
     "tsyringe": "^4.3.0",
     "ws": "7.3.1",

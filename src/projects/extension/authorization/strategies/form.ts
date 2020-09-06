@@ -14,7 +14,7 @@ import { AuthorizationResult, AuthorizationStrategy } from "./authorization.stra
 /**
  * login to qlik with form strategy
  */
-abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
+export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
     public async run(): Promise<AuthorizationResult>
     {
@@ -44,7 +44,8 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
      */
     protected async resolveCredentials(): Promise<{ domain: string; password: string; }> {
 
-        const stepper  = new Stepper("Login");
+        const title    = this.config.domain ?? '';
+        const stepper  = new Stepper(`Login: ${title}@${this.config.name ?? ''}`);
         stepper.addStep(this.createStep(this.config.domain, "domain\\username"));
         stepper.addStep(this.createStep(this.config.password, "password", true));
 
@@ -58,9 +59,9 @@ abstract class FormAuthorizationStrategy extends AuthorizationStrategy {
     /**
      * create a step
      */
-    private createStep(value: string | undefined, placeholder = "", isPassword = false): IStep {
-        if (!value || value.trim() === "") {
-            return new InputStep(placeholder, 'login to server', isPassword);
+    private createStep(value: string | undefined, placeholder = '', isPassword = false): IStep {
+        if (!value || value.trim() === '') {
+            return new InputStep(placeholder, isPassword);
         }
         return new ResolvedStep(value);
     }

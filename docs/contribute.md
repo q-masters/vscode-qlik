@@ -24,7 +24,9 @@ cd vsqlik/src && npm i
 
 sometimes it is helpfull to share the extension from development state (next release), this could be done with running, and then share the vsix file which can imported into visual studio code.
 
-```
+```bash
+cd vsqlik/src
+npm ci # ensure we are up to date
 npm run vsce:package
 ```
 

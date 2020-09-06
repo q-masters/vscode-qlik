@@ -14,14 +14,10 @@ export interface FilesystemEntry {
 
 export class FileSystemStorage extends MemoryStorage<FilesystemEntry> {
 
-    public exists(uri: vscode.Uri): boolean {
-        return !!this.read(uri.toString(true));
-    }
-
     /**
      * rename file or directory
      */
-    public rename(source: vscode.Uri, target: vscode.Uri) {
+    public rename(source: vscode.Uri, target: vscode.Uri): void {
 
         const entries   = Object.keys(this.data);
         const sourceUri = source.toString(true);
@@ -46,7 +42,7 @@ export class FileSystemStorage extends MemoryStorage<FilesystemEntry> {
     /**
      * delete a directory
      */
-    public deleteDirectory(source: vscode.Uri) {
+    public deleteDirectory(source: vscode.Uri): void {
         const keys = Object.keys(this.data);
         for (const filePath of keys) {
             if (!filePath.startsWith(source.toString(true))) {

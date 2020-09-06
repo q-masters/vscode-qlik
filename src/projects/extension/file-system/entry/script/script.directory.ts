@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
 import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
 import { FileSystemHelper } from "../../utils/file-system.helper";
+import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 @injectable()
 export class ScriptDirectory extends QixFsDirectoryAdapter{
@@ -21,11 +22,11 @@ export class ScriptDirectory extends QixFsDirectoryAdapter{
         };
     }
 
-    public async readDirectory() {
+    public async readDirectory(): Promise<[string, vscode.FileType][]> {
         return [["main.qvs", vscode.FileType.File]];
     }
 
-    public async delete(uri: vscode.Uri, params: any): Promise<void> {
+    public async delete(uri: vscode.Uri, params: DataNode): Promise<void> {
         if (!this.fileSystemHelper.isTemporaryFileEntry(uri)) {
             return super.delete(uri, params);
         }

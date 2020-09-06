@@ -32,7 +32,7 @@ export class InputStep extends Step<string> {
     /**
      * destroy vscode input box
      */
-    public destroy() {
+    public destroy(): void {
         this.disposeables.forEach((disposeable) => disposeable.dispose());
         this.field.dispose();
     }

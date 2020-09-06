@@ -2,12 +2,10 @@ import * as vscode from "vscode";
 import { Subject, of, Observable, timer, BehaviorSubject } from "rxjs";
 import { container } from "tsyringe";
 import { switchMap, tap, catchError, take, throttle, takeUntil } from "rxjs/operators";
-import { connect as tlsConnect} from "tls";
 
 import { Storage } from "@core/storage";
 import { ConnectionStorage } from "@data/tokens";
 import { AuthorizationService } from "@auth/utils/authorization.service";
-import { AuthorizationHelper } from "@auth/authorization.helper";
 import { AuthorizationState } from "@auth/strategies/authorization.strategy";
 
 import { ConnectionState, ConnectionModel } from "../model/connection";
@@ -15,7 +13,7 @@ import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
-import { serverExists } from "../commands/server-exists";
+import { fetchServerInformation } from "../commands/fetch-server-informations";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -77,8 +75,8 @@ export class Connection {
         const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.cookies = data?.cookies ?? [];
 
-        return serverExists(this.serverSetting.connection).pipe(
-            switchMap(() => this.checkCertificate()),
+        return fetchServerInformation(this.serverSetting.connection).pipe(
+            switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerPrint) : of(true)),
             switchMap(() => this.authorize()),
             tap(() => this.onConnected()),
             catchError((error) => {
@@ -94,7 +92,7 @@ export class Connection {
     /**
      * disconnect
      */
-    public destroy() {
+    public destroy(): void {
         this.destroy$.next(true);
         this.destroy$.complete();
 
@@ -115,48 +113,8 @@ export class Connection {
         return this.engimaProvider.open(appId);
     }
 
-    /**
-     * check for secure connection and certificate
-     * if this is a secure connection and certificate is not secure
-     * the user have to accept the untrusted connection otherwise it will not connect
-     */
-    private checkCertificate(): Observable<boolean> {
-
-        let secure$ = of(true);
-
-        if (this.serverSetting.connection.secure) {
-            secure$ = secure$.pipe(
-                switchMap(() => this.isTrusted()),
-                switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerprint) : of(true)),
-                tap((secure) => {
-                    if (!secure) {
-                        throw new Error("not a trusted connection");
-                    }
-                })
-            );
-        }
-
-        return secure$;
-    }
-
-    /**
-     * checks certificate for https connections, if certificate is secure
-     */
-    private isTrusted(): Promise<{trusted: boolean, fingerprint: string}> {
-        return new Promise((resolve) => {
-            const socket = tlsConnect({
-                port: this.serverSetting.connection.port ?? 443,
-                host: this.serverSetting.connection.host,
-                rejectUnauthorized: false
-            }, () => {
-                const certificate = socket.getPeerCertificate();
-                const response = {
-                    trusted: socket.authorized,
-                    fingerprint: certificate.fingerprint256
-                };
-                resolve(response);
-            });
-        });
+    public createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined> {
+        return this.engimaProvider.createSession(keepAlive);
     }
 
     /**
@@ -198,36 +156,29 @@ export class Connection {
     }
 
     /**
-     * own service certificate check end
-     */
-
-    /**
      * check current authorization state, if we have to login
      * run authorization by strategy
      */
     private async authorize(): Promise<boolean> {
 
+        /** this also happens we are automatically logged in */
         const authState = await this.checkAuthState();
         if (authState.authorized) {
             return true;
         }
 
         const authService = container.resolve(AuthorizationService);
-        const strategyConstructor = await AuthorizationHelper.resolveStrategy(this.serverSetting.connection.authorization.strategy);
+        const authResult = await authService.authorize({
+            allowUntrusted: this.connectionModel.isUntrusted,
+            credentials: this.serverSetting.connection.authorization.data,
+            name: this.connectionModel.setting.host,
+            strategy: this.serverSetting.connection.authorization.strategy,
+            uri: authState.loginUri,
+        });
 
-        if (strategyConstructor && authState.loginUri) {
-            const strategy = new strategyConstructor({
-                allowUntrusted: this.connectionModel.isUntrusted,
-                uri: authState.loginUri as string,
-                domain: this.serverSetting.connection.authorization.data.domain,
-                password: this.serverSetting.connection.authorization.data.password,
-            });
-
-            const authResult = await authService.authorize(strategy);
-            if (authResult.success) {
-                this.connectionModel.cookies = authResult.cookies;
-                return true;
-            }
+        if (authResult.success) {
+            this.connectionModel.cookies = authResult.cookies;
+            return true;
         }
 
         throw new Error('Authorization failed');
@@ -257,7 +208,8 @@ export class Connection {
                         break;
 
                     default:
-                        reject('something bad happens');
+                        console.log(response);
+                        reject(response);
                 }
             });
             session.open();
@@ -271,7 +223,7 @@ export class Connection {
         this.serverStorage.write(JSON.stringify(this.serverSetting.connection), {cookies: this.connectionModel.cookies});
         this.engimaProvider = new EnigmaSession(this.connectionModel);
 
-        const global: EngineAPI.IGlobal = await this.engimaProvider.open("engineData") as EngineAPI.IGlobal;
+        const global: EngineAPI.IGlobal = await this.engimaProvider.open('engineData', true) as EngineAPI.IGlobal;
         const isQlikCore = (await global?.getConfiguration())?.qFeatures.qIsDesktop;
 
         /**
