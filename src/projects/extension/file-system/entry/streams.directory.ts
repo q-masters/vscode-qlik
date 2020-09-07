@@ -21,9 +21,6 @@ export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
     public async readDirectory(uri: vscode.Uri): Promise<DirectoryList> {
         const connection = await this.getConnection(uri);
 
-
-        console.log("read directory");
-
         if (connection) {
             const global  = await connection.openSession();
             const streams = await global?.getStreamList();
