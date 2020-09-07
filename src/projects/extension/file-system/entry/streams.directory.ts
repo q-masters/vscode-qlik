@@ -21,6 +21,9 @@ export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
     public async readDirectory(uri: vscode.Uri): Promise<DirectoryList> {
         const connection = await this.getConnection(uri);
 
+
+        console.log("read directory");
+
         if (connection) {
             const global  = await connection.openSession();
             const streams = await global?.getStreamList();
@@ -31,8 +34,7 @@ export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
 
             /** register to cache ? */
             return this.sanitizeStreams(streams).map((stream) => {
-                const streamUri = uri.with({path: resolve(uri.path, stream.qName)});
-
+                const streamUri = uri.with({path: uri.path + '/' + stream.qName});
                 connection.fileSystem.write(streamUri.toString(true), {
                     id: stream.qId,
                     name: stream.qName,
