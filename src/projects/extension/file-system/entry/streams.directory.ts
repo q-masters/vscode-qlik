@@ -31,8 +31,7 @@ export class QixFsStreamRootDirectory extends QixFsDirectoryAdapter {
 
             /** register to cache ? */
             return this.sanitizeStreams(streams).map((stream) => {
-                const streamUri = uri.with({path: resolve(uri.path, stream.qName)});
-
+                const streamUri = uri.with({path: uri.path + '/' + stream.qName});
                 connection.fileSystem.write(streamUri.toString(true), {
                     id: stream.qId,
                     name: stream.qName,
