@@ -186,11 +186,11 @@
   "dependencies": {
     "enigma.js": "2.7.2",
     "lodash": "^4.17.20",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "object-hash": "2.0.3",
     "reflect-metadata": "^0.1.13",
     "request": "2.88.2",
-    "rxjs": "^6.6.2",
+    "rxjs": "^6.6.3",
     "tsyringe": "^4.3.0",
     "ws": "7.3.1",
     "yaml": "1.10.0"
