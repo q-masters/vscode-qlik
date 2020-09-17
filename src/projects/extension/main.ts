@@ -110,4 +110,5 @@ function registerWorkspacefolderEvents() {
 }
 
 export function deactivate(): void {
+    /** @todo implement */
 }
