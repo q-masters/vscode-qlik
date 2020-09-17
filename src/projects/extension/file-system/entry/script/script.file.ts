@@ -83,6 +83,7 @@ export class ScriptFile extends QixFsFileAdapter {
         }
 
         await this.appService.writeScript(connection, app.id, content.toString());
+        await vscode.commands.executeCommand('VsQlik.Script.CheckSyntax', uri);
     }
 
     /**

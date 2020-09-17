@@ -11,7 +11,7 @@ import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
 import { QixFSProvider } from "./file-system/utils/qix-fs.provider";
 import { ServerConnectCommand } from "./connection/commands/connect";
 import { ServerDisconnectCommand } from "./connection/commands/disconnect";
-import { ScriptModule } from "./script/script-module";
+import { CheckScriptSyntax } from "./script/commands/check-syntax";
 
 /**
  * bootstrap extension
@@ -45,6 +45,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
 
     registerCommands(context);
+    registerEvents();
     registerWorkspacefolderEvents();
 
     /** register existing workspace folders (for example close and reopen editor) */
@@ -53,13 +54,6 @@ export function activate(context: vscode.ExtensionContext): void {
             vscode.commands.executeCommand('VsQlik.Connection.Connect', folder);
         }
     });
-
-    /**
-     * bootstrap script module
-     * - dataload editor
-     * - check script syntax
-     */
-    ScriptModule.bootstrap();
 }
 
 /**
@@ -74,6 +68,12 @@ function registerCommands(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Disconnect', ServerDisconnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Remove', RemoveConnectionCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Settings.Update', SettingsUpdateCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.CheckSyntax', CheckScriptSyntax));
+}
+
+function registerEvents() {
+    vscode.workspace.onDidOpenTextDocument((doc: vscode.TextDocument) =>
+        vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri));
 }
 
 function outputChannelFactory(): () => vscode.OutputChannel {
@@ -107,7 +107,4 @@ function registerWorkspacefolderEvents() {
 }
 
 export function deactivate(): void {
-
-    /** @todo implement */
-    ScriptModule.destroy();
 }
