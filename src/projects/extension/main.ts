@@ -72,8 +72,11 @@ function registerCommands(context: vscode.ExtensionContext) {
 }
 
 function registerEvents() {
-    vscode.workspace.onDidOpenTextDocument((doc: vscode.TextDocument) =>
-        vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri));
+    vscode.workspace.onDidOpenTextDocument((doc: vscode.TextDocument) => {
+        doc.fileName.match(/\.qvs$/)
+            ? vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri)
+            : void 0;
+    });
 }
 
 function outputChannelFactory(): () => vscode.OutputChannel {
