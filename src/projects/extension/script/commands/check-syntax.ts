@@ -32,15 +32,18 @@ export async function CheckScriptSyntax(uri: vscode.Uri): Promise<void> {
 
     /** final syntax checks */
     const errors = await app.checkScriptSyntax();
+    const diagnostics: vscode.Diagnostic[] = [];
     if (errors.length) {
         const script = await app.getScript();
-        const diagnostics = errors.map<vscode.Diagnostic>((error) => {
+
+        errors.forEach((error) => {
             const line = script.substring(0, error.qTextPos).split(EOL).length - 1;
-            return new vscode.Diagnostic(
+            const diagnostic = new vscode.Diagnostic(
                 new vscode.Range(line, error.qColInLine, line, error.qColInLine + error.qErrLen),
                 "vsqlik: error in script"
             );
+            diagnostics.push(diagnostic);
         });
-        diagnosticsCollection.set(uri, diagnostics);
     }
+    diagnosticsCollection.set(uri, diagnostics);
 }
