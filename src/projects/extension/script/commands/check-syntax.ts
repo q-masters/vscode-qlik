@@ -1,6 +1,7 @@
 import { ConnectionProvider } from "@core/public.api";
 import { QixApplicationProvider } from "@core/qix/utils/application.provider";
 import { EntryType } from "@vsqlik/fs/data";
+import { EOL } from "os";
 import { container } from "tsyringe";
 import * as vscode from "vscode";
 
@@ -16,15 +17,14 @@ export async function CheckScriptSyntax(uri: vscode.Uri): Promise<void> {
     /** get required data, connection, app and the text editor which contains the script */
     const connection = await connectionProviver.resolve(uri);
     const appEntry   = connection?.fileSystem.parent(uri, EntryType.APPLICATION);
-    const textEditor = vscode.window.visibleTextEditors.find(
-        (editor) => editor.document.uri.toString(true) === uri.toString(true));
 
-    if (!connection || !appEntry || !textEditor) {
+    if (!connection || !appEntry) {
         return;
     }
 
     /** open the app */
     const app = await appProvider.openApp(connection, appEntry.id);
+
     if (!app) {
         vscode.window.showInformationMessage(`check syntax for file: ${uri.toString(true)} failed. Could not open app.`);
         return;
@@ -32,14 +32,15 @@ export async function CheckScriptSyntax(uri: vscode.Uri): Promise<void> {
 
     /** final syntax checks */
     const errors = await app.checkScriptSyntax();
-    const diagnostics: vscode.Diagnostic[] = [];
-    errors.forEach((error) => {
-        const pos = textEditor.document.positionAt(error.qTextPos);
-        const diagnostic = new vscode.Diagnostic(
-            new vscode.Range(pos.line, error.qColInLine, pos.line, error.qColInLine + error.qErrLen),
-            "vsqlik: error in script"
-        );
-        diagnostics.push(diagnostic);
-    });
-    diagnosticsCollection.set(uri, diagnostics);
+    if (errors.length) {
+        const script = await app.getScript();
+        const diagnostics = errors.map<vscode.Diagnostic>((error) => {
+            const line = script.substring(0, error.qTextPos).split(EOL).length - 1;
+            return new vscode.Diagnostic(
+                new vscode.Range(line, error.qColInLine, line, error.qColInLine + error.qErrLen),
+                "vsqlik: error in script"
+            );
+        });
+        diagnosticsCollection.set(uri, diagnostics);
+    }
 }
