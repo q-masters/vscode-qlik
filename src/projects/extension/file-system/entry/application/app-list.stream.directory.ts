@@ -10,10 +10,13 @@ import { Connection } from "projects/extension/connection/utils/connection";
 export class AppListStreamDirectory extends AppListDirectory {
 
     protected onAppsLoaded(apps: DoclistEntry[], connection: Connection, uri: vscode.Uri): DoclistEntry[] {
+
         const stream = connection.fileSystem.read(uri.toString(true));
         if (!stream) {
             return [];
         }
-        return apps.filter((app) => app.qMeta.stream?.id === stream.id);
+        const result = apps.filter((app) => app.qMeta.stream?.id === stream.id);
+
+        return result;
     }
 }
