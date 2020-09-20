@@ -16,27 +16,40 @@ export class QixApplicationProvider {
         );
     }
 
+    public async openApp(connection: Connection, id: string): Promise<EngineAPI.IApp | undefined> {
+        const session = await connection.openSession(id);
+        const app     = await session?.openDoc(id);
+        return app;
+    }
+
     /**
      * read script from app
      */
     public async readScript(connection: Connection, id: string): Promise<string | undefined> {
-        const session = await connection.openSession(id);
-        const app     = await session?.openDoc(id);
-        return await app?.getScript();
+        const app = await this.openApp(connection, id);
+        return app?.getScript();
     }
 
     /**
      * write script to app
      */
     public async writeScript(connection: Connection, id: string, content: string): Promise<void> {
-
-        const session = await connection.openSession(id);
-        const app     = await session?.openDoc(id);
-
+        const app = await this.openApp(connection, id);
         if (app) {
             await app.setScript(content.toString());
             await app.doSave();
         }
+    }
+
+    /**
+     * check app script syntax
+     */
+    public async checkScriptSyntax(connection: Connection, id: string): Promise<EngineAPI.IScriptSyntaxError[]> {
+        const app = await this.openApp(connection, id);
+        if (app) {
+            return await app.checkScriptSyntax();
+        }
+        throw new Error("could not open app");
     }
 
     /**
@@ -73,9 +86,7 @@ export class QixApplicationProvider {
     public async renameApp(connection: Connection, id: string, name: string): Promise<void> {
 
         /** get global and delete app */
-        const session = await connection.openSession(id);
-        const app     = await session?.openDoc(id);
-
+        const app = await this.openApp(connection, id);
         const properties = await app?.getAppProperties();
         const newProperties = {...properties, qTitle: name} as EngineAPI.INxAppProperties;
 

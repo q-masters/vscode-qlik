@@ -7,3 +7,4 @@ src/dist
 .DS_STORE
 *.vsix
 src/README.md
+keys
