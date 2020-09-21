@@ -76,13 +76,14 @@ export class ScriptFile extends QixFsFileAdapter {
         }
 
         const connection = await this.getConnection(uri);
-        const app     = connection?.fileSystem.parent(fileUri, EntryType.APPLICATION);
+        const app        = connection?.fileSystem.parent(fileUri, EntryType.APPLICATION);
 
         if (!app || !connection) {
             throw vscode.FileSystemError.FileNotFound();
         }
 
         await this.appService.writeScript(connection, app.id, content.toString());
+        await vscode.commands.executeCommand('VsQlik.Script.CheckSyntax', uri);
     }
 
     /**

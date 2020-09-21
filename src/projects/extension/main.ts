@@ -11,7 +11,9 @@ import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
 import { QixFSProvider } from "./file-system/utils/qix-fs.provider";
 import { ServerConnectCommand } from "./connection/commands/connect";
 import { ServerDisconnectCommand } from "./connection/commands/disconnect";
+import { CheckScriptSyntax } from "./script/commands/check-syntax";
 import { ScriptLoadDataCommand } from "./script";
+import { ScriptResolveActiveCommand } from "./script/commands/active-script";
 
 /**
  * bootstrap extension
@@ -45,6 +47,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
 
     registerCommands(context);
+    registerEvents();
     registerWorkspacefolderEvents();
 
     /** register existing workspace folders (for example close and reopen editor) */
@@ -53,8 +56,6 @@ export function activate(context: vscode.ExtensionContext): void {
             vscode.commands.executeCommand('VsQlik.Connection.Connect', folder);
         }
     });
-
-
 }
 
 /**
@@ -64,12 +65,23 @@ function registerCommands(context: vscode.ExtensionContext) {
     /** register commands */
     vscode.commands.registerCommand('VsQlik.Connection.Create',   AddConnectionCommand);
     vscode.commands.registerCommand('VsQlik.Connection.Settings', SettingsOpenCommand);
-    vscode.commands.registerTextEditorCommand('VsQlik.Script.LoadData',     ScriptLoadDataCommand);
 
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Connect', ServerConnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Disconnect', ServerDisconnectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Connection.Remove', RemoveConnectionCommand));
     context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Settings.Update', SettingsUpdateCommand));
+
+    context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.CheckSyntax', CheckScriptSyntax));
+    context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.LoadData', ScriptLoadDataCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.ResolveActive', ScriptResolveActiveCommand));
+}
+
+function registerEvents() {
+    vscode.workspace.onDidOpenTextDocument((doc: vscode.TextDocument) => {
+        doc.fileName.match(/\.qvs$/)
+            ? vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri)
+            : void 0;
+    });
 }
 
 function outputChannelFactory(): () => vscode.OutputChannel {

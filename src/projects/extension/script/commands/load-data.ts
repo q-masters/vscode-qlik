@@ -6,11 +6,10 @@ import { interval, from, merge } from 'rxjs';
 import { switchMap, map, takeWhile, finalize } from 'rxjs/operators';
 import { isBoolean } from 'util';
 import { QlikOutputChannel } from '@data/tokens';
-import { basename } from 'path';
 
 export async function ScriptLoadDataCommand(): Promise<void> {
 
-    const document = getActiveScriptDocument();
+    const document = await vscode.commands.executeCommand<vscode.TextDocument>('VsQlik.Script.ResolveActive');
 
     if (!document) {
         return;
@@ -64,23 +63,3 @@ export async function ScriptLoadDataCommand(): Promise<void> {
     }
 }
 
-function getActiveScriptDocument(): vscode.TextDocument | undefined {
-    let document = vscode.window.activeTextEditor?.document;
-    if (document && !isMainQvs(document)) {
-        /** get all visible text editors and find the editor which contains the script */
-        const visibleTextEditors = vscode.window.visibleTextEditors;
-        const editor = visibleTextEditors.filter((editor) => isMainQvs(editor.document));
-
-        if (editor.length === 1) {
-            document = editor[0].document;
-        } else if (editor.length > 1) {
-            vscode.window.showInformationMessage(`found to many active script files. Please focus the script file, which should be executed`);
-            return;
-        }
-    }
-    return document;
-}
-
-function isMainQvs(document: vscode.TextDocument) {
-    return document.uri.scheme === 'qix' && basename(document.uri.fsPath) === 'main.qvs';
-}
