@@ -158,7 +158,7 @@
     "@types/node-fetch": "^2.5.7",
     "@types/qlik-engineapi": "12.67.9",
     "@types/request": "2.48.5",
-    "@types/sinon": "9.0.5",
+    "@types/sinon": "9.0.7",
     "@types/vscode": "1.45.1",
     "@types/ws": "7.2.6",
     "@typescript-eslint/eslint-plugin": "4.0.0",
