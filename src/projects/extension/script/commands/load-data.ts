@@ -3,9 +3,9 @@ import { container } from 'tsyringe';
 import { EntryType } from '@vsqlik/fs/data';
 import { ConnectionProvider } from 'projects/extension/connection';
 import { interval, from, merge } from 'rxjs';
-import { switchMap, map, takeWhile, finalize } from 'rxjs/operators';
-import { isBoolean } from 'util';
+import { switchMap, map, takeWhile, finalize, tap } from 'rxjs/operators';
 import { QlikOutputChannel } from '@data/tokens';
+import { EOL } from 'os';
 
 export async function ScriptLoadDataCommand(): Promise<void> {
 
@@ -36,7 +36,12 @@ export async function ScriptLoadDataCommand(): Promise<void> {
         out.appendLine(`>>> ${new Date().toLocaleTimeString()} load data for ${app.name}`);
 
         /** streams and log logic */
-        const dataLoad$ = from(application.doReload());
+        const dataLoad$ = from(application.doReload())
+            .pipe(
+                switchMap(() => application.doSave()),
+                map(() => true)
+            );
+
         const message$ = interval(500).pipe(
             switchMap((() => global.getProgress(1))),
             map((data)    => data.qPersistentProgress?.trim() ?? ''),
@@ -49,14 +54,18 @@ export async function ScriptLoadDataCommand(): Promise<void> {
                 takeWhile(() => !isCompleted, true),
                 finalize(() => {
                     global.session.close();
-                    out.appendLine(`<<<`);
                     out.appendLine(``);
+                    out.appendLine(`load data completed`);
+                    out.appendLine(`app ${app.name} saved`);
+                    out.appendLine(`<<<`);
                 })
             )
-            .subscribe((result) => isBoolean(result)
-                ? (isCompleted = true)
-                : result.length > 0 ? out.appendLine(result) : void 0
-            );
+            .subscribe((result) => {
+                /** wichtige zeile */
+                typeof result === 'boolean'
+                    ? (isCompleted = true)
+                    : result.length > 0 ? out.appendLine(result) : void 0;
+            });
 
     } catch (error) {
         console.log(error);

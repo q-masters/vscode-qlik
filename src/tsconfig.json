@@ -7,6 +7,8 @@
     "outDir": "./dist",
     "rootDir": "./",
     "resolveJsonModule": true,
+    "sourceMap": true,
+    "inlineSourceMap": false,
     "esModuleInterop": true,
     "typeRoots": [
       "node_modules/@types",
