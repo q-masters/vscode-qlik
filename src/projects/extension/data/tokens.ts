@@ -1,6 +1,7 @@
-import { InjectionToken } from "tsyringe";
+import { container, InjectionToken } from "tsyringe";
 import * as vscode from "vscode";
 import { Storage } from '@core/storage';
+import { VsQlikLogger, VsQlikLoggerResolver, VsQlikLoggerToken } from "../logger/logger";
 
 export const ExtensionContext: InjectionToken<vscode.ExtensionContext> = "VsCodeExtensionContext";
 export const WorkspaceFolders: InjectionToken<string[]> = "VsCodeWorkspaceFolders";

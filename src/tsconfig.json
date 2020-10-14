@@ -32,6 +32,9 @@
       "@vsqlik/settings/*": ["projects/extension/settings/*"],
       "@vsqlik/utils/*": ["projects/extension/utils/*"],
       "@vsqlik/fs/*": ["projects/extension/file-system/*"],
+
+      "@vsqlik/logger": ["projects/extension/logger"],
+      "@vsqlik/logger/*": ["projects/extension/logger/*"],
     }
   },
   "exclude": [

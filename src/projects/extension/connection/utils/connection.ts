@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { Subject, of, Observable, timer, BehaviorSubject } from "rxjs";
-import { container, inject } from "tsyringe";
+import { container } from "tsyringe";
 import { switchMap, tap, catchError, take, throttle, takeUntil } from "rxjs/operators";
 
 import { Storage } from "@core/storage";
@@ -8,13 +8,14 @@ import { ConnectionStorage } from "@data/tokens";
 import { AuthorizationService } from "@auth/utils/authorization.service";
 import { AuthorizationState } from "@auth/strategies/authorization.strategy";
 
+import { WorkspaceSetting } from "@vsqlik/settings/api";
+import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
+import { VsQlikLogger, VsQlikLoggerConnection } from "@vsqlik/logger";
+
 import { ConnectionState, ConnectionModel } from "../model/connection";
 import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
-import { WorkspaceSetting } from "@vsqlik/settings/api";
-import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
 import { fetchServerInformation } from "../commands/fetch-server-informations";
-import { VsQlikLogger } from "projects/extension/logger/logger";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -51,7 +52,7 @@ export class Connection {
         private serverSetting: WorkspaceSetting,
         private uri: string,
     ) {
-        this.logger          = container.resolve(VsQlikLogger);
+        this.logger          = container.resolve(VsQlikLoggerConnection);
         this.serverStorage   = container.resolve(ConnectionStorage);
         this.connectionModel = new ConnectionModel(serverSetting.connection);
     }
@@ -79,11 +80,7 @@ export class Connection {
         const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.cookies = data?.cookies ?? [];
 
-        try {
-            this.logger.log(`connect to server: ${this.serverSetting.connection.host}`);
-        } catch (error) {
-            debugger;
-        }
+        this.logger.info(`connect to server: ${this.serverSetting.connection.host}`);
 
         return fetchServerInformation(this.serverSetting.connection).pipe(
             switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerPrint) : of(true)),
@@ -93,9 +90,11 @@ export class Connection {
                 const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error?.message ?? error}`;
                 vscode.window.showErrorMessage(message);
                 this.stateChange$.next(ConnectionState.ERROR);
+
+                this.logger.error(message);
                 return of(false);
             }),
-            take(1)
+            take(1),
         ).toPromise();
     }
 
@@ -241,6 +240,7 @@ export class Connection {
          * version otherwise we could open more sessions for qlik sense desktop is no limit
          */
         this.engimaProvider.maxSessions = isQlikCore ? 5 : -1;
+        this.logger.info(`connected to server: ${this.serverSetting.connection.host}`);
 
         this.stateChange$.next(ConnectionState.CONNECTED);
 
