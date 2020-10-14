@@ -67,7 +67,7 @@ export class ConnectionProvider {
         this.connectionIsRunning = true;
 
         while (connection) {
-            if (! await connection.connect()) {
+            if (!await connection.connect()) {
                 vscode.commands.executeCommand('VsQlik.Connection.Remove', connection.workspacePath);
             }
             connection = this.items.shift();

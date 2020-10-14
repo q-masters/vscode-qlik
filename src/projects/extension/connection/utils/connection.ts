@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { Subject, of, Observable, timer, BehaviorSubject } from "rxjs";
-import { container } from "tsyringe";
+import { container, inject } from "tsyringe";
 import { switchMap, tap, catchError, take, throttle, takeUntil } from "rxjs/operators";
 
 import { Storage } from "@core/storage";
@@ -14,6 +14,7 @@ import { EnigmaSession } from "./enigma.provider";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
 import { fetchServerInformation } from "../commands/fetch-server-informations";
+import { VsQlikLogger } from "projects/extension/logger/logger";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -44,11 +45,14 @@ export class Connection {
      */
     private serverFilesystem: FileSystemStorage = new FileSystemStorage();
 
+    private logger: VsQlikLogger;
+
     public constructor(
         private serverSetting: WorkspaceSetting,
-        private uri: string
+        private uri: string,
     ) {
-        this.serverStorage = container.resolve(ConnectionStorage);
+        this.logger          = container.resolve(VsQlikLogger);
+        this.serverStorage   = container.resolve(ConnectionStorage);
         this.connectionModel = new ConnectionModel(serverSetting.connection);
     }
 
@@ -74,6 +78,12 @@ export class Connection {
     public connect(): Promise<boolean> {
         const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
         this.connectionModel.cookies = data?.cookies ?? [];
+
+        try {
+            this.logger.log(`connect to server: ${this.serverSetting.connection.host}`);
+        } catch (error) {
+            debugger;
+        }
 
         return fetchServerInformation(this.serverSetting.connection).pipe(
             switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerPrint) : of(true)),
