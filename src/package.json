@@ -69,7 +69,21 @@
             "description": "vscode developer settings",
             "type": "object"
           },
-          "VsQlik.Logger": {},
+          "VsQlik.Logger": {
+            "title": "Settings for develop vsqlik extension",
+            "description": "vscode developer settings",
+            "type": "object",
+            "default": {
+              "level": "debug",
+              "vscodeOutputChannel": {
+                  "enabled": false
+              },
+              "fileChannel": {
+                  "enabled": false,
+                  "outDir": ""
+              }
+            }
+          },
           "VsQlik.Servers": {
             "title": "A list of file locations to load SSH FS configurations from",
             "description": "Location of JSON files to load configs from",

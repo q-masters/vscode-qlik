@@ -40,6 +40,8 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
 
+    /** register logger settings */
+
     /** register routes */
     container.resolve(QixRouter).addRoutes(Routes);
 

@@ -1,5 +1,7 @@
+import * as vscode from 'vscode';
 import { InjectionToken, container } from "tsyringe";
 import { VsQlikLogger, VsQlikLoggerResolver, VsQlikLoggerToken } from "./logger";
+import { PathLike } from 'fs';
 
 export enum LogLevel {
     off,
@@ -8,6 +10,28 @@ export enum LogLevel {
     warn,
     error
 }
+
+/**
+ * settings
+ */
+export interface VsQlikLoggerSetting {
+
+    level: 'info' | 'warn' | 'error' | 'debug';
+
+    vscodeOutputChannel: {
+        enabled: boolean;
+    };
+
+    fileChannel: {
+        enabled: boolean;
+        outDir: PathLike;
+    };
+}
+
+export const VsQlikLogSettings: InjectionToken<VsQlikLoggerSetting> = `VsQlik Logger Settings`;
+container.register(VsQlikLogSettings, {
+    useFactory: () => vscode.workspace.getConfiguration().get('VsQlik.Logger')
+});
 
 /**
  * logger
