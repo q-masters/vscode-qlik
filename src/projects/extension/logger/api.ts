@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { InjectionToken, container } from "tsyringe";
 import { VsQlikLogger, VsQlikLoggerResolver, VsQlikLoggerToken } from "./logger";
-import { PathLike } from 'fs';
 
 export enum LogLevel {
     off,
@@ -24,13 +23,13 @@ export interface VsQlikLoggerSetting {
 
     fileChannel: {
         enabled: boolean;
-        outDir: PathLike;
+        outDir: string; /** path to output directory for the log files */
     };
 }
 
 export const VsQlikLogSettings: InjectionToken<VsQlikLoggerSetting> = `VsQlik Logger Settings`;
 container.register(VsQlikLogSettings, {
-    useFactory: () => vscode.workspace.getConfiguration().get('VsQlik.Logger')
+    useValue: vscode.workspace.getConfiguration().get('VsQlik.Logger')
 });
 
 /**

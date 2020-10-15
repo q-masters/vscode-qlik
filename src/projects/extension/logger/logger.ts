@@ -63,11 +63,9 @@ export class VsQlikLoggerResolver {
 
         /**
          * check we can enable a file transport for the logger
-         * -> has to be enabled
-         * -> outdir has to exists and it should be a directory
+         * has to be enabled, outdir has to exists and it should be a directory
          */
-        let enableFileTransport = false;
-        enableFileTransport = this.settings.fileChannel.enabled;
+        let enableFileTransport = this.settings.fileChannel.enabled;
         enableFileTransport = enableFileTransport && existsSync(this.settings.fileChannel.outDir);
         enableFileTransport = enableFileTransport && statSync(this.settings.fileChannel.outDir).isDirectory();
 
@@ -111,7 +109,7 @@ export class VsQlikLoggerResolver {
      */
     private resolveFileTransport(options: TransportStreamOptions): FileTransportInstance {
         /** file path should be read out of settings */
-        const outDir = `/Users/rhannuschka/logs`;
+        const outDir = this.settings.fileChannel.outDir;
         const file = `${new Date().toISOString().replace(/T.+$/, '')}.vsqlik.log`;
         const streamOptions: FileTransportOptions = {
             ...options,
