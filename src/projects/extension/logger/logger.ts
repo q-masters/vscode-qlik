@@ -1,6 +1,6 @@
 import * as path from "path";
 import { MESSAGE } from "triple-beam";
-import { container, inject, singleton } from "tsyringe";
+import { container, singleton } from "tsyringe";
 import * as winston from "winston";
 import { TransportStreamOptions } from "winston-transport";
 import * as Transport from 'winston-transport';

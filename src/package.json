@@ -64,13 +64,12 @@
       {
         "title": "Visual Studio Qlik",
         "properties": {
-          "VsQlik.Developer": {
-            "title": "Settings for develop vsqlik extension",
-            "description": "vscode developer settings",
-            "type": "object"
+          "VsQlik": {
+            "type": "object",
+            "title": "Settings vsqlik settings"
           },
           "VsQlik.Logger": {
-            "title": "Settings for develop vsqlik extension",
+            "title": "settings for logger",
             "description": "vscode developer settings",
             "type": "object",
             "default": {
@@ -81,6 +80,14 @@
                 "level": "off",
                 "outDir": ""
               }
+            }
+          },
+          "VsQlik.Developer": {
+            "title": "Settings for develop vsqlik extension",
+            "description": "vscode developer settings",
+            "type": "object",
+            "default": {
+              "cacheSession": false
             }
           },
           "VsQlik.Servers": {
