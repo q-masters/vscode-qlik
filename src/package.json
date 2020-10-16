@@ -74,13 +74,12 @@
             "description": "vscode developer settings",
             "type": "object",
             "default": {
-              "level": "debug",
               "vscodeOutputChannel": {
-                  "enabled": false
+                "level": "off"
               },
               "fileChannel": {
-                  "enabled": false,
-                  "outDir": ""
+                "level": "off",
+                "outDir": ""
               }
             }
           },

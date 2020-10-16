@@ -5,7 +5,7 @@ import * as winston from "winston";
 import { TransportStreamOptions } from "winston-transport";
 import * as Transport from 'winston-transport';
 import { FileTransportInstance, FileTransportOptions } from "winston/lib/winston/transports";
-import { VsQlikLoggerSetting, VsQlikLogSettings } from "./api";
+import { VsQlikLoggerSetting, VsQlikLogLevels, VsQlikLogSettings } from "./api";
 import { VsQlikOutputChannelTransport } from "./out-channel";
 import {existsSync, statSync } from "fs";
 
@@ -27,8 +27,6 @@ export class VsQlikLoggerResolver {
 
     private logger: winston.Logger;
 
-    private globalContext = new VsQlikLoggerToken(`VsQlik`);
-
     private settings: VsQlikLoggerSetting;
 
     public constructor() {
@@ -38,7 +36,7 @@ export class VsQlikLoggerResolver {
     /**
      * resolve a logger by token
      */
-    public resolve(token = this.globalContext): VsQlikLogger {
+    public resolve(token: VsQlikLoggerToken): VsQlikLogger {
         if (!this.loggers.has(token)) {
             this.createChildLogger(token);
         }
@@ -53,7 +51,6 @@ export class VsQlikLoggerResolver {
 
         const transports: Transport[] = [];
         const transportOptions: TransportStreamOptions = {
-            level: this.settings.level ?? 'off',
             format: winston.format.combine(
                 this.formatTime(),
                 this.flattenMessage(),
@@ -61,11 +58,7 @@ export class VsQlikLoggerResolver {
             )
         };
 
-        /**
-         * check we can enable a file transport for the logger
-         * has to be enabled, outdir has to exists and it should be a directory
-         */
-        let enableFileTransport = this.settings.fileChannel.enabled;
+        let enableFileTransport = this.settings.fileChannel.level !== 'off';
         enableFileTransport = enableFileTransport && existsSync(this.settings.fileChannel.outDir);
         enableFileTransport = enableFileTransport && statSync(this.settings.fileChannel.outDir).isDirectory();
 
@@ -73,15 +66,17 @@ export class VsQlikLoggerResolver {
             transports.push(this.resolveFileTransport(transportOptions));
         }
 
-        if (this.settings.vscodeOutputChannel.enabled) {
-            transports.push(new VsQlikOutputChannelTransport(transportOptions));
+        if (this.settings.vscodeOutputChannel.level !== `off`) {
+            transports.push(new VsQlikOutputChannelTransport({
+                ...transportOptions,
+                level: this.settings.vscodeOutputChannel.level
+            }));
         }
 
         return winston.createLogger({
-            transports,
-            defaultMeta: {
-                context: this.globalContext.context
-            }
+            silent: transports.length === 0,
+            levels: VsQlikLogLevels,
+            transports
         });
     }
 
@@ -113,9 +108,8 @@ export class VsQlikLoggerResolver {
         const file = `${new Date().toISOString().replace(/T.+$/, '')}.vsqlik.log`;
         const streamOptions: FileTransportOptions = {
             ...options,
-            ...{
-                filename: path.resolve(outDir, file),
-            }
+            filename: path.resolve(outDir, file),
+            level: this.settings.fileChannel.level
         };
         return new winston.transports.File(streamOptions);
     }

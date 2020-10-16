@@ -1,28 +1,29 @@
 import * as vscode from 'vscode';
 import { InjectionToken, container } from "tsyringe";
 import { VsQlikLogger, VsQlikLoggerResolver, VsQlikLoggerToken } from "./logger";
+import { AbstractConfigSetLevels } from 'winston/lib/winston/config';
 
-export enum LogLevel {
-    off,
-    debug,
-    info,
-    warn,
-    error
-}
+export const VsQlikLogLevels: AbstractConfigSetLevels = {
+    off  : -1,
+    info : 0,
+    warn : 1,
+    error: 2,
+    debug: 3
+};
+
+declare type LogLevel = 'off' | 'info' | 'warn' | 'error' | 'debug';
 
 /**
  * settings
  */
 export interface VsQlikLoggerSetting {
 
-    level: 'info' | 'warn' | 'error' | 'debug';
-
     vscodeOutputChannel: {
-        enabled: boolean;
+        level: LogLevel;
     };
 
     fileChannel: {
-        enabled: boolean;
+        level: LogLevel;
         outDir: string; /** path to output directory for the log files */
     };
 }
@@ -36,8 +37,9 @@ container.register(VsQlikLogSettings, {
  * logger
  */
 export const VsQlikLoggerConnection: InjectionToken<VsQlikLogger> = `VsQlik Logger Connection`;
-export const VsQlikLoggerScript: InjectionToken<VsQlikLogger> = `VsQlik Logger Script`;
-export const VsQlikLoggerQixFs: InjectionToken<VsQlikLogger> = `VsQlik Logger Qix FS`;
+export const VsQlikLoggerScript: InjectionToken<VsQlikLogger>     = `VsQlik Logger Script`;
+export const VsQlikLoggerQixFs: InjectionToken<VsQlikLogger>      = `VsQlik Logger Qix FS`;
+export const VsQlikLoggerGlobal: InjectionToken<VsQlikLogger>     = `VsQlik Global Logger`;
 
 function LoggerFactory(label: string) {
     const resolver = container.resolve(VsQlikLoggerResolver);
@@ -46,6 +48,7 @@ function LoggerFactory(label: string) {
     return () => resolver.resolve(token);
 }
 
+container.register(VsQlikLoggerGlobal,     { useFactory: LoggerFactory(`VsQlik`) });
 container.register(VsQlikLoggerConnection, { useFactory: LoggerFactory(`VsQlik.Connection`) });
 container.register(VsQlikLoggerQixFs,      { useFactory: LoggerFactory(`VsQlik.QixFS`) });
 container.register(VsQlikLoggerScript,     { useFactory: LoggerFactory(`VsQlik.Script`) });
