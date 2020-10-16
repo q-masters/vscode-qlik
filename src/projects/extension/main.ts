@@ -5,6 +5,7 @@ import { QixRouter } from "@shared/router";
 
 import { SettingsOpenCommand, SettingsUpdateCommand } from "@settings";
 import { Routes } from "@vsqlik/fs/data";
+import { VsQlikLoggerGlobal } from "@vsqlik/logger";
 import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings, ConnectionStorage, QlikOutputChannel } from "./data/tokens";
 import { FileStorage, MemoryStorage } from "@core/storage";
 import { AddConnectionCommand, RemoveConnectionCommand } from "./connection";
@@ -56,6 +57,8 @@ export function activate(context: vscode.ExtensionContext): void {
             vscode.commands.executeCommand('VsQlik.Connection.Connect', folder);
         }
     });
+
+    container.resolve(VsQlikLoggerGlobal).info(`extension activated`);
 }
 
 /**
@@ -100,14 +103,19 @@ function outputChannelFactory(): () => vscode.OutputChannel {
 function registerWorkspacefolderEvents() {
 
     vscode.workspace.onDidChangeWorkspaceFolders((event) => {
+
+        const logger = container.resolve(VsQlikLoggerGlobal);
+
         event.added.forEach((folder) => {
             if(folder.uri.scheme === 'qix') {
+                logger.info(`added workspace folder ${folder.name}`);
                 vscode.commands.executeCommand('VsQlik.Connection.Connect', folder);
             }
         });
 
         event.removed.forEach((folder) => {
             if(folder.uri.scheme === 'qix') {
+                logger.info(`removed workspace folder ${folder.name}`);
                 vscode.commands.executeCommand('VsQlik.Connection.Disconnect', folder);
             }
         });
@@ -116,4 +124,5 @@ function registerWorkspacefolderEvents() {
 
 export function deactivate(): void {
     /** @todo implement */
+    container.resolve(VsQlikLoggerGlobal).info(`deactivate extension`);
 }
