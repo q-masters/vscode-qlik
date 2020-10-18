@@ -36,13 +36,12 @@ container.register(VsQlikLogSettings, {
 /**
  * logger
  */
-export const VsQlikLoggerConnection: InjectionToken<VsQlikLogger> = `VsQlik Logger Connection`;
 export const VsQlikLoggerScript: InjectionToken<VsQlikLogger>     = `VsQlik Logger Script`;
 export const VsQlikLoggerQixFs: InjectionToken<VsQlikLogger>      = `VsQlik Logger Qix FS`;
 export const VsQlikLoggerGlobal: InjectionToken<VsQlikLogger>     = `VsQlik Global Logger`;
 export const VsQlikLoggerWebsocket: InjectionToken<VsQlikLogger>  = `VsQlik Websocket Logger`;
 
-function LoggerFactory(label: string) {
+export function LoggerFactory(label: string): () => VsQlikLogger {
     const resolver = container.resolve(VsQlikLoggerResolver);
     const token    = new VsQlikLoggerToken(label);
 
@@ -50,7 +49,6 @@ function LoggerFactory(label: string) {
 }
 
 container.register(VsQlikLoggerGlobal,     { useFactory: LoggerFactory(`VsQlik`) });
-container.register(VsQlikLoggerConnection, { useFactory: LoggerFactory(`VsQlik Connection`) });
 container.register(VsQlikLoggerQixFs,      { useFactory: LoggerFactory(`VsQlik QixFS`) });
 container.register(VsQlikLoggerScript,     { useFactory: LoggerFactory(`VsQlik Script`) });
 container.register(VsQlikLoggerWebsocket,  { useFactory: LoggerFactory(`VsQlik Websocket`) });

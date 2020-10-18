@@ -18,6 +18,7 @@ export async function AddConnectionCommand(): Promise<void> {
             vscode.window.showInformationMessage(`Workspacefolder ${name} allready exists.`);
             return;
         }
+
         vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders?.length ?? 0, 0, newWorkspaceFolder);
     }
 }
