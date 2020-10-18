@@ -1,1 +1,1 @@
-export * from "./commands/load-data";
+export * from "./script.module";

@@ -10,12 +10,13 @@ import { AuthorizationState } from "@auth/strategies/authorization.strategy";
 
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
-import { VsQlikLogger, VsQlikLoggerConnection } from "@vsqlik/logger";
+import { VsQlikLogger } from "@vsqlik/logger";
 
 import { ConnectionState, ConnectionModel } from "../model/connection";
 import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
-import { fetchServerInformation } from "../commands/fetch-server-informations";
+import { VsQlikLoggerConnection } from "../api";
+import { fetchServerInformation } from "../commands";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode

@@ -1,6 +1,8 @@
 import { AuthorizationSetting } from "projects/extension/authorization/api";
 import { Storage } from "@core/storage";
 import { AuthorizationStrategyConstructor } from "../../authorization/strategies/authorization.strategy";
+import { InjectionToken } from "tsyringe";
+import { VsQlikLogger } from "@vsqlik/logger";
 
 export interface DisplaySettings {
     dimensions: boolean;
@@ -82,3 +84,10 @@ export interface ConnectionConfiguration {
      */
     storage?: Storage;
 }
+
+export const enum COMMANDS {
+    CONNECT = 'VsQlik.Connection.Connect',
+    DISCONNECT = 'VsQlik.Connection.Disconnect',
+}
+
+export const VsQlikLoggerConnection: InjectionToken<VsQlikLogger> = `VsQlik Logger Connection`;

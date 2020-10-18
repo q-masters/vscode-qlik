@@ -35,6 +35,10 @@
 
       "@vsqlik/logger": ["projects/extension/logger"],
       "@vsqlik/logger/*": ["projects/extension/logger/*"],
+
+      "@vsqlik/connection": ["projects/extension/connection"],
+      "@vsqlik/qixfs": ["projects/extension/file-system"],
+      "@vsqlik/script": ["projects/extension/script"]
     }
   },
   "exclude": [
