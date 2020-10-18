@@ -2,7 +2,6 @@ import * as path from "path";
 import { MESSAGE } from "triple-beam";
 import { container, inject, singleton } from "tsyringe";
 import * as winston from "winston";
-import { TransportStreamOptions } from "winston-transport";
 import * as Transport from 'winston-transport';
 import { FileTransportInstance, FileTransportOptions } from "winston/lib/winston/transports";
 import { VsQlikLoggerSetting, VsQlikLogLevels, VsQlikLogSettings } from "./api";
@@ -50,7 +49,7 @@ export class VsQlikLoggerResolver {
     private createBaseLogger(): winston.Logger {
 
         const transports: Transport[] = [];
-        const transportOptions: TransportStreamOptions = {
+        const transportOptions: Transport.TransportStreamOptions = {
             format: winston.format.combine(
                 this.formatTime(),
                 this.flattenMessage(),
@@ -102,7 +101,7 @@ export class VsQlikLoggerResolver {
      * create file log stream to ensure we get all informations for delveopment
      * reasons log into a file,
      */
-    private resolveFileTransport(options: TransportStreamOptions): FileTransportInstance {
+    private resolveFileTransport(options: Transport.TransportStreamOptions): FileTransportInstance {
         /** file path should be read out of settings */
         const outDir = this.settings.fileChannel.outDir;
         const file = `${new Date().toISOString().replace(/T.+$/, '')}.vsqlik.log`;
@@ -156,6 +155,8 @@ export interface VsQlikLogger {
     info(message: string): void;
 
     error(message: string): void;
+
+    debug(message: string): void;
 }
 
 /**
@@ -167,14 +168,15 @@ class Logger implements VsQlikLogger {
        private logger: winston.Logger
     ) { }
 
-    /**
-     * log info message
-     */
     public info(message: string): void {
         this.logger.info(message);
     }
 
     public error(message: string): void {
         this.logger.error(message);
+    }
+
+    public debug(message: string): void {
+        this.logger.debug(message);
     }
 }

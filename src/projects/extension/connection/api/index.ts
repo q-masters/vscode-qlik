@@ -47,6 +47,8 @@ export interface ConnectionSetting {
     authorization: AuthorizationSetting;
 
     ssl_fingerprint?: string;
+
+    isQlikSenseDesktop: boolean;
 }
 
 export interface ConnectionConfiguration {
@@ -83,6 +85,8 @@ export interface ConnectionConfiguration {
      * storage to write connection specific data
      */
     storage?: Storage;
+
+    isQlikSenseDesktop: boolean;
 }
 
 export const enum COMMANDS {
