@@ -26,7 +26,10 @@ export abstract class ConnectionHelper {
 
         try {
             const url = new URL(protocol + connection.host);
+            url.port  = connection.port?.toString() ?? "";
             url.pathname = connection.path ?? "";
+            url.pathname += connection.isQlikSenseDesktop ? `/hub` : '';
+
             return url.toString();
         } catch (error) {
             console.dir(error);
@@ -72,12 +75,7 @@ export abstract class ConnectionHelper {
             rejectUnauthorized: !connection.isUntrusted
         });
 
-        /*
-        ws.on("message", (e) => {
-            console.dir(e);
-        });
-        */
-
+        ws.on("message", (message) => logger.debug(message.toString()));
         ws.on("error", (e) => logger.error(`${connection.setting.label} ${e.message}`));
         return ws;
     }
