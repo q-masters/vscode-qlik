@@ -107,6 +107,32 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     }
 
     /**
+     * handle change for qlik sense desktop checkbox
+     */
+    public changeStateQlikSenseDesktop($event: Event) {
+        $event.stopPropagation();
+
+        const target: HTMLInputElement = $event.target as HTMLInputElement;
+        const hostCtrl =  this.connectionForm.controls.hostCtrl;
+        const secureCtrl = this.connectionForm.controls.secureCtrl;
+
+        hostCtrl.setValue(`localhost`);
+        secureCtrl.setValue(false);
+
+        if (target.checked) {
+            this.authorizationStrategyCtrl.setValue(AuthorizationStrategy.NONE);
+            this.authorizationStrategyCtrl.disable();
+            hostCtrl.disable();
+            secureCtrl.disable();
+        } else {
+            this.authorizationStrategyCtrl.setValue(AuthorizationStrategy.FORM);
+            this.authorizationStrategyCtrl.enable();
+            hostCtrl.enable();
+            secureCtrl.enable();
+        }
+    }
+
+    /**
      * initialize base form for connection
      */
     private initConnectionForm() {
@@ -117,7 +143,8 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
             portCtrl: this.formbuilder.control(null),
             pathCtrl: this.formbuilder.control(null),
             secureCtrl: this.formbuilder.control(true),
-            untrustedCertCtrl: this.formbuilder.control(false)
+            untrustedCertCtrl: this.formbuilder.control(false),
+            isQlikSenseDesktopCtrl: this.formbuilder.control(false)
         });
     }
 
@@ -162,7 +189,8 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
             portCtrl: this.workspaceFolderSetting.connection.port,
             pathCtrl: this.workspaceFolderSetting.connection.path,
             secureCtrl: this.workspaceFolderSetting.connection.secure,
-            untrustedCertCtrl: this.workspaceFolderSetting.connection.allowUntrusted
+            untrustedCertCtrl: this.workspaceFolderSetting.connection.allowUntrusted,
+            isQlikSenseDesktop: this.workspaceFolderSetting.connection.isQlikSenseDesktop
         }, {onlySelf: true, emitEvent: false});
 
         /** update authorization strategy */
@@ -186,7 +214,8 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
                 port: this.connectionForm.controls.portCtrl.value,
                 path: this.connectionForm.controls.pathCtrl.value,
                 secure: this.connectionForm.controls.secureCtrl.value,
-                allowUntrusted: this.connectionForm.controls.untrustedCertCtrl.value
+                allowUntrusted: this.connectionForm.controls.untrustedCertCtrl.value,
+                isQlikSenseDesktop: this.connectionForm.controls.isQlikSenseDesktopCtrl.value
             },
             fileRenderer: this.connectionForm.controls.fileRendererCtrl.value
         });

@@ -73,6 +73,7 @@ export class ConnectionFormHelper {
             connection: {
                 allowUntrusted: false,
                 host: "localhost",
+                isQlikSenseDesktop: false,
                 secure: true,
                 path: null,
                 port: null,

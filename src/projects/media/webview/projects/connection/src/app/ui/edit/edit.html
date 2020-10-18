@@ -34,6 +34,14 @@
     <h3>Connection Settings</h3>
 
     <div class="form-control">
+        <label class="label">Qlik Sense Desktop</label>
+        <div class="control">
+            <input type="checkbox" formControlName="isQlikSenseDesktopCtrl" (change)="changeStateQlikSenseDesktop($event)">
+            <small>enable if we want connect to qlik sense desktop</small>
+        </div>
+    </div>
+
+    <div class="form-control">
         <label class="label">Host Name</label>
         <div class="control">
             <input type="text" formControlName="hostCtrl">
