@@ -50,7 +50,8 @@ window.connectionListCommand = [{
                     domain: "hannuschkar4fa4\\qlik",
                     password: "qlik2020"
                 }
-            }
+            },
+            isQlikSenseDesktop: true
         },
         fileRender: 1,
         display: {

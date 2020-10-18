@@ -70,6 +70,9 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         this.initAuthorizationStrategyCtrl();
         this.initObjectRenderStrategyCtrl();
 
+        this.connectionForm.controls.isQlikSenseDesktopCtrl.valueChanges.subscribe(
+          (checked: boolean) => this.changeStateQlikSenseDesktop(checked));
+
         this.connectionFormHelper.registerBeforeSave(this.beforeSaveHook.bind(this));
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
@@ -109,17 +112,15 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     /**
      * handle change for qlik sense desktop checkbox
      */
-    public changeStateQlikSenseDesktop($event: Event) {
-        $event.stopPropagation();
+    private changeStateQlikSenseDesktop(checked: boolean) {
 
-        const target: HTMLInputElement = $event.target as HTMLInputElement;
         const hostCtrl =  this.connectionForm.controls.hostCtrl;
         const secureCtrl = this.connectionForm.controls.secureCtrl;
 
         hostCtrl.setValue(`localhost`);
         secureCtrl.setValue(false);
 
-        if (target.checked) {
+        if (checked) {
             this.authorizationStrategyCtrl.setValue(AuthorizationStrategy.NONE);
             this.authorizationStrategyCtrl.disable();
             hostCtrl.disable();
@@ -181,6 +182,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      * update form controls if a new connection model has been loaded
      */
     private reloadFormData() {
+
         /** update base connection */
         this.connectionForm.patchValue({
             fileRendererCtrl: this.workspaceFolderSetting.fileRenderer,
@@ -190,14 +192,14 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
             pathCtrl: this.workspaceFolderSetting.connection.path,
             secureCtrl: this.workspaceFolderSetting.connection.secure,
             untrustedCertCtrl: this.workspaceFolderSetting.connection.allowUntrusted,
-            isQlikSenseDesktop: this.workspaceFolderSetting.connection.isQlikSenseDesktop
-        }, {onlySelf: true, emitEvent: false});
+        });
 
-        /** update authorization strategy */
-        this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.connection.authorization.strategy, {emitEvent: false});
-
-        /** update object renderer strategy */
-        this.objectRenderStrategyCtrl.setValue(this.workspaceFolderSetting.fileRenderer, {emitEvent: false});
+        if (this.workspaceFolderSetting.connection.isQlikSenseDesktop) {
+          this.connectionForm.controls.isQlikSenseDesktopCtrl.setValue(true);
+        } else {
+          this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.connection.authorization.strategy, {emitEvent: false});
+          this.objectRenderStrategyCtrl.setValue(this.workspaceFolderSetting.fileRenderer, {emitEvent: false});
+        }
     }
 
     /**
