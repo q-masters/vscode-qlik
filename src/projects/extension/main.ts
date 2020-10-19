@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext): void {
     scriptModule.bootstrap();
 
     /** initialize modules */
-    qixFsModule.initialize();
+    connectionModule.initialize();
 
     registerCommands(context);
 

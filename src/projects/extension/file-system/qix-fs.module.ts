@@ -20,43 +20,6 @@ export class QixFsModule {
         this.router.addRoutes(Routes);
     }
 
-    public initialize(): void {
-        this.registerEvents();
-
-        /**
-         * register existing workspace folders (for example close and reopen editor)
-         * fs or connect good question
-         */
-        vscode.workspace.workspaceFolders?.forEach((folder) => {
-            if (folder.uri.scheme === 'qix') {
-                vscode.commands.executeCommand(ConnectionCommands.CONNECT, folder);
-            }
-        });
-    }
-
-    /**
-     * register to filesystem changes
-     */
-    private registerEvents(): void {
-
-        vscode.workspace.onDidChangeWorkspaceFolders((event) => {
-            const logger = container.resolve(VsQlikLoggerGlobal);
-            event.added.forEach((folder) => {
-                if(folder.uri.scheme === 'qix') {
-                    logger.info(`added workspace folder ${folder.name}`);
-                    vscode.commands.executeCommand(ConnectionCommands.CONNECT, folder);
-                }
-            });
-
-            event.removed.forEach((folder) => {
-                if(folder.uri.scheme === 'qix') {
-                    logger.info(`removed workspace folder ${folder.name}`);
-                    vscode.commands.executeCommand(ConnectionCommands.DISCONNECT, folder);
-                }
-            });
-        });
-    }
-
     /**
      * register qix file system provider to vscode
      */
