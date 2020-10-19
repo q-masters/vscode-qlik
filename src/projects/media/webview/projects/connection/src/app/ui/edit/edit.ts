@@ -107,30 +107,6 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * handle change for qlik sense desktop checkbox
-     */
-    private changeStateQlikSenseDesktop(checked: boolean) {
-
-        const hostCtrl =  this.connectionForm.controls.hostCtrl;
-        const secureCtrl = this.connectionForm.controls.secureCtrl;
-
-        hostCtrl.setValue(`localhost`);
-        secureCtrl.setValue(false);
-
-        if (checked) {
-            this.authorizationStrategyCtrl.setValue(AuthorizationStrategy.NONE);
-            this.authorizationStrategyCtrl.disable();
-            hostCtrl.disable();
-            secureCtrl.disable();
-        } else {
-            this.authorizationStrategyCtrl.setValue(AuthorizationStrategy.FORM);
-            this.authorizationStrategyCtrl.enable();
-            hostCtrl.enable();
-            secureCtrl.enable();
-        }
-    }
-
-    /**
      * initialize base form for connection
      */
     private initConnectionForm() {
