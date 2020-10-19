@@ -167,7 +167,7 @@
     "tsc": "tsc -p ./tsconfig.json"
   },
   "devDependencies": {
-    "@types/chai": "4.2.13",
+    "@types/chai": "4.2.14",
     "@types/enigma.js": "2.2.1",
     "@types/node": "14.11.10",
     "@types/node-fetch": "^2.5.7",
