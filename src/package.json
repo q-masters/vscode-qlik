@@ -88,33 +88,31 @@
             "description": "Location of JSON files to load configs from",
             "type": "array",
             "items": true,
-            "default": [
-              {
-                "label": "Localhost",
-                "connection": {
-                  "host": "127.0.0.1",
-                  "path": null,
-                  "port": null,
-                  "secure": true,
-                  "allowUntrusted": false,
-                  "authorization": {
-                    "strategy": 1,
-                    "data": {
-                      "domain": "",
-                      "password": ""
-                    }
+            "default": [{
+              "label": "Localhost",
+              "connection": {
+                "host": "127.0.0.1",
+                "path": null,
+                "port": null,
+                "secure": true,
+                "allowUntrusted": false,
+                "authorization": {
+                  "strategy": 1,
+                  "data": {
+                    "domain": "",
+                    "password": ""
                   }
-                },
-                "renderer": 1,
-                "display": {
-                  "dimensions": true,
-                  "measures": true,
-                  "script": true,
-                  "sheets": false,
-                  "variables": false
                 }
+              },
+              "renderer": 1,
+              "display": {
+                "dimensions": true,
+                "measures": true,
+                "script": true,
+                "sheets": false,
+                "variables": false
               }
-            ]
+            }]
           }
         }
       }

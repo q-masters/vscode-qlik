@@ -5,13 +5,15 @@ import { AbstractConfigSetLevels } from 'winston/lib/winston/config';
 
 export const VsQlikLogLevels: AbstractConfigSetLevels = {
     off  : -1,
-    info : 0,
-    warn : 1,
-    error: 2,
-    debug: 3
+    fatal : 0,
+    error : 1,
+    warn: 2,
+    info: 3,
+    debug: 4,
+    trace: 5
 };
 
-declare type LogLevel = 'off' | 'info' | 'warn' | 'error' | 'debug';
+declare type LogLevel = 'off' | 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 /**
  * settings
@@ -39,6 +41,7 @@ container.register(VsQlikLogSettings, {
 export const VsQlikLoggerScript: InjectionToken<VsQlikLogger>     = `VsQlik Logger Script`;
 export const VsQlikLoggerQixFs: InjectionToken<VsQlikLogger>      = `VsQlik Logger Qix FS`;
 export const VsQlikLoggerGlobal: InjectionToken<VsQlikLogger>     = `VsQlik Global Logger`;
+export const VsQlikLoggerWebsocket: InjectionToken<VsQlikLogger>  = `VsQlik Websocket Logger`;
 
 export function LoggerFactory(label: string): () => VsQlikLogger {
     const resolver = container.resolve(VsQlikLoggerResolver);
@@ -48,5 +51,6 @@ export function LoggerFactory(label: string): () => VsQlikLogger {
 }
 
 container.register(VsQlikLoggerGlobal,     { useFactory: LoggerFactory(`VsQlik`) });
-container.register(VsQlikLoggerQixFs,      { useFactory: LoggerFactory(`VsQlik.QixFS`) });
-container.register(VsQlikLoggerScript,     { useFactory: LoggerFactory(`VsQlik.Script`) });
+container.register(VsQlikLoggerQixFs,      { useFactory: LoggerFactory(`VsQlik QixFS`) });
+container.register(VsQlikLoggerScript,     { useFactory: LoggerFactory(`VsQlik Script`) });
+container.register(VsQlikLoggerWebsocket,  { useFactory: LoggerFactory(`VsQlik Websocket`) });

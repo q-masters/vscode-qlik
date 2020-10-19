@@ -5,7 +5,6 @@ import { ConnectionProvider } from 'projects/extension/connection';
 import { interval, from, merge } from 'rxjs';
 import { switchMap, map, takeWhile, finalize, tap } from 'rxjs/operators';
 import { QlikOutputChannel } from '@data/tokens';
-import { EOL } from 'os';
 
 export async function ScriptLoadDataCommand(): Promise<void> {
 

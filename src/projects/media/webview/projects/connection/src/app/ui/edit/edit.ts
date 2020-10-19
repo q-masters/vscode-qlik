@@ -154,6 +154,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
      * update form controls if a new connection model has been loaded
      */
     private reloadFormData() {
+
         /** update base connection */
         this.connectionForm.patchValue({
             fileRendererCtrl: this.workspaceFolderSetting.fileRenderer,
@@ -162,13 +163,10 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
             portCtrl: this.workspaceFolderSetting.connection.port,
             pathCtrl: this.workspaceFolderSetting.connection.path,
             secureCtrl: this.workspaceFolderSetting.connection.secure,
-            untrustedCertCtrl: this.workspaceFolderSetting.connection.allowUntrusted
-        }, {onlySelf: true, emitEvent: false});
+            untrustedCertCtrl: this.workspaceFolderSetting.connection.allowUntrusted,
+        });
 
-        /** update authorization strategy */
         this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.connection.authorization.strategy, {emitEvent: false});
-
-        /** update object renderer strategy */
         this.objectRenderStrategyCtrl.setValue(this.workspaceFolderSetting.fileRenderer, {emitEvent: false});
     }
 
