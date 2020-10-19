@@ -42,11 +42,6 @@ export interface ConnectionSetting {
     host: string;
 
     /**
-     * if set to true we handle a qlik sense desktop
-     */
-    isQlikSenseDesktop: boolean;
-
-    /**
      * setting port to server
      * ports used by default:
      *

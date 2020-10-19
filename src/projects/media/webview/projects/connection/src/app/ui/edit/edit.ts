@@ -70,9 +70,6 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
         this.initAuthorizationStrategyCtrl();
         this.initObjectRenderStrategyCtrl();
 
-        this.connectionForm.controls.isQlikSenseDesktopCtrl.valueChanges.subscribe(
-          (checked: boolean) => this.changeStateQlikSenseDesktop(checked));
-
         this.connectionFormHelper.registerBeforeSave(this.beforeSaveHook.bind(this));
         this.connectionFormHelper.connection
             .pipe(takeUntil(this.destroy$))
@@ -144,8 +141,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
             portCtrl: this.formbuilder.control(null),
             pathCtrl: this.formbuilder.control(null),
             secureCtrl: this.formbuilder.control(true),
-            untrustedCertCtrl: this.formbuilder.control(false),
-            isQlikSenseDesktopCtrl: this.formbuilder.control(false)
+            untrustedCertCtrl: this.formbuilder.control(false)
         });
     }
 
@@ -194,12 +190,8 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
             untrustedCertCtrl: this.workspaceFolderSetting.connection.allowUntrusted,
         });
 
-        if (this.workspaceFolderSetting.connection.isQlikSenseDesktop) {
-          this.connectionForm.controls.isQlikSenseDesktopCtrl.setValue(true);
-        } else {
-          this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.connection.authorization.strategy, {emitEvent: false});
-          this.objectRenderStrategyCtrl.setValue(this.workspaceFolderSetting.fileRenderer, {emitEvent: false});
-        }
+        this.authorizationStrategyCtrl.setValue(this.workspaceFolderSetting.connection.authorization.strategy, {emitEvent: false});
+        this.objectRenderStrategyCtrl.setValue(this.workspaceFolderSetting.fileRenderer, {emitEvent: false});
     }
 
     /**
@@ -216,8 +208,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
                 port: this.connectionForm.controls.portCtrl.value,
                 path: this.connectionForm.controls.pathCtrl.value,
                 secure: this.connectionForm.controls.secureCtrl.value,
-                allowUntrusted: this.connectionForm.controls.untrustedCertCtrl.value,
-                isQlikSenseDesktop: this.connectionForm.controls.isQlikSenseDesktopCtrl.value
+                allowUntrusted: this.connectionForm.controls.untrustedCertCtrl.value
             },
             fileRenderer: this.connectionForm.controls.fileRendererCtrl.value
         });

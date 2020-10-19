@@ -23,18 +23,11 @@ export abstract class ConnectionHelper {
 
         const isSecure = connection.secure;
         const protocol = isSecure ? 'https://' : 'http://';
+        const url = new URL(protocol + connection.host);
+        url.port  = connection.port?.toString() ?? "";
+        url.pathname = connection.path ?? "";
 
-        try {
-            const url = new URL(protocol + connection.host);
-            url.port  = connection.port?.toString() ?? "";
-            url.pathname = connection.path ?? "";
-            url.pathname += connection.isQlikSenseDesktop ? `/hub` : '';
-
-            return url.toString();
-        } catch (error) {
-            console.dir(error);
-            throw error;
-        }
+        return url.toString();
     }
 
     /**

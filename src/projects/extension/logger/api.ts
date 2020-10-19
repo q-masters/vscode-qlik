@@ -5,13 +5,15 @@ import { AbstractConfigSetLevels } from 'winston/lib/winston/config';
 
 export const VsQlikLogLevels: AbstractConfigSetLevels = {
     off  : -1,
-    info : 0,
-    warn : 1,
-    error: 2,
-    debug: 3
+    fatal : 0,
+    error : 1,
+    warn: 2,
+    info: 3,
+    debug: 4,
+    trace: 5
 };
 
-declare type LogLevel = 'off' | 'info' | 'warn' | 'error' | 'debug';
+declare type LogLevel = 'off' | 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 
 /**
  * settings

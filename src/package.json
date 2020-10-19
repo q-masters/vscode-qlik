@@ -92,7 +92,6 @@
               "label": "Localhost",
               "connection": {
                 "host": "127.0.0.1",
-                "isQlikSenseDesktop": false,
                 "path": null,
                 "port": null,
                 "secure": true,
