@@ -8,8 +8,13 @@
 # Visual Studio Code - Qlik Extension
 
 This extensions allows to use VSCode as an editor for Qlik Sense based systems.
-It currently connects to Qlik Sense for Windows with Windows/NTLM authentification
-and to Qlik Core / Docker without authentification.
+It currently connects to:
+
+- [x] Qlik Sense Desktop
+- [x] Qlik Sense for Windows with Windows/NTLM
+- [x] Qlik Core / Docker
+
+Further authentications are on the roadmap and are tracked in issue [#283](/../../issues/283)
 
 ## Install
 
@@ -18,20 +23,24 @@ the [Marketplace](https://marketplace.visualstudio.com/items?itemName=q-masters.
 
 ## Usage
 
-Watch the video .... TBD
+Video for script reload:
+
+![](docs/media/vsqlik-overview.gif)
+
+Video for script error checks:
+
+![](docs/media/vsqlik-scripterrors.gif)
 
 ### create new connection
 
 - go to the window which was opened by vscode and press "CTRL + Shift + P" and search for "VSQlik: Show Connection Settings" and press enter.
-- add new connection (remember 127.0.0.1:9076) which is what we run our docker container and map ports out
-- disable secure (this docker container will not be)
+- add new connection 
 - save and close
 
 ### open connection
 
 - press again "CTRL + Shift + P" and search for "VSQlik: connect to server"
-- select 127.0.0.1:9076
-- create new folder (enter a name and press enter)
+- select the server and the Server will appear in the folder tree.
 
 ## Contribute / Debug
 
