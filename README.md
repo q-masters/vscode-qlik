@@ -8,6 +8,7 @@
 # Visual Studio Code - Qlik Extension
 
 This extensions allows to use VSCode as an editor for Qlik Sense based systems.
+
 It currently connects to:
 
 - [x] Qlik Sense Desktop
