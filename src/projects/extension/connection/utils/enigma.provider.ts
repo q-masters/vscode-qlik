@@ -150,22 +150,23 @@ export class EnigmaSession {
         const cacheKey = cacheId ?? id;
 
         if (!this.connectionQueue.has(cacheKey)) {
-            this.connectionQueue.set(cacheKey, this.resolveSession(id, keepAlive));
+            this.connectionQueue.set(cacheKey, this.resolveSession(id, keepAlive, cacheKey));
         }
         return this.connectionQueue.get(cacheKey) as Promise<enigmaJS.IGeneratedAPI>;
     }
 
-    private async resolveSession(id: string, keepAlive): Promise<enigmaJS.IGeneratedAPI> {
+    private async resolveSession(id: string, keepAlive, cacheKey: string): Promise<enigmaJS.IGeneratedAPI> {
         await this.suspendOldestSession();
 
         const session = await this.openSession(id);
 
         if (session) {
+            /** @todo remove this memory leak since we open multiple global sessions we just want to throw away */
             if (id !== EnigmaSession.GLOBAL_SESSION_KEY) {
                 session.on("closed", () => this.removeSessionFromCache(id));
             }
-            this.sessionCache.set(id, session);
-            this.connectionQueue.delete(id);
+            this.sessionCache.set(cacheKey, session);
+            this.connectionQueue.delete(cacheKey);
 
             keepAlive ? this.persistentStack.push(id) : this.activeStack.push(id);
             return session;
