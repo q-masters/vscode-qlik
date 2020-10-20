@@ -3,11 +3,12 @@ import { buildUrl } from "enigma.js/sense-utilities";
 import { create } from "enigma.js";
 import schema from "enigma.js/schemas/12.20.0.json";
 import WebSocket from "ws";
-import { ConnectionSetting } from "../api";
-import { ConnectionModel } from "../model/connection";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { container } from "tsyringe";
 import { SettingsRepository } from "@vsqlik/settings/settings.repository";
+import { VsQlikLoggerWebsocket } from "@vsqlik/logger";
+import { ConnectionSetting } from "../api";
+import { ConnectionModel } from "../model/connection";
 
 export interface ConnectionSettingQuickPickItem extends vscode.QuickPickItem {
     setting: WorkspaceSetting
@@ -22,15 +23,11 @@ export abstract class ConnectionHelper {
 
         const isSecure = connection.secure;
         const protocol = isSecure ? 'https://' : 'http://';
+        const url = new URL(protocol + connection.host);
+        url.port  = connection.port?.toString() ?? "";
+        url.pathname = connection.path ?? "";
 
-        try {
-            const url = new URL(protocol + connection.host);
-            url.pathname = connection.path ?? "";
-            return url.toString();
-        } catch (error) {
-            console.dir(error);
-            throw error;
-        }
+        return url.toString();
     }
 
     /**
@@ -57,6 +54,8 @@ export abstract class ConnectionHelper {
      * @todo refactor this
      */
     public static createWebsocket(connection: ConnectionModel, url?: string): WebSocket {
+        const logger = container.resolve(VsQlikLoggerWebsocket);
+
         const headers = { Cookie: "" };
         const uri = url || this.buildWebsocketUri(connection.setting);
 
@@ -69,16 +68,8 @@ export abstract class ConnectionHelper {
             rejectUnauthorized: !connection.isUntrusted
         });
 
-        /*
-        ws.on("message", (e) => {
-            console.dir(e);
-        });
-
-        ws.on("error", (e) => {
-            console.dir(e);
-        });
-        */
-
+        ws.on("message", (message) => logger.debug(message.toString()));
+        ws.on("error", (e) => logger.error(`${connection.setting.label} ${e.message}`));
         return ws;
     }
 
