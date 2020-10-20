@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { container } from 'tsyringe';
 import { EntryType } from '@vsqlik/fs/data';
 import { ConnectionProvider } from 'projects/extension/connection';
-import { interval, from, EMPTY, of } from 'rxjs';
+import { interval, from, of } from 'rxjs';
 import { switchMap, takeWhile, finalize, tap, take, concatMap } from 'rxjs/operators';
 import { QlikOutputChannel } from '@data/tokens';
 
