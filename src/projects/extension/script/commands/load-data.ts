@@ -25,6 +25,7 @@ export async function ScriptLoadDataCommand(): Promise<void> {
     try {
         const global = await connection.createSession(true);
         const application = await global?.openDoc(app.id);
+        const errors: EngineAPI.IErrorData[] = [];
 
         if (!global || !application) {
             return;
@@ -35,15 +36,13 @@ export async function ScriptLoadDataCommand(): Promise<void> {
         out.appendLine(`>>> ${new Date().toLocaleTimeString()} load data for ${app.name}`);
 
         let isCompleted = false;
-        let isSuccess   = false;
 
         /** print progress messages */
         interval(500).pipe(
             takeWhile(() => !isCompleted, true),
             concatMap((() => global.getProgress(0))),
             tap((data) => {
-                data.qErrorData.forEach((error) => out.appendLine(error.qErrorString));
-
+                errors.push(...data.qErrorData);
                 if (data.qPersistentProgress.trim().length) {
                     out.appendLine(data.qPersistentProgress.trim());
                 }
@@ -52,9 +51,12 @@ export async function ScriptLoadDataCommand(): Promise<void> {
                 global.session.close();
                 out.appendLine(``);
 
-                !isSuccess
-                    ? out.appendLine(`load data finished with errors`)
-                    : out.appendLine(`load data finished without errors.\napp saved`);
+                if (errors.length) {
+                    errors.forEach((error) => printErrorMessage(error, out));
+                    out.appendLine(`Data has not been loaded. Please correct the error and try loading again.`);
+                } else {
+                    out.appendLine(`Data has been loaded.\nApp saved.`);
+                }
 
                 out.appendLine(`<<<`);
             })
@@ -64,10 +66,7 @@ export async function ScriptLoadDataCommand(): Promise<void> {
         from(global.configureReload(true, true, false))
             .pipe(
                 switchMap(() => application.doReload()),
-                switchMap((success: boolean) => {
-                    isSuccess = success;
-                    return success ? application.doSave() : of(void 0);
-                }),
+                switchMap((success: boolean) => success ? application.doSave() : of(void 0)),
                 tap(() => isCompleted = true),
                 take(1)
             )
@@ -76,4 +75,17 @@ export async function ScriptLoadDataCommand(): Promise<void> {
     } catch (error) {
         console.log(error);
     }
+}
+
+function printErrorMessage(error: EngineAPI.IErrorData, out: vscode.OutputChannel): void {
+
+    out.appendLine(`The following error occurred:`);
+    out.appendLine(error.qErrorString);
+    out.appendLine(``);
+
+    out.appendLine(`The error occurred here:`);
+    out.appendLine(error.qLine);
+
+    out.appendLine(``);
+    out.appendLine(``);
 }
