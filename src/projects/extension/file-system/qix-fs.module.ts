@@ -16,19 +16,6 @@ export class QixFsModule {
     public bootstrap(): void {
         this.registerQixFs();
         this.router.addRoutes(Routes);
-
-        /**
-         * should be a global file observer for all files not only a single one
-         * broadcast this one through who is interested for
-         */
-        vscode.workspace.onDidChangeTextDocument((e) => {
-            /** now we need the last state from server only if it channges the first time */
-            console.log(e.document.fileName);
-
-            // is dirty = true if we currently edit this one
-            // is dirty false after save or focus the editor again which is more a reload
-            console.log(e.document.isDirty);
-        });
     }
 
     /**
