@@ -68,7 +68,7 @@ export abstract class ConnectionHelper {
             rejectUnauthorized: !connection.isUntrusted
         });
 
-        ws.on("message", (message) => logger.debug(message.toString()));
+        ws.on("message", (message) => logger.verbose(message.toString()));
         ws.on("error", (e) => logger.error(`${connection.setting.label} ${e.message}`));
         return ws;
     }

@@ -1,11 +1,9 @@
 import { ConnectionProvider } from "@core/public.api";
-import { QixApplicationProvider } from "@core/qix/utils/application.provider";
 import { EntryType } from "@vsqlik/fs/data";
 import { EOL } from "os";
 import { container } from "tsyringe";
 import * as vscode from "vscode";
 
-const appProvider           = container.resolve(QixApplicationProvider);
 const connectionProviver    = container.resolve(ConnectionProvider);
 const diagnosticsCollection = vscode.languages.createDiagnosticCollection("vsqlik.script_errors");
 
@@ -23,7 +21,7 @@ export async function CheckScriptSyntax(uri: vscode.Uri): Promise<void> {
     }
 
     /** open the app */
-    const app = await appProvider.openApp(connection, appEntry.id);
+    const app = await connection.openDoc(appEntry.id);
 
     if (!app) {
         vscode.window.showInformationMessage(`check syntax for file: ${uri.toString(true)} failed. Could not open app.`);
