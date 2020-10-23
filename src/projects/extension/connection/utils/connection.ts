@@ -17,6 +17,7 @@ import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
 import { VsQlikLoggerConnection } from "../api";
 import { fetchServerInformation } from "../commands";
+import { Application } from "./application";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -36,6 +37,9 @@ export class Connection {
      */
     private serverStorage: Storage;
 
+    /**
+     *
+     */
     private stateChange$: BehaviorSubject<ConnectionState> = new BehaviorSubject(ConnectionState.CLOSED);
 
     /**
@@ -44,9 +48,18 @@ export class Connection {
     private destroy$: Subject<boolean> = new Subject();
 
     /**
+     * file mapping, so we could easier find a filesystem entry
      */
     private serverFilesystem: FileSystemStorage = new FileSystemStorage();
 
+    /**
+     * open applications
+     */
+    private applications: Map<string, Application> = new Map();
+
+    /**
+     * vsqlik logger for connections
+     */
     private logger: VsQlikLogger;
 
     public constructor(
@@ -114,20 +127,36 @@ export class Connection {
         this.stateChange$.next(ConnectionState.CLOSED);
     }
 
-    public closeSession(appId?: string): Promise<void> {
-        return this.engimaProvider.close(appId);
+    public openSession(): Promise<EngineAPI.IGlobal | undefined> {
+        return this.engimaProvider.open();
     }
 
-    public openSession(appId?: string): Promise<EngineAPI.IGlobal | undefined> {
-        return this.engimaProvider.open(appId);
-    }
-
+    /**
+     * create complete new independed session
+     */
     public createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined> {
         return this.engimaProvider.createSession(keepAlive);
     }
 
-    public async openDoc(id: string): Promise<EngineAPI.IApp | undefined> {
-        return this.engimaProvider.openDoc(id);
+    /**
+     * create application wrapper for existing qlik app
+     */
+    public async getApplication(id: string): Promise<Application | undefined> {
+        if (!this.applications.has(id)) {
+            const global = await this.engimaProvider.open(id);
+
+            if (global) {
+                const app = new Application(global, id);
+
+                app.onClose()
+                    .pipe(take(1))
+                    .subscribe(() => this.applications.delete(id));
+
+                /** cache app */
+                this.applications.set(id, app);
+            }
+        }
+        return this.applications.get(id);
     }
 
     /**
@@ -205,10 +234,8 @@ export class Connection {
     protected checkAuthState(): Promise<AuthorizationState> {
         return new Promise((resolve, reject) => {
             const session = ConnectionHelper.createEnigmaSession(this.connectionModel);
-            session.on("traffic:received", (response) => {
-                (session as any).removeAllListeners();
-                session.close();
-
+            session.on("traffic:received", async (response) => {
+                await session.close();
                 switch (response.method) {
                     case 'OnAuthenticationInformation':
                         this.connectionModel.isAuthorizationRequired = true;
@@ -220,10 +247,10 @@ export class Connection {
                         break;
 
                     default:
-                        console.log(response);
                         reject(response);
                 }
             });
+            session.on('closed', () => (session as any).removeAllListeners());
             session.open();
         });
     }

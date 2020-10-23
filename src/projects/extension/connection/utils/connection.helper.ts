@@ -68,6 +68,8 @@ export abstract class ConnectionHelper {
             rejectUnauthorized: !connection.isUntrusted
         });
 
+        logger.debug(uri);
+
         ws.on("message", (message) => logger.verbose(message.toString()));
         ws.on("error", (e) => logger.error(`${connection.setting.label} ${e.message}`));
         return ws;
@@ -102,6 +104,7 @@ export abstract class ConnectionHelper {
             port    : port && !isNaN(port) ? port : connection.secure ? 443 : 80,
             subpath : connection.path ?? ""
         };
+
         return buildUrl(options);
     }
 

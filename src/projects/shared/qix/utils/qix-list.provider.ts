@@ -43,20 +43,24 @@ export abstract class QixListProvider {
      * resolve all measure items
      */
     public list<T>(connection: Connection, app: string): Observable<T[]> {
-        return from(connection.openDoc(app)).pipe(
-            switchMap((app) => app?.createSessionObject(this.listProperties) ?? EmptyError),
-            switchMap((obj) => obj.getLayout()),
-            map((layout) => this.extractListItems<T>(layout)),
-            catchError((error) => {
-                throw error;
-            })
-        );
+        return from(connection.getApplication(app))
+            .pipe(
+                switchMap((app) => app?.document ?? EmptyError),
+                switchMap((doc) => doc?.createSessionObject(this.listProperties) ?? EmptyError),
+                switchMap((obj) => obj.getLayout()),
+                map((layout) => this.extractListItems<T>(layout)),
+                catchError((error) => {
+                    throw error;
+                })
+            );
     }
 
     public async create<T extends EngineAPI.IGenericObject>(connection: Connection, app_id: string, properties: EngineAPI.IGenericProperties): Promise<T> {
-        const app = await connection?.openDoc(app_id);
-        if (app) {
-            return await this.createObject(app, properties) as T;
+        const app = await connection?.getApplication(app_id);
+        const doc = await app?.document;
+
+        if (doc) {
+            return await this.createObject(doc, properties) as T;
         }
 
         throw new Error(`Could not open app.`);
@@ -106,9 +110,11 @@ export abstract class QixListProvider {
      * destroy a session object
      */
     public async destroy(connection: Connection, app_id: string, object: string): Promise<void> {
-        const app    = await connection?.openDoc(app_id);
-        if (app) {
-            this.delete(app, object);
+        const app = await connection?.getApplication(app_id);
+        const doc = await app?.document;
+
+        if (doc) {
+            this.delete(doc, object);
         }
     }
 
@@ -116,10 +122,11 @@ export abstract class QixListProvider {
      * resolve generic object which we are interested for
      */
     private async resolveGenericObject(connection: Connection, app_id: string, object_id: string): Promise<any> {
-        const app    = await connection?.openDoc(app_id);
+        const app = await connection?.getApplication(app_id);
+        const doc = await app?.document;
 
-        if (app) {
-            return this.getObject(app, object_id);
+        if (doc) {
+            return this.getObject(doc, object_id);
         }
     }
 }

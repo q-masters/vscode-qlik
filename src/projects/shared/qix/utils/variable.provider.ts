@@ -10,19 +10,23 @@ export class QixVariableProvider {
      */
     public async list(connection: Connection, app_id: string): Promise<IVariableListItem[]> {
 
-        const app     = await connection?.openDoc(app_id);
-        if (app) {
-            const listObject   = await app.createSessionObject(variableDef);
+        const app = await connection?.getApplication(app_id);
+        const doc = await app?.document;
+
+        if (doc) {
+            const listObject   = await doc.createSessionObject(variableDef);
             const layout       = await listObject.getLayout() as any;
-            app.destroySessionObject(listObject.id);
+            doc.destroySessionObject(listObject.id);
             return layout.qVariableList.qItems as IVariableListItem[];
         }
         return [];
     }
 
     public async readVariable(connection: Connection, app_id: string, var_id: string): Promise<EngineAPI.IGenericVariable | undefined> {
-        const app     = await connection?.openDoc(app_id);
-        return await app?.getVariableById(var_id);
+        const app   = await connection?.getApplication(app_id);
+        const doc   = await app?.document;
+
+        return await doc?.getVariableById(var_id);
     }
 
     /**
@@ -34,10 +38,11 @@ export class QixVariableProvider {
         properties: EngineAPI.IGenericVariableProperties
     ): Promise<EngineAPI.INxInfo | undefined>
     {
-        const app     = await connection?.openDoc(app_id);
-        const result = await app?.createVariableEx(properties);
-        await app?.doSave();
+        const app   = await connection?.getApplication(app_id);
+        const doc   = await app?.document;
+        const result = await doc?.createVariableEx(properties);
 
+        await doc?.doSave();
         return result;
     }
 
@@ -46,8 +51,10 @@ export class QixVariableProvider {
      */
     public async updateVariable(connection: Connection, app_id: string, var_id: string, patch: EngineAPI.IGenericVariableProperties): Promise<void>
     {
-        const app      = await connection?.openDoc(app_id);
-        const variable = await app?.getVariableById(var_id);
+        const app   = await connection?.getApplication(app_id);
+        const doc   = await app?.document;
+
+        const variable = await doc?.getVariableById(var_id);
         const patches = Object.keys(patch).map<EngineAPI.INxPatch>((property) => {
             return {
                 qOp   : "Replace",
@@ -56,13 +63,15 @@ export class QixVariableProvider {
             };
         });
         await variable?.applyPatches(patches);
-        await app?.doSave();
+        await doc?.doSave();
     }
 
     public async deleteVariable(connection: Connection, app_id: string, var_id: string): Promise<boolean> {
-        const app      = await connection?.openDoc(app_id);
-        const success  = await app?.destroyVariableById(var_id);
-        await app?.doSave();
+        const app   = await connection?.getApplication(app_id);
+        const doc   = await app?.document;
+
+        const success  = await doc?.destroyVariableById(var_id);
+        await doc?.doSave();
 
         return !!success;
     }

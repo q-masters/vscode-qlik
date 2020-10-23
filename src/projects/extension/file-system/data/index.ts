@@ -3,10 +3,11 @@ export * from "./routes";
 
 export enum EntryType {
     APPLICATION,
-    MEASURE,
     DIMENSION,
-    STREAM,
+    MEASURE,
+    SCRIPT,
     SHEET,
+    STREAM,
     VARIABLE,
     VISUALIZATION,
     UNKNOWN

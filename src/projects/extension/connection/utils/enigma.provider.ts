@@ -108,6 +108,7 @@ export class EnigmaSession {
         if (global) {
             if (!this.docCache.has(global)) {
                 const app = await global.openDoc(name);
+                // global.getActiveDoc();
                 this.docCache.set(global, app);
                 logger.debug(`open new app for ${name} and cached it to docCache`);
             }
