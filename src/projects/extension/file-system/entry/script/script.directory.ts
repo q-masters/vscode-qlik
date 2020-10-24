@@ -3,7 +3,6 @@ import { injectable, inject } from "tsyringe";
 import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
 import { FileSystemHelper } from "../../utils/file-system.helper";
 import { DataNode } from "@core/qix/utils/qix-list.provider";
-import { ConnectionProvider } from "@core/public.api";
 import path from "path";
 import { EntryType } from "@vsqlik/fs/data";
 

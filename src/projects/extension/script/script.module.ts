@@ -4,19 +4,33 @@ import { inject, singleton } from "tsyringe";
 import { CheckScriptSyntax, ScriptLoadDataCommand, ScriptResolveActiveCommand } from "./commands";
 import { ConnectionProvider } from "../connection/utils/connection.provider";
 import { EntryType } from "@vsqlik/fs/data";
-import { takeUntil } from "rxjs/operators";
+import { Subscription } from "rxjs";
+import { Application } from "../connection/utils/application";
+import { RemoteScriptProvider } from "./utils/remote-script";
 
 @singleton()
 export class ScriptModule {
 
+    private observedDocuments: WeakMap<vscode.TextDocument, Subscription> = new WeakMap();
+
+    private isDiff = false;
+
     constructor(
         @inject(ExtensionContext) private extensionContext: vscode.ExtensionContext,
-        @inject(ConnectionProvider) private connectionProvider: ConnectionProvider
+        @inject(ConnectionProvider) private connectionProvider: ConnectionProvider,
+        @inject(RemoteScriptProvider) private remoteScriptProvider: RemoteScriptProvider
     ) {}
 
     public bootstrap(): void {
+
+        vscode.workspace.registerTextDocumentContentProvider(
+            this.remoteScriptProvider.scheme,
+            this.remoteScriptProvider
+        );
+
         this.registerCommands();
         this.registerEvents();
+
     }
 
     /**
@@ -32,12 +46,8 @@ export class ScriptModule {
      * register connection storage where all sessions are saved to
      */
     private registerEvents(): void {
-
         vscode.workspace.onDidOpenTextDocument((document) => this.onOpenDocument(document));
-        vscode.workspace.onDidCloseTextDocument((document) => {
-            console.log(`close document`);
-            console.log(document);
-        });
+        vscode.workspace.onDidCloseTextDocument((document) => this.onCloseDocument(document));
     }
 
     /**
@@ -61,9 +71,37 @@ export class ScriptModule {
 
         /** since we handle a script listen to onchange for app here until app get closed */
         const app = await connection?.getApplication(appEntry.id);
-        app?.onChanged()
-            .subscribe(() => console.log('app changed'));
+        const subscription = app?.onChanged()
+            .subscribe(() => this.onAppChanged(doc, app));
+
+        /** @todo improve */
+        this.observedDocuments.set(doc, subscription as Subscription);
 
         vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri);
+    }
+
+    /**
+     * app has triggered a change check the script from origin
+     */
+    private async onAppChanged(document: vscode.TextDocument, app: Application) {
+        const origin = await app.document.then((doc) => doc.getScript());
+        const source = document.getText();
+
+        if (origin !== source && !this.isDiff) {
+            const doc = await this.remoteScriptProvider.createDocument(`expose_the_name`, origin);
+            vscode.commands.executeCommand('vscode.diff', document.uri, doc.uri, `@todo better name`);
+            this.isDiff = true;
+            return;
+        }
+
+        this.remoteScriptProvider.updateDocument(`expose_the_name`, origin);
+    }
+
+    /**
+     *
+     */
+    private async onCloseDocument(doc: vscode.TextDocument) {
+        this.observedDocuments.get(doc)?.unsubscribe();
+        this.observedDocuments.delete(doc);
     }
 }
