@@ -1,9 +1,7 @@
 import { QixRouter } from "@core/router";
 import { ExtensionContext } from "@data/tokens";
-import { VsQlikLoggerGlobal } from "@vsqlik/logger";
-import { container, inject, singleton } from "tsyringe";
+import { inject, singleton } from "tsyringe";
 import * as vscode from "vscode";
-import { COMMANDS as ConnectionCommands } from "../connection/api";
 import { Routes } from "./data";
 import { QixFSProvider } from "./utils/qix-fs.provider";
 
@@ -28,5 +26,6 @@ export class QixFsModule {
         const qixFs = new QixFSProvider();
         this.extensionContext.subscriptions.push(
             vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
+
     }
 }

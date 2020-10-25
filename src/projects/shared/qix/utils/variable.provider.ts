@@ -8,10 +8,9 @@ export class QixVariableProvider {
     /**
      *  get all variables from an existing app
      */
-    public async list(connection: Connection, app_id: string) {
-        const session = await connection.openSession(app_id);
-        const app     = await session?.openDoc(app_id);
+    public async list(connection: Connection, app_id: string): Promise<IVariableListItem[]> {
 
+        const app     = await connection?.openDoc(app_id);
         if (app) {
             const listObject   = await app.createSessionObject(variableDef);
             const layout       = await listObject.getLayout() as any;
@@ -22,9 +21,7 @@ export class QixVariableProvider {
     }
 
     public async readVariable(connection: Connection, app_id: string, var_id: string): Promise<EngineAPI.IGenericVariable | undefined> {
-        const session = await connection.openSession(app_id);
-        const app     = await session?.openDoc(app_id);
-
+        const app     = await connection?.openDoc(app_id);
         return await app?.getVariableById(var_id);
     }
 
@@ -37,9 +34,7 @@ export class QixVariableProvider {
         properties: EngineAPI.IGenericVariableProperties
     ): Promise<EngineAPI.INxInfo | undefined>
     {
-        const session = await connection.openSession(app_id);
-        const app     = await session?.openDoc(app_id);
-
+        const app     = await connection?.openDoc(app_id);
         const result = await app?.createVariableEx(properties);
         await app?.doSave();
 
@@ -51,8 +46,7 @@ export class QixVariableProvider {
      */
     public async updateVariable(connection: Connection, app_id: string, var_id: string, patch: EngineAPI.IGenericVariableProperties): Promise<void>
     {
-        const session  = await connection.openSession(app_id);
-        const app      = await session?.openDoc(app_id);
+        const app      = await connection?.openDoc(app_id);
         const variable = await app?.getVariableById(var_id);
         const patches = Object.keys(patch).map<EngineAPI.INxPatch>((property) => {
             return {
@@ -66,8 +60,7 @@ export class QixVariableProvider {
     }
 
     public async deleteVariable(connection: Connection, app_id: string, var_id: string): Promise<boolean> {
-        const session  = await connection.openSession(app_id);
-        const app      = await session?.openDoc(app_id);
+        const app      = await connection?.openDoc(app_id);
         const success  = await app?.destroyVariableById(var_id);
         await app?.doSave();
 

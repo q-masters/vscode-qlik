@@ -157,6 +157,8 @@ export interface VsQlikLogger {
     error(message: string): void;
 
     debug(message: string): void;
+
+    verbose(message: string): void;
 }
 
 /**
@@ -178,5 +180,9 @@ class Logger implements VsQlikLogger {
 
     public debug(message: string): void {
         this.logger.debug(message);
+    }
+
+    public verbose(message: string): void {
+        // this.logger.verbose(message);
     }
 }

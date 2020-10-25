@@ -1,6 +1,8 @@
 import WebSocket from "ws";
 import { ConnectionHelper } from "./connection.helper";
 import { ConnectionModel } from "../model/connection";
+import { container } from "tsyringe";
+import { VsQlikLoggerConnection } from "../api";
 
 /**
  * Services to create, cache and handle enigma session
@@ -40,6 +42,8 @@ export class EnigmaSession {
     private connectionQueue: Map<string, Promise<enigmaJS.IGeneratedAPI>>;
 
     private requestHooks: Array<() => WebSocket.ClientOptions> = [];
+
+    private docCache: WeakMap<EngineAPI.IGlobal, EngineAPI.IApp> = new WeakMap();
 
     /**
      * Creates an instance of EnigmaSession.
@@ -83,15 +87,33 @@ export class EnigmaSession {
     public async open(id = EnigmaSession.GLOBAL_SESSION_KEY, keepAlive = false, cacheKey?: string): Promise<EngineAPI.IGlobal | undefined>
     {
         let session: enigmaJS.IGeneratedAPI;
-
         /** create new session */
         if (!this.isCached(cacheKey ?? id)) {
             session = await this.createSessionObject(id, keepAlive, cacheKey);
         } else {
             session = await this.activateSession(cacheKey ?? id);
         }
-
         return session as EngineAPI.IGlobal;
+    }
+
+    /**
+     * open document
+     */
+    public async openDoc(name: string): Promise<EngineAPI.IApp | undefined> {
+        const logger = container.resolve(VsQlikLoggerConnection);
+        /**
+         * get session from cache or create new one
+         */
+        const global = await this.open(name);
+        if (global) {
+            if (!this.docCache.has(global)) {
+                const app = await global.openDoc(name);
+                this.docCache.set(global, app);
+                logger.debug(`open new app for ${name} and cached it to docCache`);
+            }
+            logger.debug(`return app ${name} from doc cache`);
+            return this.docCache.get(global);
+        }
     }
 
     /**
@@ -120,7 +142,9 @@ export class EnigmaSession {
     public async close(key?: string): Promise<void> {
         const cacheKey = key || EnigmaSession.GLOBAL_SESSION_KEY;
         if (this.isCached(cacheKey)) {
-            await this.loadFromCache(cacheKey).session.close();
+            const global = this.loadFromCache(cacheKey) as EngineAPI.IGlobal;
+            global.session.close();
+            this.docCache.delete(global);
         }
     }
 

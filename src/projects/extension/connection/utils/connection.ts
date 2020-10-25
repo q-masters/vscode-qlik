@@ -91,11 +91,10 @@ export class Connection {
                 const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error?.message ?? error}`;
                 vscode.window.showErrorMessage(message);
                 this.stateChange$.next(ConnectionState.ERROR);
-
                 this.logger.error(message);
                 return of(false);
             }),
-            take(1),
+            take(1)
         ).toPromise();
     }
 
@@ -125,6 +124,10 @@ export class Connection {
 
     public createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined> {
         return this.engimaProvider.createSession(keepAlive);
+    }
+
+    public async openDoc(id: string): Promise<EngineAPI.IApp | undefined> {
+        return this.engimaProvider.openDoc(id);
     }
 
     /**
@@ -170,7 +173,6 @@ export class Connection {
      * run authorization by strategy
      */
     private async authorize(): Promise<boolean> {
-
         /** this also happens we are automatically logged in */
         const authState = await this.checkAuthState();
         if (authState.authorized) {
