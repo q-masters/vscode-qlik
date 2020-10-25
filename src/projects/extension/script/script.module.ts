@@ -1,12 +1,16 @@
-import { ExtensionContext } from "@data/tokens";
 import * as vscode from "vscode";
+import { QixRouter } from "@core/router";
+import { ExtensionContext } from "@data/tokens";
 import { inject, singleton } from "tsyringe";
-import { CheckScriptSyntax, ScriptLoadDataCommand, ScriptResolveActiveCommand } from "./commands";
-import { ConnectionProvider } from "../connection/utils/connection.provider";
 import { EntryType } from "@vsqlik/fs/data";
 import { Subscription } from "rxjs";
+
+import { CheckScriptSyntax, ScriptLoadDataCommand, ScriptResolveActiveCommand } from "./commands";
+import { ConnectionProvider } from "../connection/utils/connection.provider";
 import { Application } from "../connection/utils/application";
-import { RemoteScriptProvider } from "./utils/remote-script";
+import { QixFSProvider } from "@vsqlik/fs/utils/qix-fs.provider";
+import { ReadonlyScriptFileCtrl } from "./utils/readonly-script.file";
+import { ScriptRepository } from "./utils/script.repository";
 
 @singleton()
 export class ScriptModule {
@@ -18,19 +22,15 @@ export class ScriptModule {
     constructor(
         @inject(ExtensionContext) private extensionContext: vscode.ExtensionContext,
         @inject(ConnectionProvider) private connectionProvider: ConnectionProvider,
-        @inject(RemoteScriptProvider) private remoteScriptProvider: RemoteScriptProvider
+        @inject(QixFSProvider) private qixFSProvider: QixFSProvider,
+        @inject(QixRouter) private router: QixRouter<any>,
+        @inject(ScriptRepository) private scriptRepository: ScriptRepository
     ) {}
 
     public bootstrap(): void {
-
-        vscode.workspace.registerTextDocumentContentProvider(
-            this.remoteScriptProvider.scheme,
-            this.remoteScriptProvider
-        );
-
+        this.registerRoutes();
         this.registerCommands();
         this.registerEvents();
-
     }
 
     /**
@@ -48,6 +48,18 @@ export class ScriptModule {
     private registerEvents(): void {
         vscode.workspace.onDidOpenTextDocument((document) => this.onOpenDocument(document));
         vscode.workspace.onDidCloseTextDocument((document) => this.onCloseDocument(document));
+    }
+
+    /**
+     * register script specific routes
+     */
+    private registerRoutes(): void {
+        this.router.addRoutes([
+            {
+                path: 'remote/:app_id/scripts/main.qvs',
+                ctrl: ReadonlyScriptFileCtrl
+            }
+        ]);
     }
 
     /**
@@ -88,13 +100,15 @@ export class ScriptModule {
         const source = document.getText();
 
         if (origin !== source && !this.isDiff) {
-            const doc = await this.remoteScriptProvider.createDocument(`expose_the_name`, origin);
-            vscode.commands.executeCommand('vscode.diff', document.uri, doc.uri, `@todo better name`);
+            const doc = await this.scriptRepository.createDocument(origin);
+            vscode.commands.executeCommand('vscode.diff', document.uri, doc.uri);
             this.isDiff = true;
             return;
         }
 
-        this.remoteScriptProvider.updateDocument(`expose_the_name`, origin);
+        const uri  = vscode.Uri.parse(`qix:/remote/abc/scripts/main.qvs`);
+        this.scriptRepository.updateDocument(origin);
+        this.qixFSProvider.reloadFile(uri);
     }
 
     /**

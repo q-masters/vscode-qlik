@@ -119,5 +119,5 @@ export const Routes: Route<QixFsEntry>[] = [
     {
         path: "streams/:stream/:app/visualization/:id",
         ctrl: VisualizationFile
-    },
+    }
 ];

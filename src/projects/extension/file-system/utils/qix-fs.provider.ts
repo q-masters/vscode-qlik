@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { posix } from "path";
-import { container } from "tsyringe";
+import { container, singleton } from "tsyringe";
 import { QixRouter } from "projects/shared/router";
 import { setTimeout } from "timers";
 
@@ -9,6 +9,7 @@ import { setTimeout } from "timers";
  *
  * soll das immer mit enigma arbeiten ?
  */
+@singleton()
 export class QixFSProvider implements vscode.FileSystemProvider {
 
     public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]>;
@@ -24,7 +25,6 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         this.emitter           = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
         this.onDidChangeFile   = this.emitter.event;
         this.router            = container.resolve<QixRouter<any>>(QixRouter);
-
         this.registerCommands();
     }
 
@@ -129,7 +129,7 @@ export class QixFSProvider implements vscode.FileSystemProvider {
      * if source directory === target directory we only renamed a file or directory
      * otherwise we have to do a move operation
      */
-    rename(oldUri: vscode.Uri, newUri: vscode.Uri): void | Thenable<void> {
+    public rename(oldUri: vscode.Uri, newUri: vscode.Uri): void | Thenable<void> {
 
         const route = this.router.find(oldUri.path);
         if (route) {
@@ -143,6 +143,10 @@ export class QixFSProvider implements vscode.FileSystemProvider {
         }
 
         throw vscode.FileSystemError.FileNotFound();
+    }
+
+    public reloadFile(uri: vscode.Uri): void {
+        this.emitter.fire([{ uri, type: vscode.FileChangeType.Changed }]);
     }
 
     /**

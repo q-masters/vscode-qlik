@@ -94,8 +94,9 @@ export class QixRouter<T> {
     /**
      * add new route
      */
-    public addRoutes(routes: Route<T>[]) {
+    public addRoutes(routes: Route<T>[]): void {
         routes.forEach((route) => this.registerRoute(route));
+        console.dir(this.routes.keys());
     }
 
     /**
