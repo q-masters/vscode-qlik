@@ -1,10 +1,5 @@
 import { Observable, Subject } from "rxjs";
 
-interface FileData {
-    content: string;
-    modified: boolean;
-}
-
 export class Application {
 
     private close$: Subject<void> = new Subject();
@@ -22,7 +17,7 @@ export class Application {
     private doc: Promise<EngineAPI.IApp>;
 
     /** */
-    private script: { content: string; modified: boolean };
+    private script: string | null = null;
 
     public constructor(
         private globalContext: EngineAPI.IGlobal,
@@ -56,19 +51,26 @@ export class Application {
      * if we save the script on server side (browser) we will simply override
      * everything what exists since we are not aware of any changes
      */
-    public async getScript(server = false): Promise<FileData> {
-        if (!this.script || server) {
+    public async getScript(force = false): Promise<string> {
+        if (!this.script || force) {
             const doc    = await this.document;
-            const script = await doc.getScript();
-            const data: FileData = { content: script, modified: false};
-
-            if(server) {
-                return data;
-            }
-
-            this.script = { content: script, modified: false };
+            return await doc.getScript();
         }
         return this.script;
+    }
+
+    public async lockScript(): Promise<void> {
+        if (!this.script) {
+            const doc    = await this.document;
+            this.script = await doc.getScript();
+        }
+    }
+
+    /**
+     * set script to null so next time we fetch the script we got it from server
+     */
+    public unlockScript(): void {
+        this.script = null;
     }
 
     /** update a script */
@@ -77,9 +79,7 @@ export class Application {
             const doc = await this.doc;
             await doc.setScript(content);
             await doc.doSave();
-
-            this.script.modified = true;
-            this.script.content  = content;
+            this.script  = content;
         }
     }
 

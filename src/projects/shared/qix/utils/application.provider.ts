@@ -23,7 +23,6 @@ export class QixApplicationProvider {
     public async openDocument(connection: Connection, id: string): Promise<EngineAPI.IApp | undefined> {
         const app      = await connection.getApplication(id);
         const document = await app?.document;
-
         return document;
     }
 
@@ -31,9 +30,8 @@ export class QixApplicationProvider {
      * read script from app
      */
     public async readScript(connection: Connection, id: string): Promise<string | undefined> {
-        const app    = await connection.getApplication(id);
-        const script = await app?.getScript();
-        return script?.content;
+        const app = await connection.getApplication(id);
+        return app?.getScript();
     }
 
     /**

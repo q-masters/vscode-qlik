@@ -37,35 +37,6 @@ export class ScriptModule {
     }
 
     /**
-     * register commands for vscode
-     */
-    private registerCommands(): void {
-        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.CheckSyntax', CheckScriptSyntax));
-        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.LoadData', ScriptLoadDataCommand));
-        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.ResolveActive', ScriptResolveActiveCommand));
-    }
-
-    /**
-     * register connection storage where all sessions are saved to
-     */
-    private registerEvents(): void {
-        vscode.workspace.onDidCloseTextDocument((document)  => this.onCloseDocument(document));
-        vscode.workspace.onDidOpenTextDocument((document)   => this.onOpenDocument(document));
-    }
-
-    /**
-     * register script specific routes
-     */
-    private registerRoutes(): void {
-        this.router.addRoutes([
-            {
-                path: 'remote/:context/:app/script/main.qvs',
-                ctrl: ReadonlyScriptFileCtrl
-            }
-        ]);
-    }
-
-    /**
      * a new textdocument has been opened
      * check we handle a script file and if we do connect to appChange stream
      */
@@ -85,6 +56,7 @@ export class ScriptModule {
         }
 
         const app = await connection?.getApplication(appEntry.id);
+        await app?.lockScript();
 
         if (!app) {
             return;
@@ -97,36 +69,7 @@ export class ScriptModule {
         /** @todo improve */
         this.observedDocuments.set(doc, { app, subscription: subscription });
 
-        if (await this.remoteScriptIsDifferent(doc)) {
-            this.openDiff(doc, app);
-        }
-
         vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri);
-    }
-
-    /**
-     * check remote script is diffrent from local source
-     */
-    private async remoteScriptIsDifferent(doc: vscode.TextDocument): Promise<boolean> {
-
-        const connection = await this.connectionProvider.resolve(doc.uri);
-        const fileEntry  = connection?.fileSystem.read(doc.uri.toString(true));
-        const appEntry   = connection?.fileSystem.parent(doc.uri, EntryType.APPLICATION);
-
-        if (!appEntry || fileEntry?.type !== EntryType.SCRIPT) {
-            return false;
-        }
-
-        const app = await connection?.getApplication(appEntry.id);
-
-        if (!app) {
-            return false;
-        }
-
-        const remoteScript = (await app.getScript(true)).content;
-        const localScript  = (await app.getScript()).content;
-
-        return remoteScript !== localScript;
     }
 
     /**
@@ -167,7 +110,67 @@ export class ScriptModule {
      *
      */
     private async onCloseDocument(doc: vscode.TextDocument) {
-        this.observedDocuments.get(doc)?.subscription.unsubscribe();
-        this.observedDocuments.delete(doc);
+
+        const data = this.observedDocuments.get(doc);
+
+        if (data) {
+            data.subscription.unsubscribe();
+            data.app.unlockScript();
+            this.observedDocuments.delete(doc);
+        }
+    }
+
+    /**
+     * register commands for vscode
+     */
+    private registerCommands(): void {
+        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.CheckSyntax', CheckScriptSyntax));
+        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.LoadData', ScriptLoadDataCommand));
+        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.ResolveActive', ScriptResolveActiveCommand));
+    }
+
+    /**
+     * register connection storage where all sessions are saved to
+     */
+    private registerEvents(): void {
+        vscode.workspace.onDidCloseTextDocument((document)  => this.onCloseDocument(document));
+        vscode.workspace.onDidOpenTextDocument((document)   => this.onOpenDocument(document));
+    }
+
+    /**
+     * register script specific routes
+     */
+    private registerRoutes(): void {
+        this.router.addRoutes([
+            {
+                path: 'remote/:context/:app/script/main.qvs',
+                ctrl: ReadonlyScriptFileCtrl
+            }
+        ]);
+    }
+
+    /**
+     * check remote script is diffrent from local source
+     */
+    private async remoteScriptIsDifferent(doc: vscode.TextDocument): Promise<boolean> {
+
+        const connection = await this.connectionProvider.resolve(doc.uri);
+        const fileEntry  = connection?.fileSystem.read(doc.uri.toString(true));
+        const appEntry   = connection?.fileSystem.parent(doc.uri, EntryType.APPLICATION);
+
+        if (!appEntry || fileEntry?.type !== EntryType.SCRIPT) {
+            return false;
+        }
+
+        const app = await connection?.getApplication(appEntry.id);
+
+        if (!app) {
+            return false;
+        }
+
+        const remoteScript = await app.getScript(true);
+        const localScript  = await app.getScript();
+
+        return remoteScript !== localScript;
     }
 }
