@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { QixFsFileAdapter } from "@vsqlik/fs/data";
 import { container } from "tsyringe";
-import { ScriptRepository } from "./script.repository";
+import { DocumentRepository } from "./document.repository";
 
 /**
  * is used for remote script files we are require in a diff,
@@ -10,7 +10,7 @@ import { ScriptRepository } from "./script.repository";
 export class ReadonlyScriptFileCtrl extends QixFsFileAdapter {
 
     readFile(uri: vscode.Uri): Uint8Array {
-        const repository = container.resolve(ScriptRepository);
+        const repository = container.resolve(DocumentRepository);
         try {
             return Buffer.from(repository.provideTextDocumentContent(uri));
         } catch (error) {
@@ -29,6 +29,10 @@ export class ReadonlyScriptFileCtrl extends QixFsFileAdapter {
 
     /** simply does nothing */
     writeFile(): void {
+        return;
+    }
+
+    delete(): void {
         return;
     }
 }

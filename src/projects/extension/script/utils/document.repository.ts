@@ -2,7 +2,7 @@ import { singleton } from "tsyringe";
 import * as vscode from "vscode";
 
 @singleton()
-export class ScriptRepository {
+export class DocumentRepository {
 
     private files: Map<string, string> = new Map();
 
@@ -20,23 +20,21 @@ export class ScriptRepository {
     /**
      * create new virtual document and register to cache
      */
-    public async createDocument(content: string): Promise<vscode.TextDocument> {
-        const uri = vscode.Uri.parse(`qix:/remote/abc/scripts/main.qvs`);
+    public async createDocument(uri: vscode.Uri, content: string): Promise<vscode.TextDocument> {
         this.files.set(uri.toString(true), content);
         return vscode.workspace.openTextDocument(uri);
     }
 
-    public updateDocument(content: string): void {
-        const uri  = vscode.Uri.parse(`qix:/remote/abc/scripts/main.qvs`);
+    public updateDocument(uri: vscode.Uri, content: string): void {
         const path = uri.toString(true);
 
         if (!this.files.has(path)) {
             return;
         }
+
         const source = this.files.get(path) as string;
         if (source !== content) {
             this.files.set(path, content);
         }
     }
-
 }

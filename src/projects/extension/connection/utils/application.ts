@@ -1,5 +1,9 @@
-import { from, Observable, Subject } from "rxjs";
-import { bufferCount, debounce, debounceTime, switchMap, take, takeWhile, tap } from "rxjs/operators";
+import { Observable, Subject } from "rxjs";
+
+interface FileData {
+    content: string;
+    modified: boolean;
+}
 
 export class Application {
 
@@ -10,8 +14,6 @@ export class Application {
      */
     private appChange$: Subject<any> = new Subject();
 
-    private docChangeListener: () => void;
-
     /**
      * current count of registered observers
      */
@@ -19,9 +21,13 @@ export class Application {
 
     private doc: Promise<EngineAPI.IApp>;
 
+    /** */
+    private script: { content: string; modified: boolean };
+
     public constructor(
         private globalContext: EngineAPI.IGlobal,
-        private name: string
+        private name: string,
+        private server: string
     ) {}
 
     /**
@@ -41,6 +47,48 @@ export class Application {
             this.doc = this.global.openDoc(this.name);
         }
         return this.doc;
+    }
+
+    /**
+     * return script for currrent application
+     * load only once since we need to persist it.
+     *
+     * if we save the script on server side (browser) we will simply override
+     * everything what exists since we are not aware of any changes
+     */
+    public async getScript(server = false): Promise<FileData> {
+        if (!this.script || server) {
+            const doc    = await this.document;
+            const script = await doc.getScript();
+            const data: FileData = { content: script, modified: false};
+
+            if(server) {
+                return data;
+            }
+
+            this.script = { content: script, modified: false };
+        }
+        return this.script;
+    }
+
+    /** update a script */
+    public async updateScript(content: string): Promise<void> {
+        if (this.script) {
+            const doc = await this.doc;
+            await doc.setScript(content);
+            await doc.doSave();
+
+            this.script.modified = true;
+            this.script.content  = content;
+        }
+    }
+
+    public get appName(): string {
+        return this.name;
+    }
+
+    public get serverName(): string {
+        return this.server;
     }
 
     /**

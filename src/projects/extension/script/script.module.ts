@@ -4,27 +4,30 @@ import { ExtensionContext } from "@data/tokens";
 import { inject, singleton } from "tsyringe";
 import { EntryType } from "@vsqlik/fs/data";
 import { Subscription } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 
 import { CheckScriptSyntax, ScriptLoadDataCommand, ScriptResolveActiveCommand } from "./commands";
 import { ConnectionProvider } from "../connection/utils/connection.provider";
 import { Application } from "../connection/utils/application";
 import { QixFSProvider } from "@vsqlik/fs/utils/qix-fs.provider";
-import { ReadonlyScriptFileCtrl } from "./utils/readonly-script.file";
-import { ScriptRepository } from "./utils/script.repository";
+import { DocumentRepository, ReadonlyScriptFileCtrl } from "./utils";
+
+interface ObservedDocument {
+    subscription: Subscription;
+    app: Application;
+}
 
 @singleton()
 export class ScriptModule {
 
-    private observedDocuments: WeakMap<vscode.TextDocument, Subscription> = new WeakMap();
-
-    private isDiff = false;
+    private observedDocuments: WeakMap<vscode.TextDocument, ObservedDocument> = new WeakMap();
 
     constructor(
         @inject(ExtensionContext) private extensionContext: vscode.ExtensionContext,
         @inject(ConnectionProvider) private connectionProvider: ConnectionProvider,
         @inject(QixFSProvider) private qixFSProvider: QixFSProvider,
         @inject(QixRouter) private router: QixRouter<any>,
-        @inject(ScriptRepository) private scriptRepository: ScriptRepository
+        @inject(DocumentRepository) private scriptRepository: DocumentRepository
     ) {}
 
     public bootstrap(): void {
@@ -46,8 +49,8 @@ export class ScriptModule {
      * register connection storage where all sessions are saved to
      */
     private registerEvents(): void {
-        vscode.workspace.onDidOpenTextDocument((document) => this.onOpenDocument(document));
-        vscode.workspace.onDidCloseTextDocument((document) => this.onCloseDocument(document));
+        vscode.workspace.onDidCloseTextDocument((document)  => this.onCloseDocument(document));
+        vscode.workspace.onDidOpenTextDocument((document)   => this.onOpenDocument(document));
     }
 
     /**
@@ -56,7 +59,7 @@ export class ScriptModule {
     private registerRoutes(): void {
         this.router.addRoutes([
             {
-                path: 'remote/:app_id/scripts/main.qvs',
+                path: 'remote/:context/:app/script/main.qvs',
                 ctrl: ReadonlyScriptFileCtrl
             }
         ]);
@@ -81,41 +84,90 @@ export class ScriptModule {
             return;
         }
 
-        /** since we handle a script listen to onchange for app here until app get closed */
         const app = await connection?.getApplication(appEntry.id);
-        const subscription = app?.onChanged()
+
+        if (!app) {
+            return;
+        }
+
+        const subscription = app.onChanged()
+            .pipe(takeUntil(app.onClose()))
             .subscribe(() => this.onAppChanged(doc, app));
 
         /** @todo improve */
-        this.observedDocuments.set(doc, subscription as Subscription);
+        this.observedDocuments.set(doc, { app, subscription: subscription });
+
+        if (await this.remoteScriptIsDifferent(doc)) {
+            this.openDiff(doc, app);
+        }
 
         vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri);
     }
 
     /**
-     * app has triggered a change check the script from origin
+     * check remote script is diffrent from local source
      */
-    private async onAppChanged(document: vscode.TextDocument, app: Application) {
-        const origin = await app.document.then((doc) => doc.getScript());
-        const source = document.getText();
+    private async remoteScriptIsDifferent(doc: vscode.TextDocument): Promise<boolean> {
 
-        if (origin !== source && !this.isDiff) {
-            const doc = await this.scriptRepository.createDocument(origin);
-            vscode.commands.executeCommand('vscode.diff', document.uri, doc.uri);
-            this.isDiff = true;
-            return;
+        const connection = await this.connectionProvider.resolve(doc.uri);
+        const fileEntry  = connection?.fileSystem.read(doc.uri.toString(true));
+        const appEntry   = connection?.fileSystem.parent(doc.uri, EntryType.APPLICATION);
+
+        if (!appEntry || fileEntry?.type !== EntryType.SCRIPT) {
+            return false;
         }
 
-        const uri  = vscode.Uri.parse(`qix:/remote/abc/scripts/main.qvs`);
-        this.scriptRepository.updateDocument(origin);
-        this.qixFSProvider.reloadFile(uri);
+        const app = await connection?.getApplication(appEntry.id);
+
+        if (!app) {
+            return false;
+        }
+
+        const remoteScript = (await app.getScript(true)).content;
+        const localScript  = (await app.getScript()).content;
+
+        return remoteScript !== localScript;
+    }
+
+    /**
+     * app has triggered a change check the script from origin
+     */
+    private async onAppChanged(doc: vscode.TextDocument, app: Application) {
+
+        const remoteScript = await app.document.then((doc) => doc.getScript());
+        const remoteUri = doc.uri.with({ path: `/remote${doc.uri.path}` });
+
+        if (await this.remoteScriptIsDifferent(doc)) {
+            this.openDiff(doc, app);
+        }
+
+        this.scriptRepository.updateDocument(remoteUri, remoteScript);
+        this.qixFSProvider.reloadFile(remoteUri);
+
+        /** reload main source only if not dirty */
+        if (!doc.isDirty) {
+            this.qixFSProvider.reloadFile(doc.uri);
+        }
+    }
+
+    /**
+     * open a diff between 2 scripts (local <-> server)
+     */
+    private async openDiff(doc: vscode.TextDocument, app: Application) {
+
+        const remoteScript = await app.document.then((doc) => doc.getScript());
+        const remoteUri = doc.uri.with({ path: `/remote${doc.uri.path}` });
+
+        const name = `${app.serverName}/${app.appName}/main.qvs`;
+        await this.scriptRepository.createDocument(remoteUri, remoteScript);
+        await vscode.commands.executeCommand('vscode.diff', doc.uri, remoteUri, `local:${name}  \u2194 remote:${name}`, {preview: false});
     }
 
     /**
      *
      */
     private async onCloseDocument(doc: vscode.TextDocument) {
-        this.observedDocuments.get(doc)?.unsubscribe();
+        this.observedDocuments.get(doc)?.subscription.unsubscribe();
         this.observedDocuments.delete(doc);
     }
 }

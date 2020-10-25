@@ -144,9 +144,8 @@ export class Connection {
     public async getApplication(id: string): Promise<Application | undefined> {
         if (!this.applications.has(id)) {
             const global = await this.engimaProvider.open(id);
-
             if (global) {
-                const app = new Application(global, id);
+                const app = new Application(global, id, this.serverSetting.label);
 
                 app.onClose()
                     .pipe(take(1))

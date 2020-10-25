@@ -31,18 +31,18 @@ export class QixApplicationProvider {
      * read script from app
      */
     public async readScript(connection: Connection, id: string): Promise<string | undefined> {
-        const app = await this.openDocument(connection, id);
-        return app?.getScript();
+        const app    = await connection.getApplication(id);
+        const script = await app?.getScript();
+        return script?.content;
     }
 
     /**
      * write script to app
      */
     public async writeScript(connection: Connection, id: string, content: string): Promise<void> {
-        const app = await this.openDocument(connection, id);
+        const app = await connection.getApplication(id);
         if (app) {
-            await app.setScript(content.toString());
-            await app.doSave();
+            await app.updateScript(content.toString());
         }
     }
 
