@@ -77,20 +77,16 @@ export class ScriptModule {
      */
     private async onAppChanged(doc: vscode.TextDocument, app: Application) {
 
-        const remoteScript = await app.document.then((doc) => doc.getScript());
-        const remoteUri = doc.uri.with({ path: `/remote${doc.uri.path}` });
+        const remoteScript = await app.getScript(true);
+        const remoteUri    = doc.uri.with({ path: `/remote${doc.uri.path}` });
 
         if (await this.remoteScriptIsDifferent(doc)) {
             this.openDiff(doc, app);
+            return;
         }
 
         this.scriptRepository.updateDocument(remoteUri, remoteScript);
         this.qixFSProvider.reloadFile(remoteUri);
-
-        /** reload main source only if not dirty */
-        if (!doc.isDirty) {
-            this.qixFSProvider.reloadFile(doc.uri);
-        }
     }
 
     /**
@@ -110,9 +106,7 @@ export class ScriptModule {
      *
      */
     private async onCloseDocument(doc: vscode.TextDocument) {
-
         const data = this.observedDocuments.get(doc);
-
         if (data) {
             data.subscription.unsubscribe();
             data.app.unlockScript();
