@@ -187,7 +187,7 @@
     "mocha": "8.2.0",
     "rimraf": "3.0.2",
     "sinon": "9.2.0",
-    "ts-loader": "8.0.6",
+    "ts-loader": "8.0.7",
     "ts-node": "9.0.0",
     "tsconfig-paths": "3.9.0",
     "tsconfig-paths-webpack-plugin": "3.3.0",
