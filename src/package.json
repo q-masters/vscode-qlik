@@ -109,8 +109,9 @@
                 "dimensions": true,
                 "measures": true,
                 "script": true,
-                "sheets": false,
-                "variables": false
+                "sheets": true,
+                "variables": true,
+                "visualization": true
               }
             }]
           }

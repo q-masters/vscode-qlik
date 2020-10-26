@@ -82,6 +82,8 @@ export interface DisplaySettings {
     sheets: boolean;
 
     variables: boolean;
+
+    visualization: boolean;
 }
 
 export interface WorkspaceFolderSetting {
