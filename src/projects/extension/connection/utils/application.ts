@@ -1,4 +1,5 @@
 import { Observable, Subject } from "rxjs";
+import { debounceTime } from "rxjs/operators";
 
 export class Application {
 
@@ -54,33 +55,31 @@ export class Application {
     public async getScript(force = false): Promise<string> {
         if (!this.script || force) {
             const doc    = await this.document;
-            return await doc.getScript();
+            const script = await doc.getScript();
+
+            if (!force) {
+                console.log(script);
+                this.script = script;
+            }
+            return script;
         }
         return this.script;
-    }
-
-    public async lockScript(): Promise<void> {
-        if (!this.script) {
-            const doc    = await this.document;
-            this.script = await doc.getScript();
-        }
     }
 
     /**
      * set script to null so next time we fetch the script we got it from server
      */
-    public unlockScript(): void {
+    public releaseScript(): void {
         this.script = null;
     }
 
     /** update a script */
     public async updateScript(content: string): Promise<void> {
-        if (this.script) {
-            const doc = await this.doc;
-            await doc.setScript(content);
-            await doc.doSave();
-            this.script  = content;
-        }
+        this.script = content;
+
+        const doc = await this.doc;
+        await doc.setScript(content);
+        await doc.doSave();
     }
 
     public get appName(): string {
@@ -123,13 +122,16 @@ export class Application {
             }
 
             /** subscribe to app changes stream */
-            this.appChange$
-                /** seems to emit twice ... but why ? */
+            const change$ = this.appChange$
+                .pipe(debounceTime(500))
                 .subscribe(observer);
 
             /** unsubscribe */
             return () => {
+                change$.unsubscribe();
                 this.observerCount -= 1;
+
+                console.log("unsubscribe");
 
                 if (this.observerCount === 0) {
                     this.unregisterOnDocumentChange();

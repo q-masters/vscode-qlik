@@ -56,7 +56,6 @@ export class ScriptModule {
         }
 
         const app = await connection?.getApplication(appEntry.id);
-        await app?.lockScript();
 
         if (!app) {
             return;
@@ -66,9 +65,7 @@ export class ScriptModule {
             .pipe(takeUntil(app.onClose()))
             .subscribe(() => this.onAppChanged(doc, app));
 
-        /** @todo improve */
         this.observedDocuments.set(doc, { app, subscription: subscription });
-
         vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri);
     }
 
@@ -78,28 +75,18 @@ export class ScriptModule {
     private async onAppChanged(doc: vscode.TextDocument, app: Application) {
 
         const remoteScript = await app.getScript(true);
+        const sourceScript = await app.getScript();
         const remoteUri    = doc.uri.with({ path: `/remote${doc.uri.path}` });
 
-        if (await this.remoteScriptIsDifferent(doc)) {
-            this.openDiff(doc, app);
+        if (remoteScript !== sourceScript) {
+            const name = `${app.serverName}/${app.appName}/main.qvs`;
+            await this.scriptRepository.createDocument(remoteUri, remoteScript);
+            await vscode.commands.executeCommand('vscode.diff', doc.uri, remoteUri, `local:${name}  \u2194 remote:${name}`, {preview: false});
             return;
         }
 
         this.scriptRepository.updateDocument(remoteUri, remoteScript);
         this.qixFSProvider.reloadFile(remoteUri);
-    }
-
-    /**
-     * open a diff between 2 scripts (local <-> server)
-     */
-    private async openDiff(doc: vscode.TextDocument, app: Application) {
-
-        const remoteScript = await app.document.then((doc) => doc.getScript());
-        const remoteUri = doc.uri.with({ path: `/remote${doc.uri.path}` });
-
-        const name = `${app.serverName}/${app.appName}/main.qvs`;
-        await this.scriptRepository.createDocument(remoteUri, remoteScript);
-        await vscode.commands.executeCommand('vscode.diff', doc.uri, remoteUri, `local:${name}  \u2194 remote:${name}`, {preview: false});
     }
 
     /**
@@ -109,7 +96,7 @@ export class ScriptModule {
         const data = this.observedDocuments.get(doc);
         if (data) {
             data.subscription.unsubscribe();
-            data.app.unlockScript();
+            data.app.releaseScript();
             this.observedDocuments.delete(doc);
         }
     }
@@ -141,30 +128,5 @@ export class ScriptModule {
                 ctrl: ReadonlyScriptFileCtrl
             }
         ]);
-    }
-
-    /**
-     * check remote script is diffrent from local source
-     */
-    private async remoteScriptIsDifferent(doc: vscode.TextDocument): Promise<boolean> {
-
-        const connection = await this.connectionProvider.resolve(doc.uri);
-        const fileEntry  = connection?.fileSystem.read(doc.uri.toString(true));
-        const appEntry   = connection?.fileSystem.parent(doc.uri, EntryType.APPLICATION);
-
-        if (!appEntry || fileEntry?.type !== EntryType.SCRIPT) {
-            return false;
-        }
-
-        const app = await connection?.getApplication(appEntry.id);
-
-        if (!app) {
-            return false;
-        }
-
-        const remoteScript = await app.getScript(true);
-        const localScript  = await app.getScript();
-
-        return remoteScript !== localScript;
     }
 }

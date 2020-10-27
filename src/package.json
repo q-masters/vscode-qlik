@@ -122,13 +122,13 @@
         {
           "command": "VsQlik.Script.LoadData",
           "group": "navigation",
-          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs'"
+          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs' && !isInDiffEditor"
         }
       ],
       "commandPalette": [
         {
           "command": "VsQlik.Script.LoadData",
-          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs'"
+          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs' && !isInDiffEditor"
         }
       ]
     },
