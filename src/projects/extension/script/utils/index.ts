@@ -1,2 +1,1 @@
-export * from "./document.repository";
-export * from "./readonly-script.file";
+export * from "./virtual-script.repository";

@@ -74,12 +74,14 @@ export class Application {
     }
 
     /** update a script */
-    public async updateScript(content: string): Promise<void> {
+    public async updateScript(content: string, persist = true): Promise<void> {
         this.script = content;
 
-        const doc = await this.doc;
-        await doc.setScript(content);
-        await doc.doSave();
+        if (persist) {
+            const doc = await this.doc;
+            await doc.setScript(content);
+            await doc.doSave();
+        }
     }
 
     public get appName(): string {
@@ -108,9 +110,9 @@ export class Application {
     }
 
     /**
-     * create a warm observeable which registerns once on app changed event
+     * create a warm observeable which registers once on app changed event
      * if the the first one subscribe, for unsusubscript if no listeners left
-     * unregister again from app changed event
+     * unregister again from app changed event until a new one registers
      */
     public onChanged(): Observable<any> {
         /** subscribe */
@@ -130,8 +132,6 @@ export class Application {
             return () => {
                 change$.unsubscribe();
                 this.observerCount -= 1;
-
-                console.log("unsubscribe");
 
                 if (this.observerCount === 0) {
                     this.unregisterOnDocumentChange();

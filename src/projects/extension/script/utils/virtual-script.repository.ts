@@ -2,7 +2,7 @@ import { singleton } from "tsyringe";
 import * as vscode from "vscode";
 
 @singleton()
-export class DocumentRepository {
+export class VirtualScriptRepository {
 
     private files: Map<string, string> = new Map();
 
@@ -36,5 +36,9 @@ export class DocumentRepository {
         if (source !== content) {
             this.files.set(path, content);
         }
+    }
+
+    public removeDocument(uri: vscode.Uri): void {
+        /** @todo implement */
     }
 }

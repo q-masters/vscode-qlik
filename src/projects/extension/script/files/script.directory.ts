@@ -1,13 +1,12 @@
 import * as vscode from "vscode";
 import { injectable, inject } from "tsyringe";
-import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
-import { FileSystemHelper } from "../../utils/file-system.helper";
 import { DataNode } from "@core/qix/utils/qix-list.provider";
 import path from "path";
-import { EntryType } from "@vsqlik/fs/data";
+import { EntryType, QixFsDirectoryAdapter } from "@vsqlik/fs/data";
+import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
 
 @injectable()
-export class ScriptDirectory extends QixFsDirectoryAdapter{
+export class ScriptDirectoryCtrl extends QixFsDirectoryAdapter{
 
     public constructor(
         @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,

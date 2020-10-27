@@ -141,12 +141,11 @@ export class Connection {
     /**
      * create application wrapper for existing qlik app
      */
-    public async getApplication(id: string): Promise<Application | undefined> {
+    public async getApplication(id: string): Promise<Application> {
         if (!this.applications.has(id)) {
             const global = await this.engimaProvider.open(id);
             if (global) {
                 const app = new Application(global, id, this.serverSetting.label);
-
                 app.onClose()
                     .pipe(take(1))
                     .subscribe(() => this.applications.delete(id));
@@ -155,7 +154,7 @@ export class Connection {
                 this.applications.set(id, app);
             }
         }
-        return this.applications.get(id);
+        return this.applications.get(id) as Application;
     }
 
     /**
