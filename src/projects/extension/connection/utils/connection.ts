@@ -87,6 +87,10 @@ export class Connection {
         return this.stateChange$.asObservable();
     }
 
+    public get model(): ConnectionModel {
+        return this.connectionModel;
+    }
+
     /**
      * runs a connection request
      */
@@ -145,7 +149,9 @@ export class Connection {
         if (!this.applications.has(id)) {
             const global = await this.engimaProvider.open(id);
             if (global) {
-                const app = new Application(global, id, this.serverSetting.label);
+
+                const app    = new Application(global, id, this.serverSetting.label);
+
                 app.onClose()
                     .pipe(take(1))
                     .subscribe(() => this.applications.delete(id));

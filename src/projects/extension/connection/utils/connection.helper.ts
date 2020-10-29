@@ -4,7 +4,7 @@ import { create } from "enigma.js";
 import schema from "enigma.js/schemas/12.20.0.json";
 import WebSocket from "ws";
 import { WorkspaceSetting } from "@vsqlik/settings/api";
-import { container } from "tsyringe";
+import { container, singleton } from "tsyringe";
 import { SettingsRepository } from "@vsqlik/settings/settings.repository";
 import { VsQlikLoggerWebsocket } from "@vsqlik/logger";
 import { ConnectionSetting } from "../api";
@@ -14,7 +14,8 @@ export interface ConnectionSettingQuickPickItem extends vscode.QuickPickItem {
     setting: WorkspaceSetting
 }
 
-export abstract class ConnectionHelper {
+@singleton()
+export class ConnectionHelper {
 
     /**
      * build url by a given connection
@@ -39,9 +40,10 @@ export abstract class ConnectionHelper {
      */
     public static createEnigmaSession(
         model: ConnectionModel,
-        id?: string
+        id?: string,
+        uniqe = true
     ): enigmaJS.ISession {
-        const url = this.buildEnigmaWebsocketUri(model.setting, id);
+        const url = this.buildEnigmaWebsocketUri(model.setting, id, uniqe);
         return create({
             schema,
             url,
@@ -94,16 +96,23 @@ export abstract class ConnectionHelper {
     /**
      * create a websocket url by a given connection
      */
-    private static buildEnigmaWebsocketUri(connection: ConnectionSetting, id = "engineData"): string {
+    private static buildEnigmaWebsocketUri(connection: ConnectionSetting, id = "engineData", uniqe = true): string {
         const port = Number(connection.port);
-        const options = {
+
+        let options: any = {
             appId   : id,
             host    : connection.host,
-            identity: Math.random().toString(32).substr(2),
             secure  : connection.secure,
             port    : port && !isNaN(port) ? port : connection.secure ? 443 : 80,
             subpath : connection.path ?? ""
         };
+
+        if (uniqe) {
+            options = {
+                ...options,
+                identity: Math.random().toString(32).substr(2)
+            };
+        }
 
         return buildUrl(options);
     }

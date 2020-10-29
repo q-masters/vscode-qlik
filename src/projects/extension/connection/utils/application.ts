@@ -20,6 +20,11 @@ export class Application {
     /** */
     private script: string | null = null;
 
+    /**
+     * last script which was persisted on server via vsqlik
+     */
+    private previousScript: string;
+
     public constructor(
         private globalContext: EngineAPI.IGlobal,
         private name: string,
@@ -47,18 +52,15 @@ export class Application {
 
     /**
      * return script for currrent application
-     * load only once since we need to persist it.
-     *
-     * if we save the script on server side (browser) we will simply override
-     * everything what exists since we are not aware of any changes
+     * if force is set to false script will cached
      */
     public async getScript(force = false): Promise<string> {
         if (!this.script || force) {
-            const doc    = await this.document;
-            const script = await doc.getScript();
+
+            const doc        = await this.document;
+            const script     = await doc.getScript();
 
             if (!force) {
-                console.log(script);
                 this.script = script;
             }
             return script;
@@ -75,13 +77,15 @@ export class Application {
 
     /** update a script */
     public async updateScript(content: string, persist = true): Promise<void> {
+
         this.script = content;
+        const doc = await this.doc;
 
         if (persist) {
-            const doc = await this.doc;
             await doc.setScript(content);
             await doc.doSave();
         }
+
     }
 
     public get appName(): string {

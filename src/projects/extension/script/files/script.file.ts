@@ -12,7 +12,7 @@ export class ScriptFileCtrl extends QixFsFileAdapter {
 
     public constructor(
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
+        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
     ) {
         super();
     }
@@ -73,7 +73,7 @@ export class ScriptFileCtrl extends QixFsFileAdapter {
             fileUri = this.convertUri(uri);
         }
 
-        const connection = await this.getConnection(uri);
+        const connection  = await this.getConnection(uri);
         const app        = connection?.fileSystem.parent(fileUri, EntryType.APPLICATION);
 
         if (!app || !connection) {

@@ -38,9 +38,10 @@ export class QixApplicationProvider {
      * write script to app
      */
     public async writeScript(connection: Connection, id: string, content: string): Promise<void> {
-        const app = await connection.getApplication(id);
-        if (app) {
-            await app.updateScript(content.toString());
+        const application = await connection.getApplication(id);
+
+        if (application) {
+            await application.updateScript(content.toString());
         }
     }
 
