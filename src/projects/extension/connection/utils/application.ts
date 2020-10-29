@@ -1,5 +1,5 @@
-import { Observable, Subject } from "rxjs";
-import { debounceTime } from "rxjs/operators";
+import { from, Observable, Subject, zip } from "rxjs";
+import { debounceTime, map, switchMap } from "rxjs/operators";
 
 export class Application {
 
@@ -17,13 +17,31 @@ export class Application {
 
     private doc: Promise<EngineAPI.IApp>;
 
+    private appPropertiesSessionObject: Promise<any>;
+
     /** */
     private script: string | null = null;
 
+
+    public get appName(): string {
+        return this.name;
+    }
+
+    public get serverName(): string {
+        return this.server;
+    }
+
     /**
-     * last script which was persisted on server via vsqlik
+     * create session object for app propeties
+     * should happen only once,dont forget to destroy this session object
+     * then later
      */
-    private previousScript: string;
+    private get appProperties() {
+        if (!this.appPropertiesSessionObject) {
+            this.appPropertiesSessionObject = this.resolveProperties();
+        }
+        return this.appPropertiesSessionObject;
+    }
 
     public constructor(
         private globalContext: EngineAPI.IGlobal,
@@ -50,18 +68,25 @@ export class Application {
         return this.doc;
     }
 
+    public get properties(): Promise<any> {
+        return from(this.appProperties)
+            .pipe(switchMap((sessionObj) => sessionObj.getProperties()))
+            .toPromise();
+    }
+
     /**
      * return script for currrent application
      * if force is set to false script will cached
      */
     public async getScript(force = false): Promise<string> {
-        if (!this.script || force) {
 
+        if (!this.script || force) {
             const doc        = await this.document;
-            const script     = await doc.getScript();
+            const script     = await doc.getScript(); // script from server
 
             if (!force) {
-                this.script = script;
+                const appProps = await this.properties;
+                this.script    = appProps.vsqlik?.script || script;
             }
             return script;
         }
@@ -71,7 +96,7 @@ export class Application {
     /**
      * set script to null so next time we fetch the script we got it from server
      */
-    public releaseScript(): void {
+    public async releaseScript(): Promise<void> {
         this.script = null;
     }
 
@@ -84,16 +109,14 @@ export class Application {
         if (persist) {
             await doc.setScript(content);
             await doc.doSave();
+
+            /** save current working copy if we save */
+            const currrentData = await this.properties;
+            currrentData.vsqlik = {
+                script: this.script as string
+            };
+            await (await this.appProperties).setProperties(currrentData);
         }
-
-    }
-
-    public get appName(): string {
-        return this.name;
-    }
-
-    public get serverName(): string {
-        return this.server;
     }
 
     /**
@@ -144,15 +167,40 @@ export class Application {
         });
     }
 
+    /**
+     * resolve session object for object properties
+     */
+    private async resolveProperties(): Promise<EngineAPI.IGenericObject> {
+
+        const doc = await this.document;
+        const sessionObj = await doc.createSessionObject({
+            qInfo: {qType: "AppPropsList"},
+            qAppObjectListDef: { qType: "appprops" }
+        });
+
+        const listData = await sessionObj.getLayout() as any;
+        const objectId = listData.qAppObjectList.qItems[0].qInfo.qId;
+        const properties = doc.getObject(objectId);
+
+        doc.destroySessionObject(sessionObj.id);
+        return properties;
+    }
+
     private onDocumentChange() {
         this.appChange$.next();
     }
 
+    /**
+     * register on document changed event
+     */
     private async registerOnDocumentChange() {
         const doc = await this.document;
         doc.on("changed", this.onDocumentChange.bind(this));
     }
 
+    /**
+     * unregister from document changed event
+     */
     private async unregisterOnDocumentChange() {
         const doc = await this.document;
         (doc as any).removeListener("changed", this.onDocumentChange.bind(this));

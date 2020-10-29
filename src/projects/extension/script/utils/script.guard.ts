@@ -152,6 +152,12 @@ export class ScriptGuard {
 
         if (lastSavedScript && remoteScript !== lastSavedScript) {
             this.showDiff(observedDoc, doc, remoteScript);
+
+            /**
+             * @todo better name this is not really touched but conflict is not solved
+             * since the last working copy and the server version differs
+             */
+            observedDoc.touched = true;
         }
     }
 
@@ -169,6 +175,7 @@ export class ScriptGuard {
      * document get closed
      */
     private onCloseDocument(doc: vscode.TextDocument) {
+
         if (this.observedDocuments.has(doc)) {
             const docData = this.observedDocuments.get(doc) as ObservedDocument;
             docData.subscription.unsubscribe();
