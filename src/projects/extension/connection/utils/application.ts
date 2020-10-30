@@ -103,7 +103,6 @@ export class Application {
     /** update a script */
     public async updateScript(content: string, persist = true): Promise<void> {
 
-        this.script = content;
         const doc = await this.doc;
 
         if (persist) {
@@ -117,6 +116,8 @@ export class Application {
             };
             await (await this.appProperties).setProperties(currrentData);
         }
+
+        this.script = content;
     }
 
     /**
