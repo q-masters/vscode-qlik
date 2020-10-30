@@ -6,7 +6,7 @@
  </g>
  <g>
   <title>Layer 1</title>
-  <circle stroke-miterlimit="10" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" stroke="#ffffff" fill="none" id="svg_1" r="13" cy="16" cx="16" class="st0"/>
-  <polyline stroke-miterlimit="10" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" stroke="#ffffff" fill="none" id="svg_2" points="14,11 19,16 14,21 " class="st0"/>
+  <circle stroke-miterlimit="10" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" stroke="#C2C2C2" fill="none" id="svg_1" r="13" cy="16" cx="16" class="st0"/>
+  <polyline stroke-miterlimit="10" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" stroke="#C2C2C2" fill="none" id="svg_2" points="14,11 19,16 14,21 " class="st0"/>
  </g>
 </svg>
