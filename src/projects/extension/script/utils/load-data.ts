@@ -56,7 +56,6 @@ export class LoadDataProvider {
      * cancel current load data
      */
     public stop(): void {
-        this.state = LoadDataState.CANCELED;
         this.cancel$.next(true);
     }
 
@@ -91,16 +90,16 @@ export class LoadDataProvider {
             takeWhile(() => !this.isCompleted, true),
             concatMap((() => global.getProgress(0))),
             tap((data) => {
-
-                if (data.qErrorData.length) {
-                    this.errors.push(...data.qErrorData);
-                }
+                this.errors.push(...data.qErrorData);
 
                 if (data.qPersistentProgress.trim().length) {
                     this.out.appendLine(data.qPersistentProgress.trim());
                 }
             }),
-            finalize(() => this.complete())
+            finalize(() => {
+                this.state = this.errors.length ? LoadDataState.ERROR : this.state;
+                this.complete();
+            })
         ).subscribe();
 
         /** emit one time boolean if completed */
@@ -112,11 +111,15 @@ export class LoadDataProvider {
                         this.state = LoadDataState.SUCCESS;
                         return app.doSave();
                     }
-                    return of(false);
+
+                    /** could be also an error we dont know until now */
+                    this.state = LoadDataState.CANCELED;
+                    return of<void>(void 0);
                 }),
-                take(1)
+                finalize(() => this.isCompleted = true),
+                take(1),
             )
-            .subscribe(() => this.isCompleted = true);
+            .subscribe();
     }
 
     /**
@@ -156,6 +159,8 @@ export class LoadDataProvider {
         }
 
         this.out.appendLine(`<<<`);
+        this.out.appendLine(``);
+
         vscode.commands.executeCommand('setContext', 'VsQlik.Script.DataLoadState', 'idle');
     }
 }
