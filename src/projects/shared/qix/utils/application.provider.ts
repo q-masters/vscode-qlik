@@ -1,7 +1,8 @@
-import { container, singleton } from "tsyringe";
+import { singleton } from "tsyringe";
 import { Observable, from, of } from "rxjs";
 import { switchMap, take } from "rxjs/operators";
 import { Connection } from "projects/extension/connection/utils/connection";
+import { Application } from "projects/extension/connection/utils/application";
 
 @singleton()
 export class QixApplicationProvider {
@@ -17,10 +18,19 @@ export class QixApplicationProvider {
     }
 
     /**
+     * open a document
+     */
+    public async openDocument(connection: Connection, id: string): Promise<EngineAPI.IApp | undefined> {
+        const app      = await connection.getApplication(id);
+        const document = await app?.document;
+        return document;
+    }
+
+    /**
      * read script from app
      */
     public async readScript(connection: Connection, id: string): Promise<string | undefined> {
-        const app = await connection.openDoc(id);
+        const app = await connection.getApplication(id);
         return app?.getScript();
     }
 
@@ -28,10 +38,10 @@ export class QixApplicationProvider {
      * write script to app
      */
     public async writeScript(connection: Connection, id: string, content: string): Promise<void> {
-        const app = await connection.openDoc(id);
-        if (app) {
-            await app.setScript(content.toString());
-            await app.doSave();
+        const application = await connection.getApplication(id);
+
+        if (application) {
+            await application.updateScript(content.toString());
         }
     }
 
@@ -39,7 +49,7 @@ export class QixApplicationProvider {
      * check app script syntax
      */
     public async checkScriptSyntax(connection: Connection, id: string): Promise<EngineAPI.IScriptSyntaxError[]> {
-        const app = await connection.openDoc(id);
+        const app = await this.openDocument(connection, id);
         if (app) {
             return await app.checkScriptSyntax();
         }
@@ -61,7 +71,8 @@ export class QixApplicationProvider {
     public async deleteApp(connection: Connection, appId: string): Promise<void>
     {
         /** first close session on app */
-        await connection.closeSession(appId);
+        const app = await connection.getApplication(appId) as Application;
+        await app.close();
 
         /** get global and delete app */
         const session = await connection.openSession();
@@ -80,7 +91,7 @@ export class QixApplicationProvider {
     public async renameApp(connection: Connection, id: string, name: string): Promise<void> {
 
         /** get global and delete app */
-        const app = await connection.openDoc(id);
+        const app = await this.openDocument(connection, id);
         const properties = await app?.getAppProperties();
         const newProperties = {...properties, qTitle: name} as EngineAPI.INxAppProperties;
 

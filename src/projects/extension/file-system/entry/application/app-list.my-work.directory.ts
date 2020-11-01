@@ -64,8 +64,6 @@ export class AppListMyWorkDirectory extends AppListDirectory {
             }
 
             await this.applicationProvider.deleteApp(connection, fsEntry.id);
-            await connection.closeSession(fsEntry.id);
-
             connection.fileSystem.deleteDirectory(uri);
         }
     }

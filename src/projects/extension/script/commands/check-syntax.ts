@@ -21,7 +21,7 @@ export async function CheckScriptSyntax(uri: vscode.Uri): Promise<void> {
     }
 
     /** open the app */
-    const app = await connection.openDoc(appEntry.id);
+    const app = await connection.getApplication(appEntry.id);
 
     if (!app) {
         vscode.window.showInformationMessage(`check syntax for file: ${uri.toString(true)} failed. Could not open app.`);
@@ -29,10 +29,13 @@ export async function CheckScriptSyntax(uri: vscode.Uri): Promise<void> {
     }
 
     /** final syntax checks */
-    const errors = await app.checkScriptSyntax();
+    const document = await app.document;
+    const errors   = await document.checkScriptSyntax();
+
     const diagnostics: vscode.Diagnostic[] = [];
+
     if (errors.length) {
-        const script = await app.getScript();
+        const script = await document.getScript();
 
         errors.forEach((error) => {
             const line = script.substring(0, error.qTextPos).split(EOL).length - 1;

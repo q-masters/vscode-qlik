@@ -108,6 +108,7 @@ export class EnigmaSession {
         if (global) {
             if (!this.docCache.has(global)) {
                 const app = await global.openDoc(name);
+                // global.getActiveDoc();
                 this.docCache.set(global, app);
                 logger.debug(`open new app for ${name} and cached it to docCache`);
             }
@@ -129,6 +130,7 @@ export class EnigmaSession {
         do {
             id = Math.random().toString(32).substr(2);
         } while(this.sessionCache.has(id));
+
         return this.open(EnigmaSession.GLOBAL_SESSION_KEY, keepAlive, id);
     }
 
@@ -172,7 +174,6 @@ export class EnigmaSession {
     private async createSessionObject(id: string, keepAlive = false, cacheId?: string): Promise<enigmaJS.IGeneratedAPI>
     {
         const cacheKey = cacheId ?? id;
-
         if (!this.connectionQueue.has(cacheKey)) {
             this.connectionQueue.set(cacheKey, this.resolveSession(id, keepAlive, cacheKey));
         }

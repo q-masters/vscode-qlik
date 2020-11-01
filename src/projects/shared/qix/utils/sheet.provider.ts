@@ -31,8 +31,9 @@ export class QixSheetProvider  extends QixListProvider {
      * @override
      */
     public async update(connection: Connection, app_id: string, sheet_id: string, content: EngineAPI.IGenericObjectEntry): Promise<void> {
-        const app     = await connection?.openDoc(app_id) as EngineAPI.IApp;
-        const sheet   = await app?.getObject(sheet_id);
+        const app   = await connection?.getApplication(app_id);
+        const doc   = await app?.document;
+        const sheet = await doc?.getObject(sheet_id);
 
         return await sheet?.setFullPropertyTree(content);
     }

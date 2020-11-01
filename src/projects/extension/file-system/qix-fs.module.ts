@@ -10,7 +10,8 @@ export class QixFsModule {
 
     constructor(
         @inject(ExtensionContext) private extensionContext: vscode.ExtensionContext,
-        @inject(QixRouter) private router: QixRouter<any>
+        @inject(QixRouter) private router: QixRouter<any>,
+        @inject(QixFSProvider) private qixFsProvider: QixFSProvider
     ) {}
 
     public bootstrap(): void {
@@ -23,9 +24,8 @@ export class QixFsModule {
      */
     private registerQixFs(): void {
         /** register qixfs provider */
-        const qixFs = new QixFSProvider();
         this.extensionContext.subscriptions.push(
-            vscode.workspace.registerFileSystemProvider('qix', qixFs, { isCaseSensitive: true }));
+            vscode.workspace.registerFileSystemProvider('qix', this.qixFsProvider, { isCaseSensitive: true }));
 
     }
 }

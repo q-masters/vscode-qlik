@@ -1,37 +1,41 @@
-import { ExtensionContext } from "@data/tokens";
 import * as vscode from "vscode";
+import { QixRouter } from "@core/router";
+import { ExtensionContext } from "@data/tokens";
 import { inject, singleton } from "tsyringe";
+
 import { CheckScriptSyntax, ScriptLoadDataCommand, ScriptResolveActiveCommand } from "./commands";
+import { routes } from "./data/routes";
+import { ScriptSynchronizeCommand } from "./commands/sync-script";
+import { ScriptCommands } from "./data/commands";
+import { ScriptGuard } from "./utils/script.guard";
 
 @singleton()
 export class ScriptModule {
 
     constructor(
-        @inject(ExtensionContext) private extensionContext: vscode.ExtensionContext
-    ) {}
+        @inject(ExtensionContext) private extensionContext: vscode.ExtensionContext,
+        @inject(QixRouter) private router: QixRouter<any>,
+        @inject(ScriptGuard) private scriptGuard: ScriptGuard
+    ) {
+    }
 
+    /**
+     * bootstrap script module
+     */
     public bootstrap(): void {
+        this.router.addRoutes(routes);
         this.registerCommands();
-        this.registerEvents();
+        this.scriptGuard.init();
     }
 
     /**
      * register commands for vscode
      */
     private registerCommands(): void {
-        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.CheckSyntax', CheckScriptSyntax));
-        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.LoadData', ScriptLoadDataCommand));
-        this.extensionContext.subscriptions.push(vscode.commands.registerCommand('VsQlik.Script.ResolveActive', ScriptResolveActiveCommand));
-    }
-
-    /**
-     * register connection storage where all sessions are saved to
-     */
-    private registerEvents(): void {
-        vscode.workspace.onDidOpenTextDocument((doc: vscode.TextDocument) => {
-            if(doc.fileName.match(/\.qvs$/)) {
-                vscode.commands.executeCommand(`VsQlik.Script.CheckSyntax`, doc.uri);
-            }
-        });
+        /** @todo move to enum */
+        this.extensionContext.subscriptions.push(vscode.commands.registerCommand(ScriptCommands.CHECK_SYNTAX  , CheckScriptSyntax));
+        this.extensionContext.subscriptions.push(vscode.commands.registerCommand(ScriptCommands.LOAD_DATA     , ScriptLoadDataCommand));
+        this.extensionContext.subscriptions.push(vscode.commands.registerCommand(ScriptCommands.RESOLVE_ACTIVE, ScriptResolveActiveCommand));
+        this.extensionContext.subscriptions.push(vscode.commands.registerCommand(ScriptCommands.SYNCHRONIZE   , ScriptSynchronizeCommand));
     }
 }
