@@ -71,10 +71,14 @@ export class ScriptGuard {
      * update cached script but do not write
      * and trigger vscode to reload the document content
      */
-    private updateObservedDocument(doc: vscode.TextDocument, content: string) {
+    private async updateObservedDocument(doc: vscode.TextDocument, content: string) {
         const docData = this.observedDocuments.get(doc);
+
         if (docData && !docData.touched) {
-            docData.app.updateScript(content, false);
+            await docData.app.updateScript(content);
+            await docData.app.updateProperty(content, "script");
+            await docData.app.save();
+
             this.qixFSProvider.reloadFile(doc.uri);
         }
     }
@@ -105,7 +109,7 @@ export class ScriptGuard {
 
         const docData      = this.observedDocuments.get(doc) as ObservedDocument;
         const app          = docData.app;
-        const remoteScript = await app.getScript(true);
+        const remoteScript = await app.getRemoteScript();
         const sourceScript = await app.getScript();
 
         if (remoteScript !== sourceScript) {
@@ -113,7 +117,6 @@ export class ScriptGuard {
                 this.updateObservedDocument(doc, remoteScript);
                 return;
             }
-
             this.showDiff(docData, doc, remoteScript);
         }
 
@@ -147,7 +150,7 @@ export class ScriptGuard {
 
         vscode.commands.executeCommand(ScriptCommands.CHECK_SYNTAX, doc.uri);
 
-        const remoteScript    = await app.getScript(true);
+        const remoteScript    = await app.getRemoteScript();
         const lastSavedScript = await app.getScript();
 
         if (lastSavedScript && remoteScript !== lastSavedScript) {
