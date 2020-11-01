@@ -2,8 +2,6 @@ import { Route } from "projects/shared/router";
 import { QixFsEntry } from "../entry/qix/qixfs-entry";
 import { QixFsRootDirectory } from "../entry/root.directory";
 import { ApplicationDirectory } from "../entry/application/app.directory";
-import { ScriptDirectory } from "../entry/script/script.directory";
-import { ScriptFile } from "../entry/script/script.file";
 import { VariableDirectory } from "../entry/variable/variable.directory";
 import { VariableFile } from "../entry/variable/variable.file";
 import { SheetDirectory } from "../entry/sheet/sheet-directory";
@@ -32,12 +30,6 @@ export const Routes: Route<QixFsEntry>[] = [
     }, {
         path: "my work/:app",
         ctrl: ApplicationDirectory
-    }, {
-        path: "my work/:app/script",
-        ctrl: ScriptDirectory
-    }, {
-        path: "my work/:app/script/:file",
-        ctrl: ScriptFile
     }, {
         path: "my work/:app/measures",
         ctrl: MeasureDirectory
@@ -94,12 +86,6 @@ export const Routes: Route<QixFsEntry>[] = [
         path: "streams/:stream/:app/measures/:measure",
         ctrl: MeasureFile
     }, {
-        path: "streams/:stream/:app/script",
-        ctrl: ScriptDirectory
-    }, {
-        path: "streams/:stream/:app/script/:file",
-        ctrl: ScriptFile
-    }, {
         path: "streams/:stream/:app/variables",
         ctrl: VariableDirectory
     }, {
@@ -119,5 +105,5 @@ export const Routes: Route<QixFsEntry>[] = [
     {
         path: "streams/:stream/:app/visualization/:id",
         ctrl: VisualizationFile
-    },
+    }
 ];

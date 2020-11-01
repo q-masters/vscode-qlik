@@ -3,6 +3,7 @@ import { inject } from "tsyringe";
 import { posix } from "path";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
 import { QixFsDirectoryAdapter } from "../qix/qixfs-entry";
+import { DisplaySettings } from "@core/public.api";
 
 /** */
 export class ApplicationDirectory extends QixFsDirectoryAdapter {
@@ -11,6 +12,15 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
     ) {
         super();
+    }
+
+    private defaultDisplaySettings: DisplaySettings = {
+        dimensions: true,
+        measures: true,
+        script: true,
+        sheets: true,
+        variables: true,
+        visualization: true
     }
 
     /**
@@ -22,7 +32,15 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
         const connection = await this.getConnection(uri);
 
         if (connection) {
-            const settings = {...connection.serverSettings.display, visualization: true};
+
+            const settings = {
+                ...this.defaultDisplaySettings,
+                ...connection.serverSettings.display ?? {},
+            };
+
+            /**
+             * what if the settings simply not exists
+             */
             Object.keys(settings).forEach((key) => {
                 if (settings[key] !== false) {
                     folders.push([key, vscode.FileType.Directory]);

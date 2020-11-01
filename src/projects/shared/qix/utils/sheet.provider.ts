@@ -31,13 +31,14 @@ export class QixSheetProvider  extends QixListProvider {
      * @override
      */
     public async update(connection: Connection, app_id: string, sheet_id: string, content: EngineAPI.IGenericObjectEntry): Promise<void> {
-        const session = await connection.openSession(app_id);
-        const app     = await session?.openDoc(app_id) as EngineAPI.IApp;
-        const sheet   = await app?.getObject(sheet_id);
+        const app   = await connection?.getApplication(app_id);
+        const doc   = await app?.document;
+        const sheet = await doc?.getObject(sheet_id);
 
         return await sheet?.setFullPropertyTree(content);
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     protected extractListItems(layout: any): any[] {
         return layout.qAppObjectList.qItems as any[];
     }

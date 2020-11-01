@@ -17,6 +17,7 @@ import { ConnectionHelper } from "./connection.helper";
 import { EnigmaSession } from "./enigma.provider";
 import { VsQlikLoggerConnection } from "../api";
 import { fetchServerInformation } from "../commands";
+import { Application } from "./application";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -36,6 +37,9 @@ export class Connection {
      */
     private serverStorage: Storage;
 
+    /**
+     *
+     */
     private stateChange$: BehaviorSubject<ConnectionState> = new BehaviorSubject(ConnectionState.CLOSED);
 
     /**
@@ -44,9 +48,18 @@ export class Connection {
     private destroy$: Subject<boolean> = new Subject();
 
     /**
+     * file mapping, so we could easier find a filesystem entry
      */
     private serverFilesystem: FileSystemStorage = new FileSystemStorage();
 
+    /**
+     * open applications
+     */
+    private applications: Map<string, Application> = new Map();
+
+    /**
+     * vsqlik logger for connections
+     */
     private logger: VsQlikLogger;
 
     public constructor(
@@ -74,6 +87,10 @@ export class Connection {
         return this.stateChange$.asObservable();
     }
 
+    public get model(): ConnectionModel {
+        return this.connectionModel;
+    }
+
     /**
      * runs a connection request
      */
@@ -91,11 +108,10 @@ export class Connection {
                 const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error?.message ?? error}`;
                 vscode.window.showErrorMessage(message);
                 this.stateChange$.next(ConnectionState.ERROR);
-
                 this.logger.error(message);
                 return of(false);
             }),
-            take(1),
+            take(1)
         ).toPromise();
     }
 
@@ -115,16 +131,36 @@ export class Connection {
         this.stateChange$.next(ConnectionState.CLOSED);
     }
 
-    public closeSession(appId?: string): Promise<void> {
-        return this.engimaProvider.close(appId);
+    public openSession(): Promise<EngineAPI.IGlobal | undefined> {
+        return this.engimaProvider.open();
     }
 
-    public openSession(appId?: string): Promise<EngineAPI.IGlobal | undefined> {
-        return this.engimaProvider.open(appId);
-    }
-
+    /**
+     * create complete new independed session
+     */
     public createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined> {
         return this.engimaProvider.createSession(keepAlive);
+    }
+
+    /**
+     * create application wrapper for existing qlik app
+     */
+    public async getApplication(id: string): Promise<Application> {
+        if (!this.applications.has(id)) {
+            const global = await this.engimaProvider.open(id);
+            if (global) {
+
+                const app    = new Application(global, id, this.serverSetting.label);
+
+                app.onClose()
+                    .pipe(take(1))
+                    .subscribe(() => this.applications.delete(id));
+
+                /** cache app */
+                this.applications.set(id, app);
+            }
+        }
+        return this.applications.get(id) as Application;
     }
 
     /**
@@ -170,7 +206,6 @@ export class Connection {
      * run authorization by strategy
      */
     private async authorize(): Promise<boolean> {
-
         /** this also happens we are automatically logged in */
         const authState = await this.checkAuthState();
         if (authState.authorized) {
@@ -203,10 +238,8 @@ export class Connection {
     protected checkAuthState(): Promise<AuthorizationState> {
         return new Promise((resolve, reject) => {
             const session = ConnectionHelper.createEnigmaSession(this.connectionModel);
-            session.on("traffic:received", (response) => {
-                (session as any).removeAllListeners();
-                session.close();
-
+            session.on("traffic:received", async (response) => {
+                await session.close();
                 switch (response.method) {
                     case 'OnAuthenticationInformation':
                         this.connectionModel.isAuthorizationRequired = true;
@@ -218,10 +251,10 @@ export class Connection {
                         break;
 
                     default:
-                        console.log(response);
                         reject(response);
                 }
             });
+            session.on('closed', () => (session as any).removeAllListeners());
             session.open();
         });
     }

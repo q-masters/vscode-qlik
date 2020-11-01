@@ -1,19 +1,18 @@
 import * as vscode from "vscode";
 import { inject } from "tsyringe";
 import { QixApplicationProvider } from "@shared/qix/utils/application.provider";
-import { QixFsFileAdapter } from "../qix/qixfs-entry";
-import { FileSystemHelper } from "../../utils/file-system.helper";
 import { posix } from "path";
-import { EntryType } from "@vsqlik/fs/data";
 import { DataNode } from "@core/qix/utils/qix-list.provider";
+import { EntryType, QixFsFileAdapter } from "@vsqlik/fs/data";
+import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
 
-export class ScriptFile extends QixFsFileAdapter {
+export class ScriptFileCtrl extends QixFsFileAdapter {
 
     private scriptDeleteTimer: NodeJS.Timeout;
 
     public constructor(
         @inject(QixApplicationProvider) private appService: QixApplicationProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper,
+        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
     ) {
         super();
     }
@@ -48,7 +47,6 @@ export class ScriptFile extends QixFsFileAdapter {
      * read contents of the main.qvs
      */
     public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
-
         if(this.fileSystemHelper.isTemporaryFileEntry(uri)) {
             return Buffer.from("Script was copied successful to main.qvs.");
         }
@@ -75,7 +73,7 @@ export class ScriptFile extends QixFsFileAdapter {
             fileUri = this.convertUri(uri);
         }
 
-        const connection = await this.getConnection(uri);
+        const connection  = await this.getConnection(uri);
         const app        = connection?.fileSystem.parent(fileUri, EntryType.APPLICATION);
 
         if (!app || !connection) {

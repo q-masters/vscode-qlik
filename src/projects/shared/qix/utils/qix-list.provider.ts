@@ -7,9 +7,6 @@ export interface DataNode {
     [key: string]: any;
 }
 
-export interface GeneratedApi {
-}
-
 export abstract class QixListProvider {
 
 
@@ -46,23 +43,24 @@ export abstract class QixListProvider {
      * resolve all measure items
      */
     public list<T>(connection: Connection, app: string): Observable<T[]> {
-        return from(connection.openSession(app)).pipe(
-            switchMap((global) => global?.openDoc(app) ?? EmptyError),
-            switchMap((app) => app.createSessionObject(this.listProperties)),
-            switchMap((obj) => obj.getLayout()),
-            map((layout) => this.extractListItems<T>(layout)),
-            catchError((error) => {
-                throw error;
-            })
-        );
+        return from(connection.getApplication(app))
+            .pipe(
+                switchMap((app) => app?.document ?? EmptyError),
+                switchMap((doc) => doc?.createSessionObject(this.listProperties) ?? EmptyError),
+                switchMap((obj) => obj.getLayout()),
+                map((layout) => this.extractListItems<T>(layout)),
+                catchError((error) => {
+                    throw error;
+                })
+            );
     }
 
     public async create<T extends EngineAPI.IGenericObject>(connection: Connection, app_id: string, properties: EngineAPI.IGenericProperties): Promise<T> {
-        const global = await connection.openSession(app_id);
-        const app    = await global?.openDoc(app_id);
+        const app = await connection?.getApplication(app_id);
+        const doc = await app?.document;
 
-        if (app) {
-            return await this.createObject(app, properties) as T;
+        if (doc) {
+            return await this.createObject(doc, properties) as T;
         }
 
         throw new Error(`Could not open app.`);
@@ -87,7 +85,7 @@ export abstract class QixListProvider {
     /**
      * rename measure
      */
-    public async rename(connection: Connection, appId: string, objectId: string, newName: string) {
+    public async rename(connection: Connection, appId: string, objectId: string, newName: string): Promise<any> {
         const patch   = {
             qMetaDef: {
                 title: newName
@@ -99,7 +97,7 @@ export abstract class QixListProvider {
     /**
      * patch data
      */
-    public async patch(connection: Connection, app: string, object: string, patch: DataNode) {
+    public async patch(connection: Connection, app: string, object: string, patch: DataNode): Promise<any> {
         const genericObject = await this.resolveGenericObject(connection, app, object);
         const oldData       = await genericObject.getProperties();
         const newData       = deepmerge.all([oldData, patch]);
@@ -112,11 +110,11 @@ export abstract class QixListProvider {
      * destroy a session object
      */
     public async destroy(connection: Connection, app_id: string, object: string): Promise<void> {
-        const global = await connection.openSession(app_id);
-        const app    = await global?.openDoc(app_id);
+        const app = await connection?.getApplication(app_id);
+        const doc = await app?.document;
 
-        if (app) {
-            this.delete(app, object);
+        if (doc) {
+            this.delete(doc, object);
         }
     }
 
@@ -124,11 +122,11 @@ export abstract class QixListProvider {
      * resolve generic object which we are interested for
      */
     private async resolveGenericObject(connection: Connection, app_id: string, object_id: string): Promise<any> {
-        const global = await connection.openSession(app_id);
-        const app    = await global?.openDoc(app_id);
+        const app = await connection?.getApplication(app_id);
+        const doc = await app?.document;
 
-        if (app) {
-            return this.getObject(app, object_id);
+        if (doc) {
+            return this.getObject(doc, object_id);
         }
     }
 }
