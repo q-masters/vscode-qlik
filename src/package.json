@@ -57,7 +57,18 @@
         "icon": {
           "light": "./projects/media/icons/load-data.light.svg",
           "dark": "./projects/media/icons/load-data.dark.svg"
-        }
+        },
+        "enablement": "VsQlik.Script.DataLoadState != progressing"
+      },
+      {
+        "command": "VsQlik.Script.StopLoadData",
+        "title": "Cancel current reload data",
+        "category": "VsQlik",
+        "icon": {
+          "light": "./projects/media/icons/stop-load-data.light.svg",
+          "dark": "./projects/media/icons/stop-load-data.dark.svg"
+        },
+        "enablement": "VsQlik.Script.DataLoadState == progressing"
       }
     ],
     "configuration": [
@@ -120,6 +131,11 @@
     ],
     "menus": {
       "editor/title": [
+        {
+          "command": "VsQlik.Script.StopLoadData",
+          "group": "navigation",
+          "when": "resourceScheme == 'qix' && resourceFilename == 'main.qvs' && !isInDiffEditor"
+        },
         {
           "command": "VsQlik.Script.LoadData",
           "group": "navigation",
