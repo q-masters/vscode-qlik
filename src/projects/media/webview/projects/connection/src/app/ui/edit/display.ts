@@ -17,7 +17,14 @@ export class DisplaySettingsComponent implements OnInit, OnDestroy {
 
     public displayFormGroup: FormGroup;
 
-    public displayFields = ["dimensions", "measures", "script", "sheets", "variables"];
+    public displayFields = [
+      "dimensions",
+      "measures",
+      "script",
+      "sheets",
+      "variables",
+      "visualization"
+    ];
 
     /**
      * emits true if component gets destroyed
@@ -65,11 +72,12 @@ export class DisplaySettingsComponent implements OnInit, OnDestroy {
      */
     private createForm(setting: DisplaySettings): FormGroup {
         return this.formbuilder.group({
-            dimensions: this.formbuilder.control(setting.dimensions),
-            measures: this.formbuilder.control(setting.measures),
-            script: this.formbuilder.control(setting.script),
-            sheets: this.formbuilder.control(setting.sheets),
-            variables: this.formbuilder.control(setting.variables),
+            dimensions: this.formbuilder.control(setting?.dimensions ?? true),
+            measures: this.formbuilder.control(setting?.measures ?? true),
+            script: this.formbuilder.control(setting?.script ?? true),
+            sheets: this.formbuilder.control(setting?.sheets ?? true),
+            variables: this.formbuilder.control(setting?.variables ?? true),
+            visualization: this.formbuilder.control(setting?.visualization ?? true),
         });
     }
 

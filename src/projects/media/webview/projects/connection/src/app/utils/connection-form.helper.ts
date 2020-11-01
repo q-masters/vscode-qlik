@@ -91,6 +91,7 @@ export class ConnectionFormHelper {
               script: true,
               sheets: true,
               variables: true,
+              visualization: true
             },
             label: "New Connection"
         };

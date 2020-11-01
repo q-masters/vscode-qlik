@@ -10,6 +10,7 @@ export interface DisplaySettings {
     script: boolean;
     sheets: boolean;
     variables: boolean;
+    visualization: boolean;
 }
 
 /** connection settings */
