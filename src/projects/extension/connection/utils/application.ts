@@ -1,5 +1,5 @@
-import { from, Observable, Subject, zip } from "rxjs";
-import { debounceTime, map, switchMap } from "rxjs/operators";
+import { from, Observable, Subject } from "rxjs";
+import { debounceTime, switchMap } from "rxjs/operators";
 
 export class Application {
 
@@ -74,23 +74,25 @@ export class Application {
             .toPromise();
     }
 
+    public async getRemoteScript(): Promise<string> {
+        const doc = await this.document;
+        return await doc.getScript(); // script from server
+    }
+
     /**
-     * return script for currrent application
-     * if force is set to false script will cached
+     * get script for current application
+     *
+     * 1. check if cached and return last cached version
+     * 2. if not existis get last saved version of the script from the properties
+     * 3. by default return remote script
      */
-    public async getScript(force = false): Promise<string> {
-
-        if (!this.script || force) {
-            const doc        = await this.document;
-            const script     = await doc.getScript(); // script from server
-
-            if (!force) {
-                const appProps = await this.properties;
-                this.script    = appProps.vsqlik?.script || script;
-            }
-            return script;
+    public async getScript(): Promise<string> {
+        if (!this.script) {
+            const remoteScript = await this.getRemoteScript();
+            const appProps = await this.properties;
+            this.script = appProps.vsqlik?.script || remoteScript;
         }
-        return this.script;
+        return this.script ?? '';
     }
 
     /**
@@ -100,24 +102,42 @@ export class Application {
         this.script = null;
     }
 
-    /** update a script */
-    public async updateScript(content: string, persist = true): Promise<void> {
-
-        const doc = await this.doc;
-
-        if (persist) {
-            await doc.setScript(content);
-            await doc.doSave();
-
-            /** save current working copy if we save */
-            const currrentData = await this.properties;
-            currrentData.vsqlik = {
-                script: this.script as string
-            };
-            await (await this.appProperties).setProperties(currrentData);
-        }
-
+    /**
+     * update only cached script
+     * this only happens if the server emits changes but we do not have touched this
+     * yet
+     */
+    public async updateScript(content: string): Promise<void> {
         this.script = content;
+    }
+
+    /**
+     * update property on application
+     * @param content what should be written
+     * @param key the key which should be written
+     */
+    public async updateProperty(content: string, key = "script"): Promise<void> {
+        const doc = await this.doc;
+        const currrentData = await this.properties;
+        currrentData.vsqlik = { [key]: content };
+
+        await (await this.appProperties).setProperties(currrentData);
+    }
+
+    /**
+     * persist script on server
+     */
+    public async writeScript(): Promise<void> {
+        const doc = await this.doc;
+        await doc.setScript(this.script ?? '');
+    }
+
+    /**
+     * trigger app to do a save
+     */
+    public async save(): Promise<void> {
+        const doc = await this.doc;
+        doc.doSave();
     }
 
     /**
