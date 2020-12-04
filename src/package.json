@@ -205,7 +205,7 @@
     "rimraf": "3.0.2",
     "sinon": "9.2.1",
     "ts-loader": "8.0.11",
-    "ts-node": "9.0.0",
+    "ts-node": "9.1.0",
     "tsconfig-paths": "3.9.0",
     "tsconfig-paths-webpack-plugin": "3.3.0",
     "tslint": "6.1.3",
