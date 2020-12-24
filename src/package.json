@@ -188,7 +188,7 @@
     "@types/node-fetch": "^2.5.7",
     "@types/qlik-engineapi": "12.67.9",
     "@types/request": "2.48.5",
-    "@types/sinon": "9.0.9",
+    "@types/sinon": "9.0.10",
     "@types/triple-beam": "^1.3.2",
     "@types/vscode": "1.45.1",
     "@types/ws": "7.4.0",
