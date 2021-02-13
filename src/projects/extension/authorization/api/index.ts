@@ -4,6 +4,7 @@ export enum AuthStrategy {
     CERTIFICATE,
     FORM,
     CUSTOM,
+    EXTERNAL,
     NONE
 }
 

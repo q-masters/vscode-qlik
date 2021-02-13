@@ -19,9 +19,19 @@ export class Application {
 
     private appPropertiesSessionObject: Promise<any>;
 
-    /** */
-    private script: string | null = null;
+    /**
+     *
+     */
+    private appScript: string | null = null;
 
+    /**
+     * last working copy
+     */
+    private lastWorkingCopy: string;
+
+    public set script(script: string) {
+        this.appScript = script;
+    }
 
     public get appName(): string {
         return this.name;
@@ -80,35 +90,31 @@ export class Application {
     }
 
     /**
-     * get script for current application
-     *
-     * 1. check if cached and return last cached version
-     * 2. if not existis get last saved version of the script from the properties
-     * 3. by default return remote script
+     * first time get script from server and cache it
      */
     public async getScript(): Promise<string> {
-        if (!this.script) {
-            const remoteScript = await this.getRemoteScript();
-            const appProps = await this.properties;
-            this.script = appProps.vsqlik?.script || remoteScript;
+        if (!this.appScript) {
+            this.appScript = await this.getRemoteScript();
         }
-        return this.script ?? '';
+        return this.appScript ?? '';
+    }
+
+    /**
+     * get last working copy last time we saved the script
+     * to the server
+     */
+    public async getPreviousRevision(): Promise<string | undefined> {
+        if (!this.lastWorkingCopy) {
+            this.lastWorkingCopy = (await this.properties).vsqlik?.script;
+        }
+        return this.lastWorkingCopy;
     }
 
     /**
      * set script to null so next time we fetch the script we got it from server
      */
     public async releaseScript(): Promise<void> {
-        this.script = null;
-    }
-
-    /**
-     * update only cached script
-     * this only happens if the server emits changes but we do not have touched this
-     * yet
-     */
-    public async updateScript(content: string): Promise<void> {
-        this.script = content;
+        this.appScript = null;
     }
 
     /**
@@ -121,6 +127,8 @@ export class Application {
         const currrentData = await this.properties;
         currrentData.vsqlik = { [key]: content };
 
+        this.lastWorkingCopy = content;
+
         await (await this.appProperties).setProperties(currrentData);
     }
 
@@ -129,7 +137,7 @@ export class Application {
      */
     public async writeScript(): Promise<void> {
         const doc = await this.doc;
-        await doc.setScript(this.script ?? '');
+        await doc.setScript(this.appScript ?? '');
     }
 
     /**

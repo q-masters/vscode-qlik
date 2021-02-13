@@ -89,7 +89,7 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
                     reject(response.statusMessage);
                     return;
                 }
-                resolve(response.headers.location);
+                resolve(response.headers.location ?? "");
             });
         });
     }

@@ -29,36 +29,43 @@ export class Connection {
 
     /**
      * handler for all enigma sessions
+     *
      */
     private engimaProvider: EnigmaSession;
 
     /**
      * storage to save data
+     *
      */
     private serverStorage: Storage;
 
     /**
+     *
      *
      */
     private stateChange$: BehaviorSubject<ConnectionState> = new BehaviorSubject(ConnectionState.CLOSED);
 
     /**
      * one stream to unsubscribe everything
+     *
      */
     private destroy$: Subject<boolean> = new Subject();
 
     /**
      * file mapping, so we could easier find a filesystem entry
+     *
      */
     private serverFilesystem: FileSystemStorage = new FileSystemStorage();
 
     /**
      * open applications
+     *
      */
     private applications: Map<string, Application> = new Map();
 
     /**
      * vsqlik logger for connections
+     *
      */
     private logger: VsQlikLogger;
 
@@ -93,6 +100,7 @@ export class Connection {
 
     /**
      * runs a connection request
+     *
      */
     public connect(): Promise<boolean> {
         const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
@@ -117,6 +125,7 @@ export class Connection {
 
     /**
      * disconnect
+     *
      */
     public destroy(): void {
         this.destroy$.next(true);
@@ -137,6 +146,7 @@ export class Connection {
 
     /**
      * create complete new independed session
+     *
      */
     public createSession(keepAlive = false): Promise<EngineAPI.IGlobal | undefined> {
         return this.engimaProvider.createSession(keepAlive);
@@ -144,6 +154,7 @@ export class Connection {
 
     /**
      * create application wrapper for existing qlik app
+     *
      */
     public async getApplication(id: string): Promise<Application> {
         if (!this.applications.has(id)) {
@@ -168,6 +179,7 @@ export class Connection {
      * or decline
      *
      * to much vscode inside
+     *
      */
     private acceptUntrusted(fingerprint: string): Promise<boolean> {
         return new Promise((resolve) => {
@@ -204,6 +216,7 @@ export class Connection {
     /**
      * check current authorization state, if we have to login
      * run authorization by strategy
+     *
      */
     private async authorize(): Promise<boolean> {
         /** this also happens we are automatically logged in */
@@ -234,6 +247,7 @@ export class Connection {
      *
      * checks we have an active session via session cookie so we dont need to authorize again
      * and if not we got some authorization informations
+     *
      */
     protected checkAuthState(): Promise<AuthorizationState> {
         return new Promise((resolve, reject) => {
@@ -261,6 +275,7 @@ export class Connection {
 
     /**
      * we got connected to server
+     *
      */
     private async onConnected() {
         this.serverStorage.write(JSON.stringify(this.serverSetting.connection), {cookies: this.connectionModel.cookies});

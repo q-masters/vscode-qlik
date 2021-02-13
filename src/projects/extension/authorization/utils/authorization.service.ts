@@ -2,6 +2,7 @@ import { AuthorizationResult, AuthorizationStrategy } from "../strategies/author
 import { singleton } from "tsyringe";
 import { AuthStrategy } from "@auth/api";
 import FormAuthorizationStrategy from "@auth/strategies/form";
+import ExternalAuthorizationStrategy from "@auth/strategies/external";
 import { DataNode } from "@core/qix/utils/qix-list.provider";
 
 @singleton()
@@ -46,14 +47,15 @@ export class AuthorizationService {
 
         switch (config.strategy) {
             case AuthStrategy.FORM:
-                strategy = new FormAuthorizationStrategy();
+                strategy = new FormAuthorizationStrategy(config);
+                break;
+
+            case AuthStrategy.EXTERNAL:
+                strategy = new ExternalAuthorizationStrategy(config);
                 break;
         }
 
         if (strategy) {
-            const {allowUntrusted, uri, name} = config;
-            const {domain, password}    = config.credentials;
-            strategy.configure({ allowUntrusted, uri, name, domain, password });
             return strategy;
         }
 

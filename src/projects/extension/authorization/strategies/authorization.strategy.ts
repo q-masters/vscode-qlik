@@ -31,8 +31,6 @@ export interface AuthConfig {
 
 export abstract class AuthorizationStrategy {
 
-    protected config: AuthConfig;
-
     private authTitle = "";
 
     public set title(title: string) {
@@ -43,8 +41,12 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    public configure(config: AuthConfig): void {
-        this.config = config;
+    constructor(protected config: AuthConfig) {
+        /*
+        const {allowUntrusted, uri, name} = config;
+        const {domain, password} = config.credentials;
+        strategy.configure({ allowUntrusted, uri, name, domain, password });
+        */
     }
 
     public abstract run(): Promise<AuthorizationResult>;

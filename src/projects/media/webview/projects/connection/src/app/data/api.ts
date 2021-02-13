@@ -2,6 +2,7 @@ export enum AuthorizationStrategy {
     CERTIFICATE,
     FORM,
     CUSTOM,
+    EXTERNAL,
     NONE
 }
 

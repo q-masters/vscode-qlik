@@ -63,6 +63,7 @@ export class ConnectionModule {
      */
     private createConnectionStorage(): void {
         const settings: any = vscode.workspace.getConfiguration().get('VsQlik.Developer');
+
         const storage = settings.cacheSession
             ? new FileStorage(this.extensionContext.globalStoragePath, "auth.json")
             : new MemoryStorage();
