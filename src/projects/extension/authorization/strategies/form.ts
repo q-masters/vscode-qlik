@@ -58,6 +58,7 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
     /**
      * create a step
+     *
      */
     private createStep(value: string | undefined, placeholder = '', isPassword = false): IStep {
         if (!value || value.trim() === '') {

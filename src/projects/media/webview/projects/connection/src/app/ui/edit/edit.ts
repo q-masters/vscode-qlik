@@ -152,6 +152,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
 
     /**
      * update form controls if a new connection model has been loaded
+     *
      */
     private reloadFormData() {
 

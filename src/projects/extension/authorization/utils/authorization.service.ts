@@ -48,6 +48,7 @@ export class AuthorizationService {
             };
         }
 
+
         const strategy = this.resolveAuthorizationStrategy(config);
         strategy.url = this.resolveLoginUrl(config);
 
@@ -55,6 +56,7 @@ export class AuthorizationService {
             this.authorizationQueueItems.set(strategy, (result: AuthorizationResult) => {
 
                 if (result.success) {
+                    console.dir(config);
                     this.sessionStorage.write(JSON.stringify(config), {
                         authorized: true,
                         cookies: result.cookies

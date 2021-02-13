@@ -17,6 +17,8 @@ import { EnigmaSession } from "./enigma.provider";
 import { VsQlikLoggerConnection } from "../api";
 import { fetchServerInformation } from "../commands";
 import { Application } from "./application";
+import { REPL_MODE_SLOPPY } from "repl";
+import { useFakeServer } from "sinon";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
@@ -101,13 +103,20 @@ export class Connection {
      * runs a connection request
      *
      */
-    public connect(): Promise<boolean> {
+    public async connect(): Promise<boolean> {
 
         this.logger.info(`connect to server: ${this.serverSetting.connection.host}`);
 
-        return fetchServerInformation(this.serverSetting.connection).pipe(
-            switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerPrint) : of(true)),
-            switchMap(() => vscode.commands.executeCommand<AuthorizationResult>('vsqlik:auth.login', this.serverSetting)),
+        const connect$ = fetchServerInformation(this.serverSetting.connection).pipe(
+            switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerPrint) : of(true))
+        );
+
+        return connect$.pipe(
+            switchMap(() => this.checkAuthState()),
+            catchError((error) => {
+                console.log(error);
+                return vscode.commands.executeCommand<AuthorizationResult>('vsqlik:auth.login', this.serverSetting);
+            }),
             tap((result) => this.connectionModel.cookies = result?.success ? result.cookies : []),
             tap(() => this.onConnected()),
             map(() => true),
@@ -117,8 +126,7 @@ export class Connection {
                 this.stateChange$.next(ConnectionState.ERROR);
                 this.logger.error(message);
                 return of(false);
-            }),
-            take(1),
+            })
         ).toPromise();
     }
 
@@ -139,6 +147,10 @@ export class Connection {
         this.stateChange$.next(ConnectionState.CLOSED);
     }
 
+    /**
+     *
+     *
+     */
     public openSession(): Promise<EngineAPI.IGlobal | undefined> {
         return this.engimaProvider.open();
     }
@@ -159,9 +171,7 @@ export class Connection {
         if (!this.applications.has(id)) {
             const global = await this.engimaProvider.open(id);
             if (global) {
-
                 const app = new Application(global, id, this.serverSetting.label);
-
                 app.onClose()
                     .pipe(take(1))
                     .subscribe(() => this.applications.delete(id));
@@ -200,7 +210,7 @@ export class Connection {
                         case quickPick.items[2]:
                             /** patch settings and add ssl fingerprint to settings */
                             vscode.commands.executeCommand( 'VsQlik.Settings.Update', this.serverSetting, {connection:{ ssl_fingerprint: fingerprint }});
-                        // eslint-disable-next-line no-fallthrough
+                            // eslint-disable-next-line no-fallthrough
                         default:
                             this.connectionModel.isUntrusted = true;
                             resolve(true);
@@ -213,56 +223,35 @@ export class Connection {
     }
 
     /**
-     * check current authorization state, if we have to login
-     * run authorization by strategy
-     *
-     *
-    private async authorize(): Promise<boolean> {
-
-        /** this also happens we are automatically logged in *
-        const authState = await this.checkAuthState();
-        if (authState.authorized) {
-            return true;
-        }
-
-        const authService = container.resolve(AuthorizationService);
-        const authResult = await authService.authorize({
-            allowUntrusted: this.connectionModel.isUntrusted,
-            credentials: this.serverSetting.connection.authorization.data,
-            name: this.connectionModel.setting.host,
-            strategy: this.serverSetting.connection.authorization.strategy,
-            uri: authState.loginUri,
-        });
-
-        if (authResult.success) {
-            this.connectionModel.cookies = authResult.cookies;
-            return true;
-        }
-
-        throw new Error('Authorization failed');
-    }
-    */
-
-    /**
      * resolves current authorization state
      *
      * checks we have an active session via session cookie so we dont need to authorize again
      * and if not we got some authorization informations
      *
      */
-    protected checkAuthState(): Promise<AuthorizationState> {
+    private async checkAuthState(): Promise<AuthorizationResult> {
+
+        const sessionInfo = await vscode.commands.executeCommand<any>('vsqlik:auth.session', this.serverSetting);
+        if (!sessionInfo) {
+            throw "no session data found";
+        }
+
+        this.connectionModel.cookies = sessionInfo.cookies;
+
         return new Promise((resolve, reject) => {
             const session = ConnectionHelper.createEnigmaSession(this.connectionModel);
             session.on("traffic:received", async (response) => {
                 await session.close();
                 switch (response.method) {
                     case 'OnAuthenticationInformation':
-                        this.connectionModel.isAuthorizationRequired = true;
-                        resolve({ authorized: !response.params.mustAuthenticate, loginUri: response.params.loginUri });
+                        console.log(response);
+                        if (response.params.mustAuthenticate) {
+                            reject();
+                        }
                         break;
 
                     case 'OnConnected':
-                        resolve({ authorized: true });
+                        resolve({ success: true, cookies: sessionInfo.cookies });
                         break;
 
                     default:
@@ -298,7 +287,6 @@ export class Connection {
         /** heartbeat */
         timer(5000, 5000).pipe(
             throttle(() => global.engineVersion()),
-            tap((version) => console.log(version)),
             takeUntil(this.destroy$)
         ).subscribe({
             error: () => {
