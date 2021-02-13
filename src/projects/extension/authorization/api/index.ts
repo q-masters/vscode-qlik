@@ -1,4 +1,6 @@
+import { InjectionToken } from "tsyringe";
 import { AuthorizationStrategy } from "../strategies/authorization.strategy";
+import { Storage } from "@core/storage";
 
 export enum AuthStrategy {
     CERTIFICATE,
@@ -37,3 +39,10 @@ export interface LoginCredentials {
     domain?: string,
     password?: string
 }
+
+export interface SessionState {
+    authorized: boolean;
+    cookies: string[]
+}
+
+export const SessionStorage: InjectionToken<Storage> = Symbol("Storage to save connection settings");

@@ -1,7 +1,7 @@
-import { AuthorizationResult, AuthorizationStrategy } from "./authorization.strategy";
+import * as path from "path";
 import * as vscode from "vscode";
 import { ChildProcess } from "child_process";
-import * as path from "path";
+import { AuthorizationResult, AuthorizationStrategy } from "./authorization.strategy";
 
 /**
  * login to qlik with form strategy
@@ -13,10 +13,10 @@ export class ExternalAuthorizationStrategy extends AuthorizationStrategy {
      *
      */
     public async run(): Promise<AuthorizationResult> {
-        const electron_app = path.resolve(__dirname, `electron-main.js`);
+        const electron_app = path.resolve(__dirname, `electron-auth.js`);
 
         return new Promise((resolve) => {
-            const process = vscode.commands.executeCommand<ChildProcess>('qmasters:electron.run', electron_app, 'http://windows-10-privat.shared');
+            const process = vscode.commands.executeCommand<ChildProcess>('qmasters:electron.run', electron_app, this.url);
             this.onConnected(process, resolve);
         });
     }

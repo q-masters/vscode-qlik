@@ -1,12 +1,11 @@
 import * as vscode from "vscode";
-import { Subject, of, Observable, timer, BehaviorSubject } from "rxjs";
+import { Subject, of, Observable, timer, BehaviorSubject, from } from "rxjs";
 import { container } from "tsyringe";
-import { switchMap, tap, catchError, take, throttle, takeUntil } from "rxjs/operators";
+import { switchMap, tap, catchError, take, throttle, takeUntil, map } from "rxjs/operators";
 
 import { Storage } from "@core/storage";
 import { ConnectionStorage } from "@data/tokens";
-import { AuthorizationService } from "@auth/utils/authorization.service";
-import { AuthorizationState } from "@auth/strategies/authorization.strategy";
+import { AuthorizationResult, AuthorizationState } from "@auth/strategies/authorization.strategy";
 
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
@@ -103,15 +102,15 @@ export class Connection {
      *
      */
     public connect(): Promise<boolean> {
-        const data = this.serverStorage.read(JSON.stringify(this.serverSetting.connection));
-        this.connectionModel.cookies = data?.cookies ?? [];
 
         this.logger.info(`connect to server: ${this.serverSetting.connection.host}`);
 
         return fetchServerInformation(this.serverSetting.connection).pipe(
             switchMap((res) => !res.trusted ? this.acceptUntrusted(res.fingerPrint) : of(true)),
-            switchMap(() => this.authorize()),
+            switchMap(() => vscode.commands.executeCommand<AuthorizationResult>('vsqlik:auth.login', this.serverSetting)),
+            tap((result) => this.connectionModel.cookies = result?.success ? result.cookies : []),
             tap(() => this.onConnected()),
+            map(() => true),
             catchError((error) => {
                 const message = `Could not connect to server ${this.connectionModel.setting.host}\nmessage: ${error?.message ?? error}`;
                 vscode.window.showErrorMessage(message);
@@ -119,7 +118,7 @@ export class Connection {
                 this.logger.error(message);
                 return of(false);
             }),
-            take(1)
+            take(1),
         ).toPromise();
     }
 
@@ -161,7 +160,7 @@ export class Connection {
             const global = await this.engimaProvider.open(id);
             if (global) {
 
-                const app    = new Application(global, id, this.serverSetting.label);
+                const app = new Application(global, id, this.serverSetting.label);
 
                 app.onClose()
                     .pipe(take(1))
@@ -217,9 +216,10 @@ export class Connection {
      * check current authorization state, if we have to login
      * run authorization by strategy
      *
-     */
+     *
     private async authorize(): Promise<boolean> {
-        /** this also happens we are automatically logged in */
+
+        /** this also happens we are automatically logged in *
         const authState = await this.checkAuthState();
         if (authState.authorized) {
             return true;
@@ -241,6 +241,7 @@ export class Connection {
 
         throw new Error('Authorization failed');
     }
+    */
 
     /**
      * resolves current authorization state
@@ -278,7 +279,7 @@ export class Connection {
      *
      */
     private async onConnected() {
-        this.serverStorage.write(JSON.stringify(this.serverSetting.connection), {cookies: this.connectionModel.cookies});
+
         this.engimaProvider = new EnigmaSession(this.connectionModel);
 
         const global: EngineAPI.IGlobal = await this.engimaProvider.open('engineData', true) as EngineAPI.IGlobal;
@@ -287,6 +288,7 @@ export class Connection {
         /**
          * by default add a setting for max sessions, qlik core only needs this if this is a none licensed
          * version otherwise we could open more sessions for qlik sense desktop is no limit
+         *
          */
         this.engimaProvider.maxSessions = isQlikCore ? 5 : -1;
         this.logger.info(`connected to server: ${this.serverSetting.connection.host}`);
@@ -296,6 +298,7 @@ export class Connection {
         /** heartbeat */
         timer(5000, 5000).pipe(
             throttle(() => global.engineVersion()),
+            tap((version) => console.log(version)),
             takeUntil(this.destroy$)
         ).subscribe({
             error: () => {

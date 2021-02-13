@@ -1,5 +1,5 @@
 export interface AuthorizationStrategyConstructor {
-    new(config: AuthConfig): AuthorizationStrategy;
+    new(): AuthorizationStrategy;
 }
 
 export interface AuthorizationState {
@@ -33,6 +33,10 @@ export abstract class AuthorizationStrategy {
 
     private authTitle = "";
 
+    private authConfig: AuthConfig;
+
+    private authUrl: string;
+
     public set title(title: string) {
         this.authTitle = title;
     }
@@ -41,13 +45,30 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    constructor(protected config: AuthConfig) {
-        /*
-        const {allowUntrusted, uri, name} = config;
-        const {domain, password} = config.credentials;
-        strategy.configure({ allowUntrusted, uri, name, domain, password });
-        */
+    set url(uri: string) {
+        this.authUrl = uri;
     }
 
-    public abstract run(): Promise<AuthorizationResult>;
+    get url(): string {
+        return this.authUrl;
+    }
+
+    /**
+     *
+     *
+     */
+    set config(config: AuthConfig) {
+        this.authConfig = config;
+    }
+
+    /**
+     *
+     *
+     */
+    get config(): AuthConfig {
+        return this.authConfig;
+    }
+
+
+    abstract run(): Promise<AuthorizationResult>;
 }

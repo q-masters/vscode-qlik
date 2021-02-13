@@ -44,7 +44,7 @@ const electronMainProcess = {
         __dirname: false
     },
     entry: {
-        "main": './projects/electron/auth/main.ts'
+        "auth": './projects/electron/auth/main.ts'
     },
     mode: "development"
 };
@@ -86,14 +86,7 @@ const config = {
                 ]
             }
         ]
-    },
-    plugins: [
-        new CopyWebpackPlugin({
-            patterns: [
-                { from: "./static/path.txt" }
-            ]
-        })
-    ]
+    }
 };
 
 module.exports = [
