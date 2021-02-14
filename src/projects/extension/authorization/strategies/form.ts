@@ -26,7 +26,7 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
         try {
             const {domain, password} = await this.resolveCredentials();
-            const redirectUri = await this.submitForm(this.url, domain, password, !this.untrusted);
+            const redirectUri = await this.submitForm(this.loginUrl, domain, password, !this.untrusted);
             const cookies     = await this.finalizeLoginProcess(redirectUri, !this.untrusted);
             response.cookies = cookies;
             response.success = true;

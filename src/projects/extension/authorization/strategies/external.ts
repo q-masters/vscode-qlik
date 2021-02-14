@@ -16,7 +16,7 @@ export class ExternalAuthorizationStrategy extends AuthorizationStrategy {
         const electron_app = path.resolve(__dirname, `electron-auth.js`);
 
         return new Promise((resolve) => {
-            const process = vscode.commands.executeCommand<ChildProcess>('qmasters:electron.run', electron_app, this.url);
+            const process = vscode.commands.executeCommand<ChildProcess>('qmasters:electron.run', electron_app, this.resolveServerUrl());
             this.onConnected(process, resolve);
         });
     }

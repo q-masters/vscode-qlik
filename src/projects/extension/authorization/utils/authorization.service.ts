@@ -47,11 +47,10 @@ export class AuthorizationService {
             };
         }
 
-        const loginurl = uri ?? this.resolveLoginUrl(config);
         const strategy = this.resolveAuthorizationStrategy(config);
 
         return new Promise((resolve) => {
-            this.authorizationQueueItems.set(new strategy(config, loginurl, untrusted), (result: AuthorizationResult) => {
+            this.authorizationQueueItems.set(new strategy(config, untrusted, uri), (result: AuthorizationResult) => {
                 if (result.success) {
                     this.sessionStorage.write(JSON.stringify(config), {
                         authorized: true,
@@ -76,25 +75,8 @@ export class AuthorizationService {
      *
      */
     resolveSession(setting: ConnectionSetting): SessionState | undefined {
-        console.log(setting);
         const key = JSON.stringify(setting);
         return this.sessionStorage.read(key);
-    }
-
-    /**
-     * build login url
-     *
-     */
-    private resolveLoginUrl(config: ConnectionSetting): string {
-
-        const isSecure = config.secure;
-        const protocol = isSecure ? 'https://' : 'http://';
-        const url = new URL(protocol + config.host);
-
-        url.port  = config.port?.toString() ?? "";
-        url.pathname = config.path ?? "";
-
-        return url.toString();
     }
 
     /**

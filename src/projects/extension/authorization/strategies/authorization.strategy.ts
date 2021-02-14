@@ -1,8 +1,7 @@
 import { ConnectionSetting } from "@core/public.api";
-import { prototype } from "winston-transport";
 
 export interface AuthorizationStrategyConstructor {
-    new(config: ConnectionSetting, url: string, untrusted: boolean): AuthorizationStrategy;
+    new(config: ConnectionSetting, untrusted: boolean, uri?: string): AuthorizationStrategy;
 }
 
 export interface AuthorizationState {
@@ -46,9 +45,29 @@ export abstract class AuthorizationStrategy {
 
     constructor(
         protected config: ConnectionSetting,
-        protected url: string,
-        protected untrusted = false
+        protected untrusted = false,
+        private url?: string
     ) { }
 
     abstract run(): Promise<AuthorizationResult>;
+
+    get loginUrl(): string {
+        return this.url ?? this.resolveServerUrl();
+    }
+
+    /**
+     * build login url
+     *
+     */
+    protected resolveServerUrl(fromBase = false): string {
+
+        const isSecure = this.config.secure;
+        const protocol = isSecure ? 'https://' : 'http://';
+        const url = new URL(protocol + this.config.host);
+
+        url.port  = this.config.port?.toString() ?? "";
+        url.pathname = this.config.path ?? "";
+
+        return url.toString();
+    }
 }

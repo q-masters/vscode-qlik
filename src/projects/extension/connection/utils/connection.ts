@@ -242,7 +242,6 @@ export class Connection {
                 switch (response.method) {
                     case 'OnAuthenticationInformation':
                         if (response.params.mustAuthenticate) {
-                            // this.serverSetting.connection.authorization.loginUri = response.params.loginUri;
                             reject(response.params.loginUri);
                         }
                         break;
