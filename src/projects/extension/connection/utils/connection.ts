@@ -1,28 +1,27 @@
 import * as vscode from "vscode";
-import { Subject, of, Observable, timer, BehaviorSubject, from } from "rxjs";
+import { Subject, of, Observable, timer, BehaviorSubject } from "rxjs";
 import { container } from "tsyringe";
 import { switchMap, tap, catchError, take, throttle, takeUntil, map } from "rxjs/operators";
 
 import { Storage } from "@core/storage";
 import { ConnectionStorage } from "@data/tokens";
-import { AuthorizationResult, AuthorizationState } from "@auth/strategies/authorization.strategy";
+import { AuthorizationResult } from "@auth/strategies/authorization.strategy";
 
 import { WorkspaceSetting } from "@vsqlik/settings/api";
 import { FileSystemStorage } from "@vsqlik/fs/utils/file-system.storage";
 import { VsQlikLogger } from "@vsqlik/logger";
 
 import { ConnectionState, ConnectionModel } from "../model/connection";
-import { ConnectionHelper } from "./connection.helper";
-import { EnigmaSession } from "./enigma.provider";
 import { VsQlikLoggerConnection } from "../api";
 import { fetchServerInformation } from "../commands";
+import { ConnectionHelper } from "./connection.helper";
+import { EnigmaSession } from "./enigma.provider";
 import { Application } from "./application";
-import { REPL_MODE_SLOPPY } from "repl";
-import { useFakeServer } from "sinon";
 
 /**
  * represents the connection to a server, which is a workspace folder in vscode
  * so this one should open new enigma sessions
+ *
  */
 export class Connection {
 
@@ -113,9 +112,11 @@ export class Connection {
 
         return connect$.pipe(
             switchMap(() => this.checkAuthState()),
-            catchError((error) => {
-                console.log(error);
-                return vscode.commands.executeCommand<AuthorizationResult>('vsqlik:auth.login', this.serverSetting);
+            catchError((loginUri) => {
+                /** @todo rework we could not change the settings since they are required for the sessin cache */
+                const settings = this.serverSetting.connection;
+                const untrusted = this.connectionModel.isUntrusted;
+                return vscode.commands.executeCommand<AuthorizationResult>('vsqlik:auth.login', settings, loginUri, untrusted);
             }),
             tap((result) => this.connectionModel.cookies = result?.success ? result.cookies : []),
             tap(() => this.onConnected()),
@@ -231,12 +232,8 @@ export class Connection {
      */
     private async checkAuthState(): Promise<AuthorizationResult> {
 
-        const sessionInfo = await vscode.commands.executeCommand<any>('vsqlik:auth.session', this.serverSetting);
-        if (!sessionInfo) {
-            throw "no session data found";
-        }
-
-        this.connectionModel.cookies = sessionInfo.cookies;
+        const sessionInfo = await vscode.commands.executeCommand<AuthorizationResult>('vsqlik:auth.session', this.serverSetting.connection);
+        this.connectionModel.cookies = sessionInfo?.cookies ?? [];
 
         return new Promise((resolve, reject) => {
             const session = ConnectionHelper.createEnigmaSession(this.connectionModel);
@@ -244,18 +241,18 @@ export class Connection {
                 await session.close();
                 switch (response.method) {
                     case 'OnAuthenticationInformation':
-                        console.log(response);
                         if (response.params.mustAuthenticate) {
-                            reject();
+                            // this.serverSetting.connection.authorization.loginUri = response.params.loginUri;
+                            reject(response.params.loginUri);
                         }
                         break;
 
                     case 'OnConnected':
-                        resolve({ success: true, cookies: sessionInfo.cookies });
+                        resolve({ success: true, cookies: sessionInfo?.cookies ?? [] });
                         break;
 
                     default:
-                        reject(response);
+                        reject(void 0);
                 }
             });
             session.on('closed', () => (session as any).removeAllListeners());
@@ -281,7 +278,6 @@ export class Connection {
          */
         this.engimaProvider.maxSessions = isQlikCore ? 5 : -1;
         this.logger.info(`connected to server: ${this.serverSetting.connection.host}`);
-
         this.stateChange$.next(ConnectionState.CONNECTED);
 
         /** heartbeat */

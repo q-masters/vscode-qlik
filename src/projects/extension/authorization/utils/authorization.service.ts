@@ -1,6 +1,5 @@
-import { AuthorizationResult, AuthorizationStrategy } from "../strategies/authorization.strategy";
+import { AuthorizationResult, AuthorizationStrategy, AuthorizationStrategyConstructor } from "../strategies/authorization.strategy";
 import { inject, singleton } from "tsyringe";
-import { DataNode } from "@core/qix/utils/qix-list.provider";
 import { Storage } from "@core/storage";
 import { AuthStrategy, SessionStorage } from "../api";
 import FormAuthorizationStrategy from "../strategies/form";
@@ -38,7 +37,7 @@ export class AuthorizationService {
      *
      *
      */
-    async login(config: DataNode): Promise<AuthorizationResult> {
+    async login(config: ConnectionSetting, uri?: string, untrusted = false): Promise<AuthorizationResult> {
 
         if (!config) {
             // log message no configuration found should not be possible but u know
@@ -48,15 +47,12 @@ export class AuthorizationService {
             };
         }
 
-
+        const loginurl = uri ?? this.resolveLoginUrl(config);
         const strategy = this.resolveAuthorizationStrategy(config);
-        strategy.url = this.resolveLoginUrl(config);
 
         return new Promise((resolve) => {
-            this.authorizationQueueItems.set(strategy, (result: AuthorizationResult) => {
-
+            this.authorizationQueueItems.set(new strategy(config, loginurl, untrusted), (result: AuthorizationResult) => {
                 if (result.success) {
-                    console.dir(config);
                     this.sessionStorage.write(JSON.stringify(config), {
                         authorized: true,
                         cookies: result.cookies
@@ -80,18 +76,23 @@ export class AuthorizationService {
      *
      */
     resolveSession(setting: ConnectionSetting): SessionState | undefined {
+        console.log(setting);
         const key = JSON.stringify(setting);
         return this.sessionStorage.read(key);
     }
 
-    private resolveLoginUrl(config: DataNode): string {
+    /**
+     * build login url
+     *
+     */
+    private resolveLoginUrl(config: ConnectionSetting): string {
 
-        const isSecure = config.connection.secure;
+        const isSecure = config.secure;
         const protocol = isSecure ? 'https://' : 'http://';
-        const url = new URL(protocol + config.connection.host);
+        const url = new URL(protocol + config.host);
 
-        url.port  = config.connection.port?.toString() ?? "";
-        url.pathname = config.connection.path ?? "";
+        url.port  = config.port?.toString() ?? "";
+        url.pathname = config.path ?? "";
 
         return url.toString();
     }
@@ -100,16 +101,16 @@ export class AuthorizationService {
      * resolve authorization strategy
      *
      */
-    private resolveAuthorizationStrategy(config: DataNode): AuthorizationStrategy {
+    private resolveAuthorizationStrategy(config: ConnectionSetting): AuthorizationStrategyConstructor {
 
-        const strategy = config.connection.authorization.strategy;
+        const strategy = config.authorization.strategy;
 
         switch (strategy) {
             case AuthStrategy.FORM:
-                return new FormAuthorizationStrategy();
+                return FormAuthorizationStrategy;
 
             case AuthStrategy.EXTERNAL:
-                return new ExternalAuthorizationStrategy();
+                return ExternalAuthorizationStrategy;
         }
 
         throw new Error('Could not resolve Authorization strategy');
@@ -120,14 +121,12 @@ export class AuthorizationService {
      *
      */
     private async runAuthorization() {
-
         this.authorizationProcessIsRunning = true;
 
         const entries = this.authorizationQueueItems.entries();
         let entry     = entries.next();
 
         while (!entry.done) {
-
             const [strategy, callback] = entry.value;
             const result = await strategy.run();
 
@@ -137,7 +136,6 @@ export class AuthorizationService {
             /** grab next entry */
             entry = entries.next();
         }
-
         this.authorizationProcessIsRunning = false;
     }
 }

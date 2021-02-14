@@ -7,7 +7,7 @@ import { AuthorizationService } from "./utils/authorization.service";
 import { ConnectionSetting } from "../connection/api";
 
 /**
- * Author
+ * Authorization Module
  *
  */
 @singleton()
@@ -43,13 +43,13 @@ export class AuthorizationModule {
     private registerCommands(): void {
 
         const disposeables = [
-            /** user is authorized */
-            vscode.commands.registerCommand('vsqlik:auth.authorized', (): boolean => true),
+            /** @todo implement user is authorized */
+            vscode.commands.registerCommand('vsqlik:auth.authorized', () => void 0),
             /** get current session */
             vscode.commands.registerCommand('vsqlik:auth.session', (settings: ConnectionSetting) => this.authService.resolveSession(settings)),
             /** login */
-            vscode.commands.registerCommand('vsqlik:auth.login', (settings: ConnectionSetting) =>  this.authService.login(settings)),
-            /** logout */
+            vscode.commands.registerCommand('vsqlik:auth.login', (settings: ConnectionSetting, uri?: string) =>  this.authService.login(settings, uri)),
+            /** @todo implement logout */
             vscode.commands.registerCommand('vsqlik:auth.logout', () => void 0)
         ];
 
@@ -61,6 +61,7 @@ export class AuthorizationModule {
      *
      */
     private registerSessionStorage() {
+
         const settings: any = vscode.workspace.getConfiguration().get('VsQlik.Developer');
         const storage: Storage = settings.cacheSession
             ? new FileStorage(this.extensionContext.globalStoragePath, "auth.json")

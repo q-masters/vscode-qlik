@@ -1,5 +1,8 @@
+import { ConnectionSetting } from "@core/public.api";
+import { prototype } from "winston-transport";
+
 export interface AuthorizationStrategyConstructor {
-    new(): AuthorizationStrategy;
+    new(config: ConnectionSetting, url: string, untrusted: boolean): AuthorizationStrategy;
 }
 
 export interface AuthorizationState {
@@ -33,10 +36,6 @@ export abstract class AuthorizationStrategy {
 
     private authTitle = "";
 
-    private authConfig: AuthConfig;
-
-    private authUrl: string;
-
     public set title(title: string) {
         this.authTitle = title;
     }
@@ -45,30 +44,11 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    set url(uri: string) {
-        this.authUrl = uri;
-    }
-
-    get url(): string {
-        return this.authUrl;
-    }
-
-    /**
-     *
-     *
-     */
-    set config(config: AuthConfig) {
-        this.authConfig = config;
-    }
-
-    /**
-     *
-     *
-     */
-    get config(): AuthConfig {
-        return this.authConfig;
-    }
-
+    constructor(
+        protected config: ConnectionSetting,
+        protected url: string,
+        protected untrusted = false
+    ) { }
 
     abstract run(): Promise<AuthorizationResult>;
 }

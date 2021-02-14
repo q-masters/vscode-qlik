@@ -16,8 +16,8 @@ import { AuthorizationResult, AuthorizationStrategy } from "./authorization.stra
  */
 export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
-    public async run(): Promise<AuthorizationResult>
-    {
+    public async run(): Promise<AuthorizationResult> {
+
         const response: AuthorizationResult = {
             success: false,
             cookies: [],
@@ -26,9 +26,8 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
 
         try {
             const {domain, password} = await this.resolveCredentials();
-            /** uri */
-            const redirectUri = await this.submitForm(this.config.uri, domain, password, !this.config.allowUntrusted);
-            const cookies     = await this.finalizeLoginProcess(redirectUri, !this.config.allowUntrusted);
+            const redirectUri = await this.submitForm(this.url, domain, password, !this.untrusted);
+            const cookies     = await this.finalizeLoginProcess(redirectUri, !this.untrusted);
             response.cookies = cookies;
             response.success = true;
         } catch (error) {
@@ -44,10 +43,10 @@ export class FormAuthorizationStrategy extends AuthorizationStrategy {
      */
     protected async resolveCredentials(): Promise<{ domain: string; password: string; }> {
 
-        const title    = this.config.domain ?? '';
-        const stepper  = new Stepper(`Login: ${title}@${this.config.name ?? ''}`);
-        stepper.addStep(this.createStep(this.config.domain, "domain\\username"));
-        stepper.addStep(this.createStep(this.config.password, "password", true));
+        const title    = this.config.authorization.data.domain ?? '';
+        const stepper  = new Stepper(`Login: ${title}@${this.config.label ?? ''}`);
+        stepper.addStep(this.createStep(this.config.authorization.data.domain, "domain\\username"));
+        stepper.addStep(this.createStep(this.config.authorization.data.password, "password", true));
 
         const [domain, password] = await stepper.run<string>();
         if (!domain || !password) {

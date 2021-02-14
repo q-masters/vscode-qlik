@@ -29,6 +29,8 @@ export interface AuthorizationSetting {
         domain: string;
         password: string;
     }
+
+    loginUri?: string;
 }
 
 export interface Authorization {
