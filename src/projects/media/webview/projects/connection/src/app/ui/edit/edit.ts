@@ -75,6 +75,7 @@ export class ConnectionEditComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe((setting: WorkspaceFolderSetting) => {
                 this.workspaceFolderSetting = setting;
+                this.currentAuthorizationStrategy = setting.connection.authorization.strategy;
                 this.reloadFormData();
             });
     }

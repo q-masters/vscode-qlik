@@ -45,7 +45,7 @@ window.connectionListCommand = [{
             secure   : true,
             allowUntrusted: true,
             authorization: {
-                strategy: 1,
+                strategy: 2,
                 data: {
                     domain: "hannuschkar4fa4\\qlik",
                     password: "qlik2020"

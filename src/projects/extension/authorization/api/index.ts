@@ -3,9 +3,7 @@ import { AuthorizationStrategy } from "../strategies/authorization.strategy";
 import { Storage } from "@core/storage";
 
 export enum AuthStrategy {
-    CERTIFICATE,
-    FORM,
-    CUSTOM,
+    FORM = 1,
     EXTERNAL,
     NONE
 }
