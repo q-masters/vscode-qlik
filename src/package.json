@@ -1,6 +1,6 @@
 {
   "name": "vscode-qlik",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "publisher": "q-masters",
   "author": "q-masters",
   "engines": {
@@ -131,9 +131,8 @@
         }
       }
     ],
-    "extensionDependencies": [
-      "q-masters.electron-vscode"
-    ],
+    "extensionPack": ["q-masters.electron-vscode"],
+    "extensionDependencies": [ "q-masters.electron-vscode" ],
     "menus": {
       "editor/title": [
         {
