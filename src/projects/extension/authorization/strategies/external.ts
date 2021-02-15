@@ -15,10 +15,12 @@ export class ExternalAuthorizationStrategy extends AuthorizationStrategy {
     public async run(): Promise<AuthorizationResult> {
         const electron_app = path.resolve(__dirname, `electron-auth.js`);
 
-        await vscode.commands.executeCommand<boolean>('qmasters:electron.install');
-
         return new Promise((resolve) => {
-            const process = vscode.commands.executeCommand<ChildProcess>('qmasters:electron.run', electron_app, this.resolveServerUrl());
+            const params = {
+                version: 'v11.2.3',
+                params: [this.resolveServerUrl()]
+            };
+            const process = vscode.commands.executeCommand<ChildProcess>('qmasters:electron.run', electron_app, params);
             this.onConnected(process, resolve);
         });
     }
