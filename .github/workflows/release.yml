@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - 'src/**'
       - '.github/workflows/release.yml'
@@ -13,9 +13,9 @@ jobs:
 
     steps:
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.3
+      uses: gittools/actions/gitversion/setup@v0.9.9
       with:
-         versionSpec: '5.3.x'
+         versionSpec: '5.x'
 
     - name: checkout
       uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
 
     - name: Use GitVersion
       id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.3
+      uses: gittools/actions/gitversion/execute@v0.9.9
 
     - name: create release
       id: create_release
