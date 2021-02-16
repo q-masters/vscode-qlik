@@ -1,4 +1,4 @@
-import { AuthorizationStrategy, AuthorizationResult } from "./strategies/authorization.strategy";
+import { AuthorizationStrategy, AuthorizationResult } from "./authorization.strategy";
 
 export class NoneAuthorizationStrategy extends AuthorizationStrategy {
 

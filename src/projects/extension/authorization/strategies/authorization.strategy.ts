@@ -1,5 +1,7 @@
+import { ConnectionSetting } from "@core/public.api";
+
 export interface AuthorizationStrategyConstructor {
-    new(config: AuthConfig): AuthorizationStrategy;
+    new(config: ConnectionSetting, untrusted: boolean, uri?: string): AuthorizationStrategy;
 }
 
 export interface AuthorizationState {
@@ -31,8 +33,6 @@ export interface AuthConfig {
 
 export abstract class AuthorizationStrategy {
 
-    protected config: AuthConfig;
-
     private authTitle = "";
 
     public set title(title: string) {
@@ -43,9 +43,31 @@ export abstract class AuthorizationStrategy {
         return this.authTitle;
     }
 
-    public configure(config: AuthConfig): void {
-        this.config = config;
+    constructor(
+        protected config: ConnectionSetting,
+        protected untrusted = false,
+        private url?: string
+    ) { }
+
+    abstract run(): Promise<AuthorizationResult>;
+
+    get loginUrl(): string {
+        return this.url ?? this.resolveServerUrl();
     }
 
-    public abstract run(): Promise<AuthorizationResult>;
+    /**
+     * build login url
+     *
+     */
+    protected resolveServerUrl(fromBase = false): string {
+
+        const isSecure = this.config.secure;
+        const protocol = isSecure ? 'https://' : 'http://';
+        const url = new URL(protocol + this.config.host);
+
+        url.port  = this.config.port?.toString() ?? "";
+        url.pathname = this.config.path ?? "";
+
+        return url.toString();
+    }
 }

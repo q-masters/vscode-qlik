@@ -35,8 +35,6 @@ export class ScriptModule {
      * register commands for vscode
      */
     private registerCommands(): void {
-
-        /** @todo move to enum */
         this.extensionContext.subscriptions.push(vscode.commands.registerCommand(ScriptCommands.CHECK_SYNTAX  , CheckScriptSyntax));
         this.extensionContext.subscriptions.push(vscode.commands.registerCommand(ScriptCommands.LOAD_DATA     , () => this.onLoadData()));
         this.extensionContext.subscriptions.push(vscode.commands.registerCommand(ScriptCommands.STOP_LOAD_DATA, () => this.onStopLoadData()));

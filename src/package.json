@@ -1,6 +1,6 @@
 {
   "name": "vscode-qlik",
-  "version": "1.7.0",
+  "version": "0.0.0",
   "publisher": "q-masters",
   "author": "q-masters",
   "engines": {
@@ -99,35 +99,43 @@
             "description": "Location of JSON files to load configs from",
             "type": "array",
             "items": true,
-            "default": [{
-              "label": "Localhost",
-              "connection": {
-                "host": "127.0.0.1",
-                "path": null,
-                "port": null,
-                "secure": true,
-                "allowUntrusted": false,
-                "authorization": {
-                  "strategy": 1,
-                  "data": {
-                    "domain": "",
-                    "password": ""
+            "default": [
+              {
+                "label": "Localhost",
+                "connection": {
+                  "host": "127.0.0.1",
+                  "path": null,
+                  "port": null,
+                  "secure": true,
+                  "allowUntrusted": false,
+                  "authorization": {
+                    "strategy": 1,
+                    "data": {
+                      "domain": "",
+                      "password": ""
+                    }
                   }
+                },
+                "renderer": 1,
+                "display": {
+                  "dimensions": true,
+                  "measures": true,
+                  "script": true,
+                  "sheets": true,
+                  "variables": true,
+                  "visualization": true
                 }
-              },
-              "renderer": 1,
-              "display": {
-                "dimensions": true,
-                "measures": true,
-                "script": true,
-                "sheets": true,
-                "variables": true,
-                "visualization": true
               }
-            }]
+            ]
           }
         }
       }
+    ],
+    "extensionPack": [
+      "q-masters.electron-vscode"
+    ],
+    "extensionDependencies": [
+      "q-masters.electron-vscode"
     ],
     "menus": {
       "editor/title": [
@@ -196,8 +204,10 @@
     "@typescript-eslint/parser": "3.10.1",
     "chai": "4.3.0",
     "chalk": "4.1.0",
+    "copy-webpack-plugin": "^6.3.2",
     "copyfiles": "2.4.1",
     "deepmerge": "4.2.2",
+    "electron": "^11.2.3",
     "eslint": "7.20.0",
     "html-loader": "2.0.0",
     "minimist": "1.2.5",

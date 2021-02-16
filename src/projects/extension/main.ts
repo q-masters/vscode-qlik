@@ -9,6 +9,7 @@ import { QixFsModule } from "@vsqlik/qixfs";
 import { ScriptModule } from "@vsqlik/script";
 
 import { ExtensionContext, VsQlikServerSettings, VsQlikDevSettings, QlikOutputChannel } from "./data/tokens";
+import { AuthorizationModule } from "@auth/authorization.module";
 
 /**
  * bootstrap extension
@@ -25,16 +26,19 @@ export function activate(context: vscode.ExtensionContext): void {
     container.register(QlikOutputChannel, { useFactory: outputChannelFactory() });
 
     /** resolve modules */
+    const authorizationModule = container.resolve(AuthorizationModule);
     const connectionModule = container.resolve(ConnectionModule);
     const qixFsModule      = container.resolve(QixFsModule);
     const scriptModule     = container.resolve(ScriptModule);
 
     /** bootstrap modules */
+    authorizationModule.bootstrap();
     connectionModule.bootstrap();
     qixFsModule.bootstrap();
     scriptModule.bootstrap();
 
     /** initialize modules */
+    authorizationModule.initialize();
     connectionModule.initialize();
 
     registerCommands(context);

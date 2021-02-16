@@ -1,34 +1,63 @@
-import { AuthorizationResult, AuthorizationStrategy } from "../strategies/authorization.strategy";
-import { singleton } from "tsyringe";
-import { AuthStrategy } from "@auth/api";
-import FormAuthorizationStrategy from "@auth/strategies/form";
-import { DataNode } from "@core/qix/utils/qix-list.provider";
+import { AuthorizationResult, AuthorizationStrategy, AuthorizationStrategyConstructor } from "../strategies/authorization.strategy";
+import { inject, singleton } from "tsyringe";
+import { Storage } from "@core/storage";
+import { AuthStrategy, SessionStorage } from "../api";
+import FormAuthorizationStrategy from "../strategies/form";
+import ExternalAuthorizationStrategy from "../strategies/external";
+import { ConnectionSetting } from "@core/public.api";
+import { SessionState } from "http2";
 
 @singleton()
 export class AuthorizationService {
 
     /**
      * all authorization processes runs into an queue
+     *
      */
     private authorizationQueueItems: Map<AuthorizationStrategy, (data: any) => any>;
 
     /**
      * indicator a authorization process is currently running
+     *
      */
     private authorizationProcessIsRunning: boolean;
 
-    public constructor() {
+    /**
+     *
+     *
+     */
+    constructor(
+        @inject(SessionStorage) private sessionStorage: Storage
+    ) {
         this.authorizationQueueItems = new Map();
         this.authorizationProcessIsRunning = false;
     }
 
     /**
-     * run authorization strategy in queue
+     *
+     *
      */
-    public async authorize(config: DataNode): Promise<AuthorizationResult> {
+    async login(config: ConnectionSetting, uri?: string, untrusted = false): Promise<AuthorizationResult> {
+
+        if (!config) {
+            // log message no configuration found should not be possible but u know
+            return {
+                success: false,
+                cookies: []
+            };
+        }
+
         const strategy = this.resolveAuthorizationStrategy(config);
+
         return new Promise((resolve) => {
-            this.authorizationQueueItems.set(strategy, (result: AuthorizationResult) => {
+            this.authorizationQueueItems.set(new strategy(config, untrusted, uri), (result: AuthorizationResult) => {
+                if (result.success) {
+                    this.sessionStorage.write(JSON.stringify(config), {
+                        authorized: true,
+                        cookies: result.cookies
+                    });
+                }
+
                 resolve({
                     success: result.success,
                     cookies: result.cookies
@@ -41,20 +70,29 @@ export class AuthorizationService {
         });
     }
 
-    private resolveAuthorizationStrategy(config: any): AuthorizationStrategy {
-        let strategy: AuthorizationStrategy | undefined = void 0;
+    /**
+     * session data
+     *
+     */
+    resolveSession(setting: ConnectionSetting): SessionState | undefined {
+        const key = JSON.stringify(setting);
+        return this.sessionStorage.read(key);
+    }
 
-        switch (config.strategy) {
+    /**
+     * resolve authorization strategy
+     *
+     */
+    private resolveAuthorizationStrategy(config: ConnectionSetting): AuthorizationStrategyConstructor {
+
+        const strategy = config.authorization.strategy;
+
+        switch (strategy) {
             case AuthStrategy.FORM:
-                strategy = new FormAuthorizationStrategy();
-                break;
-        }
+                return FormAuthorizationStrategy;
 
-        if (strategy) {
-            const {allowUntrusted, uri, name} = config;
-            const {domain, password}    = config.credentials;
-            strategy.configure({ allowUntrusted, uri, name, domain, password });
-            return strategy;
+            case AuthStrategy.EXTERNAL:
+                return ExternalAuthorizationStrategy;
         }
 
         throw new Error('Could not resolve Authorization strategy');
@@ -62,16 +100,15 @@ export class AuthorizationService {
 
     /**
      * runs authorization
+     *
      */
     private async runAuthorization() {
-
         this.authorizationProcessIsRunning = true;
 
         const entries = this.authorizationQueueItems.entries();
         let entry     = entries.next();
 
         while (!entry.done) {
-
             const [strategy, callback] = entry.value;
             const result = await strategy.run();
 
@@ -81,7 +118,6 @@ export class AuthorizationService {
             /** grab next entry */
             entry = entries.next();
         }
-
         this.authorizationProcessIsRunning = false;
     }
 }

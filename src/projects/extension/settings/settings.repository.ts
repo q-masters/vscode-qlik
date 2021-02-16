@@ -28,6 +28,7 @@ export class SettingsRepository {
      * create new setting, automatically adds an id
      */
     public async create(data: WorkspaceSetting): Promise<WorkspaceSetting> {
+
         const override = !!this.isArrayStorage;
         const setting  = {...data, uid: this.generateId()};
 
@@ -132,7 +133,7 @@ export class SettingsRepository {
         if (data) {
             const settings = !Array.isArray(data) ? (this.isArrayStorage = false, [data]) : data;
             /** write an id to current setting, has to be removed before save */
-            this.data = settings.map((setting: WorkspaceSetting) => ({ ...setting, uid: this.generateId()}));
+            this.data = settings.map((setting: WorkspaceSetting) => ({ ...setting}));
         } else {
             throw new Error(`Could not find Settings for Connection`);
         }

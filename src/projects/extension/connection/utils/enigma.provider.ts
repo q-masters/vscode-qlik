@@ -101,8 +101,10 @@ export class EnigmaSession {
      */
     public async openDoc(name: string): Promise<EngineAPI.IApp | undefined> {
         const logger = container.resolve(VsQlikLoggerConnection);
+
         /**
          * get session from cache or create new one
+         *
          */
         const global = await this.open(name);
         if (global) {
@@ -215,6 +217,7 @@ export class EnigmaSession {
 
     /**
      * returns true if session is allready active
+     *
      */
     private isActive(id: string): boolean
     {
@@ -223,6 +226,7 @@ export class EnigmaSession {
 
     /**
      * returns true if session is allready cached
+     *
      */
     private isCached(id: string): boolean
     {
@@ -231,6 +235,7 @@ export class EnigmaSession {
 
     /**
      * load session object from cache
+     *
      */
     private loadFromCache(id = EnigmaSession.GLOBAL_SESSION_KEY): enigmaJS.IGeneratedAPI
     {
@@ -243,9 +248,9 @@ export class EnigmaSession {
 
     /**
      * suspend oldest session
+     *
      */
-    private async suspendOldestSession(): Promise<void>
-    {
+    private async suspendOldestSession(): Promise<void> {
         if (this.maxSessions <= 0 || this.activeStack.length < this.maxSessions) {
             return;
         }

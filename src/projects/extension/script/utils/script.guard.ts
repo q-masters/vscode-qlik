@@ -68,17 +68,15 @@ export class ScriptGuard {
     }
 
     /**
-     * update cached script but do not write
-     * and trigger vscode to reload the document content
+     * update observed document since we got channges
      */
     private async updateObservedDocument(doc: vscode.TextDocument, content: string) {
         const docData = this.observedDocuments.get(doc);
 
         if (docData && !docData.touched) {
-            await docData.app.updateScript(content);
+            docData.app.script = content;
             await docData.app.updateProperty(content, "script");
             await docData.app.save();
-
             this.qixFSProvider.reloadFile(doc.uri);
         }
     }
@@ -148,18 +146,15 @@ export class ScriptGuard {
         const app         = await connection.getApplication(appEntry.id) as Application;
         const observedDoc = this.observeDocument(doc, app);
 
+        app.script = doc.getText();
+
         vscode.commands.executeCommand(ScriptCommands.CHECK_SYNTAX, doc.uri);
 
-        const remoteScript    = await app.getRemoteScript();
-        const lastSavedScript = await app.getScript();
+        const currentRevision  = doc.getText();
+        const previousRevision = await app.getPreviousRevision();
 
-        if (lastSavedScript && remoteScript !== lastSavedScript) {
-            this.showDiff(observedDoc, doc, remoteScript);
-
-            /**
-             * @todo better name this is not really touched but conflict is not solved
-             * since the last working copy and the server version differs
-             */
+        if (previousRevision && currentRevision !== previousRevision) {
+            this.showDiff(observedDoc, doc, previousRevision);
             observedDoc.touched = true;
         }
     }
