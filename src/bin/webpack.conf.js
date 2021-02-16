@@ -1,8 +1,53 @@
-//@ts-check
 'use strict';
 
 const path = require('path');
-const TsConfigPathsPlugin =  require('tsconfig-paths-webpack-plugin');
+const TsConfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+//@ts-check
+'use strict';
+const electonBaseConfiguration = {
+    devtool: 'source-map',
+    resolve: {
+        // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
+        extensions: ['.ts', '.js'],
+    },
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                use: [
+                    {
+                        loader: 'ts-loader',
+                        options: {
+                            configFile: path.resolve(process.cwd(), './tsconfig.json')
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+};
+
+/**
+ * webpack for electron main process, this is the file which
+ * will started with electron
+ */
+const electronMainProcess = {
+    ...electonBaseConfiguration,
+    target: "electron-main",
+    output: {
+        path: path.resolve(process.cwd(), 'dist'),
+        filename: "electron-[name].js"
+    },
+    node: {
+        __dirname: false
+    },
+    entry: {
+        "auth": './projects/electron/auth/main.ts'
+    },
+    mode: "development"
+};
 
 const config = {
     target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
@@ -23,7 +68,6 @@ const config = {
     resolve: {
         // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
         extensions: ['.ts', '.js'],
-        // @ts-ignore
         plugins: [new TsConfigPathsPlugin({
             configFile: path.resolve(process.cwd(), "./tsconfig.json")
         })]
@@ -44,4 +88,8 @@ const config = {
         ]
     }
 };
-module.exports = config;
+
+module.exports = [
+    config,
+    electronMainProcess,
+];

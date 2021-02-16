@@ -18,6 +18,7 @@ export class ConnectionModule {
 
     /**
      * bootstrap connection module
+     *
      */
     public bootstrap(): void {
         this.registerCommands();
@@ -25,12 +26,16 @@ export class ConnectionModule {
         this.registerLogger();
     }
 
+    /**
+     * initialize
+     *
+     */
     public initialize(): void {
         this.logger = container.resolve(VsQlikLoggerConnection);
-
         /**
          * register existing workspace folders (for example close and reopen editor)
          * fs or connect good question
+         *
          */
         vscode.workspace.workspaceFolders?.forEach((folder) => {
             if (folder.uri.scheme === 'qix') {
@@ -38,16 +43,20 @@ export class ConnectionModule {
                 vscode.commands.executeCommand(COMMANDS.CONNECT, folder);
             }
         });
-
         this.registerOnWorkspaceChanges();
     }
 
+    /**
+     *
+     *
+     */
     private registerLogger() {
         container.register(VsQlikLoggerConnection, { useFactory: LoggerFactory(`VsQlik Connection`) });
     }
 
     /**
      * register commands for vscode
+     *
      */
     private registerCommands(): void {
         vscode.commands.registerCommand('VsQlik.Connection.Create',   AddConnectionCommand);
@@ -60,6 +69,7 @@ export class ConnectionModule {
 
     /**
      * register connection storage where all sessions are saved to
+     *
      */
     private createConnectionStorage(): void {
         const settings: any = vscode.workspace.getConfiguration().get('VsQlik.Developer');
@@ -73,6 +83,7 @@ export class ConnectionModule {
 
     /**
      * register workspace folder events to get notified about our active connections
+     *
      */
     private registerOnWorkspaceChanges() {
 

@@ -9,6 +9,7 @@ tsconfig.json
 
 !package.json
 !dist/extension.js
+!dist/electron-auth.js
 !dist/webview
 !vscode4qlik.png
 !README.md

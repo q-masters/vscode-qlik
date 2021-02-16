@@ -41,7 +41,7 @@ export class QixApplicationProvider {
         const application = await connection.getApplication(id);
 
         if (application) {
-            await application.updateScript(content);
+            application.script = content;
             await application.updateProperty(content, "script");
             await application.writeScript();
             await application.save();
