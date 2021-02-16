@@ -1,39 +1,30 @@
 import "electron";
-import {app, BrowserWindow, Menu} from "electron";
-import * as path from "path";
-import { session } from "electron";
+import { app, BrowserWindow, Menu, session } from "electron";
 
 function createWindow () {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 800,
-        height: 600,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js')
-        }
+        height: 600
     });
 
     const params = process.argv.slice(2);
-    let canClose = false;
 
-    mainWindow.on("close", async ($event) => {
-        if (!canClose) {
-            $event.preventDefault();
-            const cookies = await session.defaultSession.cookies.get({});
-
-            if (process.send) {
-                process.send({
-                    method: 'authorized',
-                    cookies
-                });
-            }
-            canClose = true;
-            mainWindow.close();
+    mainWindow.once("close", async ($event) => {
+        $event.preventDefault();
+        const cookies = await session.defaultSession.cookies.get({});
+        if (process.send) {
+            process.send({
+                method: 'authorized',
+                cookies
+            });
         }
+        mainWindow.close();
     });
 
-    // and load the index.html of the app.
-    mainWindow.loadURL(params[0] ?? 'https://www.google.com');
+    if (typeof params[0] === "string") {
+        mainWindow.loadURL(params[0]);
+    }
 }
 
 const template: any[] = [{
