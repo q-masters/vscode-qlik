@@ -23,7 +23,7 @@ jobs:
       run: |
         npm install
         npm config set git-tag-version false
-        npm version ${{ steps.gitversion.outputs.semVer }}
+        npm version ${{ github.event.release.tag_name }}
 
     - name: Package
       working-directory: src
@@ -42,6 +42,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: '${{ github.event.release.upload_url }}' 
-        asset_path: ./src/${{ github.event.repository.name }}-${{ steps.gitversion.outputs.semVer }}.vsix
-        asset_name: ./${{ github.event.repository.name }}-${{ steps.gitversion.outputs.semVer }}.vsix
+        asset_path: ./src/${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.vsix
+        asset_name: ./${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.vsix
         asset_content_type: application/zip
