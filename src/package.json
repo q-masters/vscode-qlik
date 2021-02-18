@@ -28,16 +28,16 @@
     "*"
   ],
   "markdown": "github",
-  "qna": "https://github.com/q-masters/vsqlik/issues",
+  "qna": "https://github.com/q-masters/vscode-qlik/issues",
   "icon": "vscode4qlik.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/q-masters/vsqlik.git"
+    "url": "https://github.com/q-masters/vscode-qlik.git"
   },
   "bugs": {
-    "url": "https://github.com/q-masters/vsqlik/issues"
+    "url": "https://github.com/q-masters/vscode-qlik/issues"
   },
-  "homepage": "https://github.com/q-masters/vsqlik",
+  "homepage": "https://github.com/q-masters/vscode-qlik",
   "contributes": {
     "commands": [
       {
