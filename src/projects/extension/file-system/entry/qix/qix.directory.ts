@@ -3,6 +3,8 @@ import { QixFsDirectoryAdapter, Entry } from "../../data";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 import path from "path";
 import { Connection } from "projects/extension/connection/utils/connection";
+import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
+import { inject } from "tsyringe";
 
 export interface DirectoryItem<T> {
     name: string,
@@ -26,6 +28,12 @@ export abstract class QixDirectory<T> extends QixFsDirectoryAdapter {
      * build entry list
      */
     protected abstract generateEntry(data: DirectoryItem<T>, connection: Connection, uri: vscode.Uri): FilesystemEntry;
+
+    constructor(
+        @inject(FileSystemHelper) protected fileSystemHelper: FileSystemHelper
+    ) {
+        super();
+    }
 
     /**
      * static library which allways exists

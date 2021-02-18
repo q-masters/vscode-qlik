@@ -9,6 +9,7 @@ import { QixDirectory, DirectoryItem } from "../qix/qix.directory";
 import { EntryType } from "@vsqlik/fs/data";
 import { FilesystemEntry } from "@vsqlik/fs/utils/file-system.storage";
 import { Connection } from "projects/extension/connection/utils/connection";
+import { FileSystemHelper } from "@vsqlik/fs/utils/file-system.helper";
 
 /**
  * Base list directory for qix applications, this is only readonly
@@ -25,8 +26,9 @@ export abstract class AppListDirectory extends QixDirectory<DoclistEntry> {
 
     public constructor(
         @inject(QixApplicationProvider) protected applicationProvider: QixApplicationProvider,
+        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
     ) {
-        super();
+        super(fileSystemHelper);
     }
 
     public stat(): vscode.FileStat | Thenable<vscode.FileStat> {

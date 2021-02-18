@@ -13,9 +13,9 @@ export class SheetDirectory extends QixDirectory<any> {
 
     public constructor(
         @inject(QixSheetProvider) private provider: QixSheetProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
+        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
     ) {
-        super();
+        super(fileSystemHelper);
     }
 
     protected async loadData(uri: vscode.Uri): Promise<DirectoryItem<any>[]> {
