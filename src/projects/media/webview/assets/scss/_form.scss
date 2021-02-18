@@ -45,7 +45,7 @@
 input {
     border: var(--vscode-input-border);
 
-    &[type="text"], 
+    &[type="text"],
     &[type="password"] {
         background: var(--vscode-settings-textInputBackground);
         color: var(--vscode-settings-textInputForeground);
