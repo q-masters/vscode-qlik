@@ -14,21 +14,9 @@ export class VisualizationDirectory extends QixDirectory<any> {
 
     public constructor(
         @inject(QixVisualizationProvider) private visualizationProvider: QixVisualizationProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
+        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
     ) {
-        super();
-    }
-
-    /**
-     * static library which allways exists
-     */
-    public stat(): vscode.FileStat | Thenable<vscode.FileStat> {
-        return {
-            ctime: Date.now(),
-            mtime: Date.now(),
-            size: 0,
-            type: vscode.FileType.Directory
-        };
+        super(fileSystemHelper);
     }
 
     /**

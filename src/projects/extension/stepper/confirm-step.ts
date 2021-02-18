@@ -7,14 +7,6 @@ export class InputStep extends Step<string> {
 
     private field: vscode.QuickPick<any>;
 
-    public constructor(
-        private placeholder: string,
-        private additionalTitle = "",
-        private isPassword = false
-    ) {
-        super();
-    }
-
     /**
      * renders input box to vscode and listen on events
      */

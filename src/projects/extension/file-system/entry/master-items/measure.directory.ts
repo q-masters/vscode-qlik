@@ -14,9 +14,9 @@ export class MeasureDirectory extends QixDirectory<any> {
 
     public constructor(
         @inject(QixMeasureProvider) private measureProvider: QixMeasureProvider,
-        @inject(FileSystemHelper) private fileSystemHelper: FileSystemHelper
+        @inject(FileSystemHelper) fileSystemHelper: FileSystemHelper
     ) {
-        super();
+        super(fileSystemHelper);
     }
 
     /**
