@@ -209,7 +209,7 @@
     "deepmerge": "4.2.2",
     "electron": "^11.3.0",
     "eslint": "7.20.0",
-    "html-loader": "2.0.0",
+    "html-loader": "2.1.0",
     "minimist": "1.2.5",
     "mocha": "8.3.0",
     "rimraf": "3.0.2",
