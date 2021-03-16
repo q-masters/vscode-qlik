@@ -192,7 +192,7 @@
   "devDependencies": {
     "@types/chai": "4.2.15",
     "@types/enigma.js": "2.2.1",
-    "@types/node": "14.14.32",
+    "@types/node": "14.14.35",
     "@types/node-fetch": "^2.5.8",
     "@types/qlik-engineapi": "12.67.9",
     "@types/request": "2.48.5",
