@@ -232,7 +232,7 @@
     "reflect-metadata": "^0.1.13",
     "request": "2.88.2",
     "rxjs": "^6.6.6",
-    "tsyringe": "^4.4.0",
+    "tsyringe": "^4.5.0",
     "winston": "^3.3.3",
     "winston-transport": "^4.4.0",
     "ws": "7.4.4",
