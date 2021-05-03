@@ -193,7 +193,7 @@
     "@types/chai": "4.2.15",
     "@types/enigma.js": "2.2.1",
     "@types/node": "15.0.1",
-    "@types/node-fetch": "^2.5.8",
+    "@types/node-fetch": "^2.5.10",
     "@types/qlik-engineapi": "12.67.9",
     "@types/request": "2.48.5",
     "@types/sinon": "10.0.0",
