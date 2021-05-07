@@ -33,7 +33,7 @@
     "@types/jasmine": "3.6.10",
     "@types/jasminewd2": "2.0.8",
     "@types/node": "15.0.1",
-    "@types/vscode": "1.55.0",
+    "@types/vscode": "1.56.0",
     "codelyzer": "6.0.1",
     "jasmine-core": "~3.7.1",
     "jasmine-spec-reporter": "~7.0.0",
