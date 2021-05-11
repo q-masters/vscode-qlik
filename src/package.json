@@ -199,7 +199,7 @@
     "@types/sinon": "10.0.0",
     "@types/triple-beam": "^1.3.2",
     "@types/vscode": "1.45.1",
-    "@types/ws": "7.4.2",
+    "@types/ws": "7.4.4",
     "@typescript-eslint/eslint-plugin": "4.0.0",
     "@typescript-eslint/parser": "3.10.1",
     "chai": "4.3.4",
