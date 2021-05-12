@@ -225,7 +225,7 @@
     "webpack-cli": "4.7.0"
   },
   "dependencies": {
-    "enigma.js": "2.7.2",
+    "enigma.js": "2.7.3",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.1",
     "object-hash": "2.1.1",
