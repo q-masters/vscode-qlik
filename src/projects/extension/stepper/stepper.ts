@@ -12,7 +12,7 @@ export class Stepper {
         this.steps.push(step);
     }
 
-    public async run<R extends unknown>(): Promise<(R | undefined)[]> {
+    public async run<R>(): Promise<(R | undefined)[]> {
 
         const steps: IStep[] = [...this.steps];
         const result: (R | undefined)[] = [];

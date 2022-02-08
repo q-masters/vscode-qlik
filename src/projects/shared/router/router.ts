@@ -1,6 +1,6 @@
 import { singleton, container } from "tsyringe";
 
-export interface Route<T extends any> {
+export interface Route<T> {
     path: string;
     ctrl: ClassConstructor<T>;
     children?: Route<T>[];
