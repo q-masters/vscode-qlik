@@ -21,7 +21,7 @@ export class ApplicationDirectory extends QixFsDirectoryAdapter {
         sheets: true,
         variables: true,
         visualization: true
-    }
+    };
 
     /**
      * read directory

@@ -38,7 +38,7 @@ export class CacheRegistry<T extends Object> {
     /**
      * add value to cache
      */
-    public add<R extends any>(namespace: T, key: string, value: R): void {
+    public add<R>(namespace: T, key: string, value: R): void {
 
         if (!namespace) {
             return;
@@ -52,7 +52,7 @@ export class CacheRegistry<T extends Object> {
         cache?.set(key, value);
     }
 
-    public resolve<R extends any>(token: T, key: string): R | undefined {
+    public resolve<R>(token: T, key: string): R | undefined {
         return this.registry.get(token)?.get(key);
     }
 
